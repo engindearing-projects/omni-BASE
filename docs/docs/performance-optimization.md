@@ -3,7 +3,7 @@
 Valdi was designed for high performance from the ground up. There are a few key points that makes it fast:
 - It avoids allocations on render when possible.
 - It avoids marshalling between JS and native code as much as possible.
-- Component's rendering are local, a component can re-render without triggering a render from its parent unlike React. This can make incremental updates of a child Component a lot faster.
+- Component's rendering are local, a component can re-render without triggering a render from its parent. Additionally, in cascading renders between parent to a nested child, the renderer can skip ancestors in between them in many cases. This allows for quick incremental updates.
 - Child Components are only re-rendered whenever their view model changed.
 - Native views are re-used across all components.
 - Logic which runs in the iOS/Android main thread is all C++ code.
