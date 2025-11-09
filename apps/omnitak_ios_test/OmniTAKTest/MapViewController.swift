@@ -6,12 +6,17 @@ import CoreLocation
 struct ATAKMapView: View {
     @StateObject private var takService = TAKService()
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var drawingStore = DrawingStore()
+    @StateObject private var drawingManager: DrawingToolsManager
+
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 38.8977, longitude: -77.0365), // Default: DC
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
     @State private var showServerConfig = false
     @State private var showLayersPanel = false
+    @State private var showDrawingPanel = false
+    @State private var showDrawingList = false
     @State private var mapType: MKMapType = .satellite
     @State private var showTraffic = false
     @State private var trackingMode: MapUserTrackingMode = .follow
@@ -22,6 +27,12 @@ struct ATAKMapView: View {
     @State private var showFriendly = true
     @State private var showHostile = true
     @State private var showUnknown = false
+
+    init() {
+        let store = DrawingStore()
+        _drawingStore = StateObject(wrappedValue: store)
+        _drawingManager = StateObject(wrappedValue: DrawingToolsManager(drawingStore: store))
+    }
 
     // Detect device orientation
     @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -68,7 +79,10 @@ struct ATAKMapView: View {
                 mapType: $mapType,
                 trackingMode: $trackingMode,
                 markers: cotMarkers,
-                showsUserLocation: true
+                showsUserLocation: true,
+                drawingStore: drawingStore,
+                drawingManager: drawingManager,
+                onMapTap: handleMapTap
             )
             .ignoresSafeArea()
 
@@ -94,6 +108,8 @@ struct ATAKMapView: View {
                 ATAKBottomToolbar(
                     mapType: $mapType,
                     showLayersPanel: $showLayersPanel,
+                    showDrawingPanel: $showDrawingPanel,
+                    showDrawingList: $showDrawingList,
                     onCenterUser: centerOnUser,
                     onSendCoT: sendSelfPosition,
                     onZoomIn: zoomIn,
@@ -130,6 +146,40 @@ struct ATAKMapView: View {
                     Spacer()
                 }
             }
+
+            // Drawing Tools Panel - Right side
+            if showDrawingPanel {
+                HStack {
+                    Spacer()
+                    DrawingToolsPanel(
+                        drawingManager: drawingManager,
+                        isVisible: $showDrawingPanel,
+                        onComplete: {
+                            // Drawing completed
+                        },
+                        onCancel: {
+                            // Drawing cancelled
+                        }
+                    )
+                    .padding(.trailing, 8)
+                    .padding(.vertical, isLandscape ? 80 : 120)
+                    .transition(.move(edge: .trailing))
+                }
+            }
+
+            // Drawing List Panel - Right side
+            if showDrawingList {
+                HStack {
+                    Spacer()
+                    DrawingListPanel(
+                        drawingStore: drawingStore,
+                        isVisible: $showDrawingList
+                    )
+                    .padding(.trailing, 8)
+                    .padding(.vertical, isLandscape ? 80 : 120)
+                    .transition(.move(edge: .trailing))
+                }
+            }
         }
         .sheet(isPresented: $showServerConfig) {
             ServerConfigView(takService: takService)
@@ -137,6 +187,14 @@ struct ATAKMapView: View {
         .onAppear {
             setupTAKConnection()
             startLocationUpdates()
+        }
+    }
+
+    // MARK: - Drawing Handler
+
+    private func handleMapTap(at coordinate: CLLocationCoordinate2D) {
+        if drawingManager.isDrawingActive {
+            drawingManager.handleMapTap(at: coordinate)
         }
     }
 
@@ -338,6 +396,8 @@ struct ATAKStatusBar: View {
 struct ATAKBottomToolbar: View {
     @Binding var mapType: MKMapType
     @Binding var showLayersPanel: Bool
+    @Binding var showDrawingPanel: Bool
+    @Binding var showDrawingList: Bool
     let onCenterUser: () -> Void
     let onSendCoT: () -> Void
     let onZoomIn: () -> Void
@@ -348,6 +408,8 @@ struct ATAKBottomToolbar: View {
             // Layers
             ToolButton(icon: "square.stack.3d.up.fill", label: "Layers") {
                 showLayersPanel.toggle()
+                showDrawingPanel = false
+                showDrawingList = false
             }
 
             Spacer()
@@ -374,14 +436,18 @@ struct ATAKBottomToolbar: View {
 
             Spacer()
 
-            // Measure Tool
-            ToolButton(icon: "ruler", label: "Measure") {
-                // TODO: Implement measure tool
+            // Drawing Tools
+            ToolButton(icon: "pencil.tip.crop.circle", label: "Draw") {
+                showDrawingPanel.toggle()
+                showLayersPanel = false
+                showDrawingList = false
             }
 
-            // Route Tool
-            ToolButton(icon: "arrow.triangle.turn.up.right.diamond.fill", label: "Route") {
-                // TODO: Implement route tool
+            // Drawing List
+            ToolButton(icon: "list.bullet.rectangle", label: "Drawings") {
+                showDrawingList.toggle()
+                showLayersPanel = false
+                showDrawingPanel = false
             }
         }
         .padding(.horizontal, 20)
@@ -891,6 +957,9 @@ struct TacticalMapView: UIViewRepresentable {
     @Binding var trackingMode: MapUserTrackingMode
     let markers: [CoTMarker]
     let showsUserLocation: Bool
+    @ObservedObject var drawingStore: DrawingStore
+    @ObservedObject var drawingManager: DrawingToolsManager
+    let onMapTap: (CLLocationCoordinate2D) -> Void
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -898,10 +967,18 @@ struct TacticalMapView: UIViewRepresentable {
         mapView.showsUserLocation = showsUserLocation
         mapView.mapType = mapType
         mapView.region = region
+
+        // Add tap gesture recognizer
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapTap(_:)))
+        mapView.addGestureRecognizer(tapGesture)
+
         return mapView
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        // Update coordinator reference
+        context.coordinator.parent = self
+
         // Update map type
         if mapView.mapType != mapType {
             mapView.mapType = mapType
@@ -914,18 +991,25 @@ struct TacticalMapView: UIViewRepresentable {
         }
 
         // Update markers
-        updateAnnotations(mapView: mapView, markers: markers)
+        updateAnnotations(mapView: mapView, markers: markers, context: context)
+
+        // Update overlays
+        updateOverlays(mapView: mapView, context: context)
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
-    private func updateAnnotations(mapView: MKMapView, markers: [CoTMarker]) {
-        // Remove old annotations
-        mapView.removeAnnotations(mapView.annotations.filter { !($0 is MKUserLocation) })
+    private func updateAnnotations(mapView: MKMapView, markers: [CoTMarker], context: Context) {
+        // Remove old CoT annotations (but keep drawing annotations)
+        let oldAnnotations = mapView.annotations.filter { annotation in
+            !(annotation is MKUserLocation) &&
+            !context.coordinator.isDrawingAnnotation(annotation)
+        }
+        mapView.removeAnnotations(oldAnnotations)
 
-        // Add new annotations
+        // Add new CoT annotations
         let annotations = markers.map { marker -> MKPointAnnotation in
             let annotation = MKPointAnnotation()
             annotation.coordinate = marker.coordinate
@@ -934,6 +1018,41 @@ struct TacticalMapView: UIViewRepresentable {
             return annotation
         }
         mapView.addAnnotations(annotations)
+
+        // Update drawing annotations
+        updateDrawingAnnotations(mapView: mapView, context: context)
+    }
+
+    private func updateDrawingAnnotations(mapView: MKMapView, context: Context) {
+        // Remove old drawing annotations
+        let oldDrawingAnnotations = mapView.annotations.filter { context.coordinator.isDrawingAnnotation($0) }
+        mapView.removeAnnotations(oldDrawingAnnotations)
+
+        // Add drawing marker annotations
+        for marker in drawingStore.markers {
+            let annotation = DrawingMarkerAnnotation(marker: marker)
+            mapView.addAnnotation(annotation)
+        }
+
+        // Add temporary drawing point annotations
+        if drawingManager.isDrawingActive {
+            let tempAnnotations = drawingManager.getTemporaryAnnotations()
+            mapView.addAnnotations(tempAnnotations)
+        }
+    }
+
+    private func updateOverlays(mapView: MKMapView, context: Context) {
+        // Remove all overlays
+        mapView.removeOverlays(mapView.overlays)
+
+        // Add saved drawing overlays
+        let savedOverlays = drawingStore.getAllOverlays()
+        mapView.addOverlays(savedOverlays)
+
+        // Add temporary overlay if drawing
+        if let tempOverlay = drawingManager.getTemporaryOverlay() {
+            mapView.addOverlay(tempOverlay)
+        }
     }
 
     private func mapTypeString(_ type: MKMapType) -> String {
@@ -956,6 +1075,17 @@ struct TacticalMapView: UIViewRepresentable {
             self.parent = parent
         }
 
+        @objc func handleMapTap(_ gesture: UITapGestureRecognizer) {
+            guard let mapView = gesture.view as? MKMapView else { return }
+            let point = gesture.location(in: mapView)
+            let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+            parent.onMapTap(coordinate)
+        }
+
+        func isDrawingAnnotation(_ annotation: MKAnnotation) -> Bool {
+            return annotation is DrawingMarkerAnnotation || annotation.title == "Point"
+        }
+
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
             isUserInteracting = true
         }
@@ -974,6 +1104,68 @@ struct TacticalMapView: UIViewRepresentable {
                 return nil
             }
 
+            // Handle drawing marker annotations
+            if let drawingAnnotation = annotation as? DrawingMarkerAnnotation {
+                let identifier = "DrawingMarker"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
+                } else {
+                    annotationView?.annotation = annotation
+                }
+
+                // Create custom marker image with color
+                let size = CGSize(width: 30, height: 30)
+                let renderer = UIGraphicsImageRenderer(size: size)
+                let image = renderer.image { context in
+                    drawingAnnotation.marker.color.uiColor.setFill()
+                    let path = UIBezierPath(ovalIn: CGRect(origin: .zero, size: size))
+                    path.fill()
+
+                    // Add border
+                    UIColor.white.setStroke()
+                    path.lineWidth = 2
+                    path.stroke()
+                }
+
+                annotationView?.image = image
+                annotationView?.centerOffset = CGPoint(x: 0, y: -size.height / 2)
+
+                return annotationView
+            }
+
+            // Handle temporary point annotations
+            if annotation.title == "Point" {
+                let identifier = "TempPoint"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+
+                if annotationView == nil {
+                    annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                } else {
+                    annotationView?.annotation = annotation
+                }
+
+                // Create small point marker
+                let size = CGSize(width: 12, height: 12)
+                let renderer = UIGraphicsImageRenderer(size: size)
+                let image = renderer.image { context in
+                    UIColor.systemYellow.setFill()
+                    let path = UIBezierPath(ovalIn: CGRect(origin: .zero, size: size))
+                    path.fill()
+
+                    UIColor.white.setStroke()
+                    path.lineWidth = 2
+                    path.stroke()
+                }
+
+                annotationView?.image = image
+
+                return annotationView
+            }
+
+            // Handle CoT marker annotations
             let identifier = "CoTMarker"
             var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
 
@@ -1014,5 +1206,54 @@ struct TacticalMapView: UIViewRepresentable {
 
             return annotationView
         }
+
+        // MARK: - Overlay Renderers
+
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            // Get color from drawing store
+            let color = parent.drawingStore.getDrawingColor(for: overlay)?.uiColor ?? UIColor.systemRed
+
+            if let polyline = overlay as? MKPolyline {
+                let renderer = MKPolylineRenderer(polyline: polyline)
+                renderer.strokeColor = color
+                renderer.lineWidth = 3
+                return renderer
+            }
+
+            if let circle = overlay as? MKCircle {
+                let renderer = MKCircleRenderer(circle: circle)
+                renderer.strokeColor = color
+                renderer.fillColor = color.withAlphaComponent(0.2)
+                renderer.lineWidth = 2
+                return renderer
+            }
+
+            if let polygon = overlay as? MKPolygon {
+                let renderer = MKPolygonRenderer(polygon: polygon)
+                renderer.strokeColor = color
+                renderer.fillColor = color.withAlphaComponent(0.2)
+                renderer.lineWidth = 2
+                return renderer
+            }
+
+            return MKOverlayRenderer(overlay: overlay)
+        }
+    }
+}
+
+// MARK: - Drawing Marker Annotation
+
+class DrawingMarkerAnnotation: NSObject, MKAnnotation {
+    let marker: MarkerDrawing
+    var coordinate: CLLocationCoordinate2D
+    var title: String?
+    var subtitle: String?
+
+    init(marker: MarkerDrawing) {
+        self.marker = marker
+        self.coordinate = marker.coordinate
+        self.title = marker.name
+        self.subtitle = "Drawing Marker"
+        super.init()
     }
 }

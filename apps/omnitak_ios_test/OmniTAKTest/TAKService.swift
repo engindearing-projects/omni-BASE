@@ -22,6 +22,13 @@ struct CoTPoint {
 struct CoTDetail {
     let callsign: String
     let team: String?
+    // Enhanced fields
+    let speed: Double?
+    let course: Double?
+    let remarks: String?
+    let battery: Int?
+    let device: String?
+    let platform: String?
 }
 
 class TAKService: ObservableObject {
@@ -32,9 +39,16 @@ class TAKService: ObservableObject {
     @Published var messagesSent: Int = 0
     @Published var lastMessage = ""
     @Published var cotEvents: [CoTEvent] = []
+    @Published var enhancedMarkers: [String: EnhancedCoTMarker] = [:]  // UID -> Marker map
 
     private var connectionHandle: UInt64 = 0
     var onCoTReceived: ((CoTEvent) -> Void)?
+    var onMarkerUpdated: ((EnhancedCoTMarker) -> Void)?
+    var onChatMessageReceived: ((ChatMessage) -> Void)?
+
+    // History tracking configuration
+    var maxHistoryPerUnit: Int = 100
+    var historyRetentionTime: TimeInterval = 3600  // 1 hour
 
     init() {
         // Initialize the omnitak library
@@ -130,12 +144,159 @@ class TAKService: ObservableObject {
         }
     }
 
+    // Send chat message (wrapper for convenience)
+    func sendChatMessage(xml: String) -> Bool {
+        return sendCoT(xml: xml)
+    }
+
     private func registerCallback() {
         // Create context pointer
         let context = Unmanaged.passUnretained(self).toOpaque()
 
         // Register callback
         omnitak_register_callback(connectionHandle, cotCallback, context)
+    }
+
+    // MARK: - Enhanced Marker Management
+
+    func updateEnhancedMarker(from event: CoTEvent) {
+        let coordinate = CLLocationCoordinate2D(
+            latitude: event.point.lat,
+            longitude: event.point.lon
+        )
+
+        let affiliation = UnitAffiliation.from(cotType: event.type)
+        let unitType = UnitType.from(cotType: event.type)
+
+        // Check if marker exists
+        if var existingMarker = enhancedMarkers[event.uid] {
+            // Update existing marker
+            var updatedHistory = existingMarker.positionHistory
+
+            // Add new position if it's different enough
+            let newPosition = CoTPosition(
+                coordinate: coordinate,
+                altitude: event.point.hae,
+                timestamp: event.time,
+                speed: event.detail.speed,
+                course: event.detail.course
+            )
+
+            // Only add if position changed significantly
+            if shouldAddToHistory(newPosition: newPosition, existingHistory: updatedHistory) {
+                updatedHistory.append(newPosition)
+
+                // Trim history to max length
+                if updatedHistory.count > maxHistoryPerUnit {
+                    updatedHistory = Array(updatedHistory.suffix(maxHistoryPerUnit))
+                }
+
+                // Remove old positions
+                let cutoffTime = Date().addingTimeInterval(-historyRetentionTime)
+                updatedHistory.removeAll { $0.timestamp < cutoffTime }
+            }
+
+            // Create updated marker
+            let updatedMarker = EnhancedCoTMarker(
+                id: existingMarker.id,
+                uid: event.uid,
+                type: event.type,
+                timestamp: event.time,
+                coordinate: coordinate,
+                altitude: event.point.hae,
+                ce: event.point.ce,
+                le: event.point.le,
+                callsign: event.detail.callsign,
+                team: event.detail.team,
+                affiliation: affiliation,
+                unitType: unitType,
+                speed: event.detail.speed,
+                course: event.detail.course,
+                remarks: event.detail.remarks,
+                battery: event.detail.battery,
+                device: event.detail.device,
+                platform: event.detail.platform,
+                lastUpdate: Date(),
+                positionHistory: updatedHistory
+            )
+
+            enhancedMarkers[event.uid] = updatedMarker
+            onMarkerUpdated?(updatedMarker)
+
+        } else {
+            // Create new marker
+            let initialPosition = CoTPosition(
+                coordinate: coordinate,
+                altitude: event.point.hae,
+                timestamp: event.time,
+                speed: event.detail.speed,
+                course: event.detail.course
+            )
+
+            let newMarker = EnhancedCoTMarker(
+                id: UUID(),
+                uid: event.uid,
+                type: event.type,
+                timestamp: event.time,
+                coordinate: coordinate,
+                altitude: event.point.hae,
+                ce: event.point.ce,
+                le: event.point.le,
+                callsign: event.detail.callsign,
+                team: event.detail.team,
+                affiliation: affiliation,
+                unitType: unitType,
+                speed: event.detail.speed,
+                course: event.detail.course,
+                remarks: event.detail.remarks,
+                battery: event.detail.battery,
+                device: event.detail.device,
+                platform: event.detail.platform,
+                lastUpdate: Date(),
+                positionHistory: [initialPosition]
+            )
+
+            enhancedMarkers[event.uid] = newMarker
+            onMarkerUpdated?(newMarker)
+        }
+    }
+
+    private func shouldAddToHistory(newPosition: CoTPosition, existingHistory: [CoTPosition]) -> Bool {
+        guard let lastPosition = existingHistory.last else { return true }
+
+        // Calculate distance from last position
+        let loc1 = CLLocation(
+            latitude: lastPosition.coordinate.latitude,
+            longitude: lastPosition.coordinate.longitude
+        )
+        let loc2 = CLLocation(
+            latitude: newPosition.coordinate.latitude,
+            longitude: newPosition.coordinate.longitude
+        )
+
+        let distance = loc1.distance(from: loc2)
+
+        // Add if moved more than 5 meters or more than 30 seconds passed
+        let timeDiff = newPosition.timestamp.timeIntervalSince(lastPosition.timestamp)
+        return distance > 5.0 || timeDiff > 30
+    }
+
+    /// Remove stale markers (older than 15 minutes)
+    func removeStaleMarkers() {
+        let cutoffTime = Date().addingTimeInterval(-900)  // 15 minutes
+        enhancedMarkers = enhancedMarkers.filter { _, marker in
+            marker.lastUpdate > cutoffTime
+        }
+    }
+
+    /// Get marker by UID
+    func getMarker(uid: String) -> EnhancedCoTMarker? {
+        return enhancedMarkers[uid]
+    }
+
+    /// Get all markers as array
+    func getAllMarkers() -> [EnhancedCoTMarker] {
+        return Array(enhancedMarkers.values)
     }
 }
 
@@ -156,19 +317,40 @@ private func cotCallback(
     // Get the TAKService instance
     let service = Unmanaged<TAKService>.fromOpaque(userData).takeUnretainedValue()
 
-    // Parse CoT message
-    if let event = parseCoT(xml: message) {
-        DispatchQueue.main.async {
-            service.messagesReceived += 1
-            service.lastMessage = message
-            service.cotEvents.append(event)
-            service.onCoTReceived?(event)
-            print("📥 Received CoT: \(event.detail.callsign) at (\(event.point.lat), \(event.point.lon))")
+    // Check if this is a GeoChat message (b-t-f type)
+    if message.contains("type=\"b-t-f\"") {
+        if let chatMessage = ChatXMLParser.parseGeoChatMessage(xml: message) {
+            DispatchQueue.main.async {
+                service.messagesReceived += 1
+                service.lastMessage = message
+                service.onChatMessageReceived?(chatMessage)
+                print("💬 Received chat message from \(chatMessage.senderCallsign): \(chatMessage.messageText)")
+            }
+        }
+    } else {
+        // Parse regular CoT message
+        if let event = parseCoT(xml: message) {
+            DispatchQueue.main.async {
+                service.messagesReceived += 1
+                service.lastMessage = message
+                service.cotEvents.append(event)
+                service.onCoTReceived?(event)
+
+                // Update enhanced marker
+                service.updateEnhancedMarker(from: event)
+
+                // Also parse participant info for chat
+                if let participant = ChatXMLParser.parseParticipantFromPresence(xml: message) {
+                    ChatManager.shared.updateParticipant(participant)
+                }
+
+                print("📥 Received CoT: \(event.detail.callsign) at (\(event.point.lat), \(event.point.lon))")
+            }
         }
     }
 }
 
-// Simple CoT XML Parser
+// Enhanced CoT XML Parser
 private func parseCoT(xml: String) -> CoTEvent? {
     // Extract UID
     guard let uidRange = xml.range(of: "uid=\"([^\"]+)\"", options: .regularExpression),
@@ -209,9 +391,60 @@ private func parseCoT(xml: String) -> CoTEvent? {
 
     // Extract team
     var team: String? = nil
-    if let teamRange = xml.range(of: "name=\"([^\"]+)\"", options: .regularExpression),
-       let extractedTeam = xml[teamRange].split(separator: "\"").dropFirst().first {
+    if let teamRange = xml.range(of: "<__group[^>]*name=\"([^\"]+)\"", options: .regularExpression),
+       let extractedTeam = xml[teamRange].split(separator: "\"").dropFirst().dropFirst().first {
         team = String(extractedTeam)
+    }
+
+    // Extract speed from track element
+    var speed: Double? = nil
+    if let trackRange = xml.range(of: "<track[^>]+>", options: .regularExpression) {
+        let trackTag = String(xml[trackRange])
+        if let speedStr = extractAttribute("speed", from: trackTag) {
+            speed = Double(speedStr)
+        }
+    }
+
+    // Extract course from track element
+    var course: Double? = nil
+    if let trackRange = xml.range(of: "<track[^>]+>", options: .regularExpression) {
+        let trackTag = String(xml[trackRange])
+        if let courseStr = extractAttribute("course", from: trackTag) {
+            course = Double(courseStr)
+        }
+    }
+
+    // Extract remarks
+    var remarks: String? = nil
+    if let remarksRange = xml.range(of: "<remarks>([^<]+)</remarks>", options: .regularExpression) {
+        let remarksMatch = String(xml[remarksRange])
+        if let start = remarksMatch.range(of: ">"),
+           let end = remarksMatch.range(of: "</") {
+            remarks = String(remarksMatch[start.upperBound..<end.lowerBound])
+        }
+    }
+
+    // Extract battery from status element
+    var battery: Int? = nil
+    if let statusRange = xml.range(of: "<status[^>]+>", options: .regularExpression) {
+        let statusTag = String(xml[statusRange])
+        if let batteryStr = extractAttribute("battery", from: statusTag) {
+            battery = Int(batteryStr)
+        }
+    }
+
+    // Extract device from takv element
+    var device: String? = nil
+    if let takvRange = xml.range(of: "<takv[^>]+>", options: .regularExpression) {
+        let takvTag = String(xml[takvRange])
+        device = extractAttribute("device", from: takvTag)
+    }
+
+    // Extract platform from takv element
+    var platform: String? = nil
+    if let takvRange = xml.range(of: "<takv[^>]+>", options: .regularExpression) {
+        let takvTag = String(xml[takvRange])
+        platform = extractAttribute("platform", from: takvTag)
     }
 
     return CoTEvent(
@@ -219,7 +452,16 @@ private func parseCoT(xml: String) -> CoTEvent? {
         type: String(type),
         time: Date(),
         point: CoTPoint(lat: lat, lon: lon, hae: hae, ce: ce, le: le),
-        detail: CoTDetail(callsign: callsign, team: team)
+        detail: CoTDetail(
+            callsign: callsign,
+            team: team,
+            speed: speed,
+            course: course,
+            remarks: remarks,
+            battery: battery,
+            device: device,
+            platform: platform
+        )
     )
 }
 

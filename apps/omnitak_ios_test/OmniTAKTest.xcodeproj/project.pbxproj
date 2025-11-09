@@ -14,6 +14,33 @@
 		A1111111111111111111111100000007 /* ServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100000015 /* ServerManager.swift */; };
 		A1111111111111111111111100000004 /* OmniTAKMobile.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100000021 /* OmniTAKMobile.xcframework */; };
 		A1111111111111111111111100000005 /* OmniTAKMobile.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100000021 /* OmniTAKMobile.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A1111111111111111111111100000200 /* ChatManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001200 /* ChatManager.swift */; };
+		A1111111111111111111111100000201 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001201 /* ChatModels.swift */; };
+		A1111111111111111111111100000202 /* ChatPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001202 /* ChatPersistence.swift */; };
+		A1111111111111111111111100000203 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001203 /* ChatView.swift */; };
+		A1111111111111111111111100000204 /* ChatXMLGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001204 /* ChatXMLGenerator.swift */; };
+		A1111111111111111111111100000205 /* ChatXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001205 /* ChatXMLParser.swift */; };
+		A1111111111111111111111100000206 /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001206 /* ConversationView.swift */; };
+		A1111111111111111111111100000207 /* CoTFilterCriteria.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001207 /* CoTFilterCriteria.swift */; };
+		A1111111111111111111111100000208 /* CoTFilterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001208 /* CoTFilterManager.swift */; };
+		A1111111111111111111111100000209 /* CoTFilterModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001209 /* CoTFilterModel.swift */; };
+		A1111111111111111111111100000210 /* CoTFilterPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001210 /* CoTFilterPanel.swift */; };
+		A1111111111111111111111100000211 /* CoTUnitListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001211 /* CoTUnitListView.swift */; };
+		A1111111111111111111111100000212 /* CustomMarkerAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001212 /* CustomMarkerAnnotation.swift */; };
+		A1111111111111111111111100000213 /* DrawingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001213 /* DrawingModels.swift */; };
+		A1111111111111111111111100000214 /* DrawingPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001214 /* DrawingPersistence.swift */; };
+		A1111111111111111111111100000215 /* DrawingPropertiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001215 /* DrawingPropertiesView.swift */; };
+		A1111111111111111111111100000216 /* DrawingToolsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001216 /* DrawingToolsManager.swift */; };
+		A1111111111111111111111100000217 /* DrawingToolsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001217 /* DrawingToolsPanel.swift */; };
+		A1111111111111111111111100000218 /* EnhancedCoTMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001218 /* EnhancedCoTMarker.swift */; };
+		A1111111111111111111111100000219 /* MarkerInfoPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001219 /* MarkerInfoPanel.swift */; };
+		A1111111111111111111111100000220 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001220 /* NetworkMonitor.swift */; };
+		A1111111111111111111111100000221 /* OfflineMapManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001221 /* OfflineMapManager.swift */; };
+		A1111111111111111111111100000222 /* OfflineMapsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001222 /* OfflineMapsView.swift */; };
+		A1111111111111111111111100000223 /* OfflineTileOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001223 /* OfflineTileOverlay.swift */; };
+		A1111111111111111111111100000224 /* RegionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001224 /* RegionSelectionView.swift */; };
+		A1111111111111111111111100000225 /* TileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001225 /* TileDownloader.swift */; };
+		A1111111111111111111111100000226 /* UnitTrailOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001226 /* UnitTrailOverlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +66,33 @@
 		A1111111111111111111111100000021 /* OmniTAKMobile.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = OmniTAKMobile.xcframework; sourceTree = "<group>"; };
 		A1111111111111111111111100000041 /* OmniTAKTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OmniTAKTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1111111111111111111111100000051 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1111111111111111111111100001200 /* ChatManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatManager.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001201 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatModels.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001202 /* ChatPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatPersistence.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001203 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001204 /* ChatXMLGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatXMLGenerator.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001205 /* ChatXMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatXMLParser.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001206 /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001207 /* CoTFilterCriteria.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoTFilterCriteria.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001208 /* CoTFilterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoTFilterManager.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001209 /* CoTFilterModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoTFilterModel.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001210 /* CoTFilterPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoTFilterPanel.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001211 /* CoTUnitListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoTUnitListView.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001212 /* CustomMarkerAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMarkerAnnotation.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001213 /* DrawingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingModels.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001214 /* DrawingPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingPersistence.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001215 /* DrawingPropertiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingPropertiesView.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001216 /* DrawingToolsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingToolsManager.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001217 /* DrawingToolsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingToolsPanel.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001218 /* EnhancedCoTMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedCoTMarker.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001219 /* MarkerInfoPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkerInfoPanel.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001220 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001221 /* OfflineMapManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineMapManager.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001222 /* OfflineMapsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineMapsView.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001223 /* OfflineTileOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineTileOverlay.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001224 /* RegionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionSelectionView.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001225 /* TileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileDownloader.swift; sourceTree = "<group>"; };
+		A1111111111111111111111100001226 /* UnitTrailOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitTrailOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +124,33 @@
 				A1111111111111111111111100000014 /* MapViewController.swift */,
 				A1111111111111111111111100000013 /* TAKService.swift */,
 				A1111111111111111111111100000015 /* ServerManager.swift */,
+				A1111111111111111111111100001200 /* ChatManager.swift */,
+				A1111111111111111111111100001201 /* ChatModels.swift */,
+				A1111111111111111111111100001202 /* ChatPersistence.swift */,
+				A1111111111111111111111100001203 /* ChatView.swift */,
+				A1111111111111111111111100001204 /* ChatXMLGenerator.swift */,
+				A1111111111111111111111100001205 /* ChatXMLParser.swift */,
+				A1111111111111111111111100001206 /* ConversationView.swift */,
+				A1111111111111111111111100001207 /* CoTFilterCriteria.swift */,
+				A1111111111111111111111100001208 /* CoTFilterManager.swift */,
+				A1111111111111111111111100001209 /* CoTFilterModel.swift */,
+				A1111111111111111111111100001210 /* CoTFilterPanel.swift */,
+				A1111111111111111111111100001211 /* CoTUnitListView.swift */,
+				A1111111111111111111111100001212 /* CustomMarkerAnnotation.swift */,
+				A1111111111111111111111100001213 /* DrawingModels.swift */,
+				A1111111111111111111111100001214 /* DrawingPersistence.swift */,
+				A1111111111111111111111100001215 /* DrawingPropertiesView.swift */,
+				A1111111111111111111111100001216 /* DrawingToolsManager.swift */,
+				A1111111111111111111111100001217 /* DrawingToolsPanel.swift */,
+				A1111111111111111111111100001218 /* EnhancedCoTMarker.swift */,
+				A1111111111111111111111100001219 /* MarkerInfoPanel.swift */,
+				A1111111111111111111111100001220 /* NetworkMonitor.swift */,
+				A1111111111111111111111100001221 /* OfflineMapManager.swift */,
+				A1111111111111111111111100001222 /* OfflineMapsView.swift */,
+				A1111111111111111111111100001223 /* OfflineTileOverlay.swift */,
+				A1111111111111111111111100001224 /* RegionSelectionView.swift */,
+				A1111111111111111111111100001225 /* TileDownloader.swift */,
+				A1111111111111111111111100001226 /* UnitTrailOverlay.swift */,
 				A1111111111111111111111100000051 /* Info.plist */,
 			);
 			path = OmniTAKTest;
@@ -146,6 +227,33 @@
 				A1111111111111111111111100000006 /* MapViewController.swift in Sources */,
 				A1111111111111111111111100000003 /* TAKService.swift in Sources */,
 				A1111111111111111111111100000007 /* ServerManager.swift in Sources */,
+				A1111111111111111111111100000200 /* ChatManager.swift in Sources */,
+				A1111111111111111111111100000201 /* ChatModels.swift in Sources */,
+				A1111111111111111111111100000202 /* ChatPersistence.swift in Sources */,
+				A1111111111111111111111100000203 /* ChatView.swift in Sources */,
+				A1111111111111111111111100000204 /* ChatXMLGenerator.swift in Sources */,
+				A1111111111111111111111100000205 /* ChatXMLParser.swift in Sources */,
+				A1111111111111111111111100000206 /* ConversationView.swift in Sources */,
+				A1111111111111111111111100000207 /* CoTFilterCriteria.swift in Sources */,
+				A1111111111111111111111100000208 /* CoTFilterManager.swift in Sources */,
+				A1111111111111111111111100000209 /* CoTFilterModel.swift in Sources */,
+				A1111111111111111111111100000210 /* CoTFilterPanel.swift in Sources */,
+				A1111111111111111111111100000211 /* CoTUnitListView.swift in Sources */,
+				A1111111111111111111111100000212 /* CustomMarkerAnnotation.swift in Sources */,
+				A1111111111111111111111100000213 /* DrawingModels.swift in Sources */,
+				A1111111111111111111111100000214 /* DrawingPersistence.swift in Sources */,
+				A1111111111111111111111100000215 /* DrawingPropertiesView.swift in Sources */,
+				A1111111111111111111111100000216 /* DrawingToolsManager.swift in Sources */,
+				A1111111111111111111111100000217 /* DrawingToolsPanel.swift in Sources */,
+				A1111111111111111111111100000218 /* EnhancedCoTMarker.swift in Sources */,
+				A1111111111111111111111100000219 /* MarkerInfoPanel.swift in Sources */,
+				A1111111111111111111111100000220 /* NetworkMonitor.swift in Sources */,
+				A1111111111111111111111100000221 /* OfflineMapManager.swift in Sources */,
+				A1111111111111111111111100000222 /* OfflineMapsView.swift in Sources */,
+				A1111111111111111111111100000223 /* OfflineTileOverlay.swift in Sources */,
+				A1111111111111111111111100000224 /* RegionSelectionView.swift in Sources */,
+				A1111111111111111111111100000225 /* TileDownloader.swift in Sources */,
+				A1111111111111111111111100000226 /* UnitTrailOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
