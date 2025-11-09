@@ -1,0 +1,67 @@
+# iOS-specific Bazel configuration for OmniTAK Mobile
+# Import this in your main .bazelrc with: try-import %workspace%/.bazelrc.ios
+
+# iOS minimum version
+build:ios --ios_minimum_os=14.0
+
+# iOS CPU configurations
+build:ios_arm64 --cpu=ios_arm64
+build:ios_arm64 --apple_platform_type=ios
+
+build:ios_sim_arm64 --cpu=ios_sim_arm64
+build:ios_sim_arm64 --apple_platform_type=ios
+
+build:ios_sim_x86_64 --cpu=ios_x86_64
+build:ios_sim_x86_64 --apple_platform_type=ios
+
+# Swift configuration
+build:ios --swiftcopt=-enable-testing
+build:ios --swiftcopt=-whole-module-optimization
+
+# Objective-C configuration for MapLibre
+build:ios --objccopt=-fobjc-arc
+build:ios --objccopt=-fmodules
+
+# Code signing (development)
+build:ios --ios_signing_cert_name=-  # Ad-hoc signing
+build:ios_device --ios_signing_cert_name="Apple Development"
+
+# Xcode configuration
+build:ios --xcode_version_config=@build_bazel_apple_support//xcode:host_xcodes
+
+# Enable sandbox for reproducibility
+build:ios --spawn_strategy=sandboxed
+
+# Debug symbols
+build:ios --apple_generate_dsym=true
+
+# Optimization for release builds
+build:ios_release --compilation_mode=opt
+build:ios_release --copt=-Os
+build:ios_release --swiftcopt=-O
+
+# Debug builds
+build:ios_debug --compilation_mode=dbg
+build:ios_debug --copt=-g
+build:ios_debug --swiftcopt=-g
+
+# Simulator-specific settings
+build:ios_simulator --config=ios_sim_arm64
+build:ios_simulator --apple_platform_type=ios
+
+# Device-specific settings
+build:ios_device --config=ios_arm64
+build:ios_device --apple_platform_type=ios
+
+# Combined configs for easy use
+build:ios_sim_debug --config=ios_simulator
+build:ios_sim_debug --config=ios_debug
+
+build:ios_sim_release --config=ios_simulator
+build:ios_sim_release --config=ios_release
+
+build:ios_dev_debug --config=ios_device
+build:ios_dev_debug --config=ios_debug
+
+build:ios_dev_release --config=ios_device
+build:ios_dev_release --config=ios_release

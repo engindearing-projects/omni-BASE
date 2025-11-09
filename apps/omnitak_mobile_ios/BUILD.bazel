@@ -1,0 +1,73 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_unit_test")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+# iOS Application Target for OmniTAK Mobile
+# Demonstrates MapLibre integration and TAK connectivity
+
+package(default_visibility = ["//visibility:public"])
+
+# Swift library containing app code
+swift_library(
+    name = "OmniTAKMobileLib",
+    srcs = glob(["src/ios/*.swift"]),
+    module_name = "OmniTAKMobile",
+    deps = [
+        "//modules/omnitak_mobile/ios/native:OmniTAKNativeBridge",
+        "@maplibre_native_ios//:MapLibre",
+    ],
+)
+
+# iOS Application
+ios_application(
+    name = "OmniTAKMobile",
+    bundle_id = "com.engindearing.omnitak.mobile",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["app_assets/ios/Info.plist"],
+    minimum_os_version = "14.0",
+    deps = [":OmniTAKMobileLib"],
+    frameworks = [
+        "//modules/omnitak_mobile/ios/native:OmniTAKMobile.xcframework",
+    ],
+    # Launch storyboard
+    resources = glob(["app_assets/ios/*.storyboard"]),
+)
+
+# iOS Simulator build config
+ios_application(
+    name = "OmniTAKMobile-Simulator",
+    bundle_id = "com.engindearing.omnitak.mobile",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["app_assets/ios/Info.plist"],
+    minimum_os_version = "14.0",
+    deps = [":OmniTAKMobileLib"],
+    frameworks = [
+        "//modules/omnitak_mobile/ios/native:OmniTAKMobile.xcframework",
+    ],
+    resources = glob(["app_assets/ios/*.storyboard"]),
+)
+
+# iOS Unit Tests
+ios_unit_test(
+    name = "OmniTAKMobileTests",
+    minimum_os_version = "14.0",
+    deps = [":OmniTAKMobileTestLib"],
+    test_host = ":OmniTAKMobile-Simulator",
+)
+
+swift_library(
+    name = "OmniTAKMobileTestLib",
+    testonly = True,
+    srcs = glob(["tests/ios/*.swift"]),
+    module_name = "OmniTAKMobileTests",
+    deps = [
+        ":OmniTAKMobileLib",
+        "//modules/omnitak_mobile/ios/native:OmniTAKNativeBridge",
+        "@maplibre_native_ios//:MapLibre",
+    ],
+)

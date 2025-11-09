@@ -330,6 +330,88 @@ maven.install(
 
 use_repo(maven, "android_mvn")
 
+# OmniTAK Mobile dependencies
+maven.install(
+    name = "omnitak_android_mvn",
+    artifacts = [
+        # MapLibre Android SDK
+        "org.maplibre.gl:android-sdk:11.5.2",
+        "org.maplibre.gl:android-sdk-turf:11.5.2",
+
+        # Geospatial utilities
+        "com.google.android.gms:play-services-location:21.0.1",
+        "com.mapbox.mapboxsdk:mapbox-android-gestures:0.7.0",
+
+        # Additional geospatial support
+        "org.locationtech.jts:jts-core:1.19.0",
+        "mil.nga.geopackage:geopackage-android:6.7.4",
+
+        # Vector tile support
+        "com.google.protobuf:protobuf-java:3.21.12",
+
+        # Network and caching
+        "com.squareup.okhttp3:okhttp:4.12.0",
+        "com.squareup.okio:okio:3.6.0",
+
+        # Image loading for markers
+        "com.github.bumptech.glide:glide:4.16.0",
+
+        # Kotlin coroutines
+        "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+        "https://maven.google.com",
+    ],
+    aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    use_starlark_android_rules = True,
+    version_conflict_policy = "pinned",
+)
+
+use_repo(maven, "omnitak_android_mvn")
+
+# OmniTAK geospatial libraries
+http_archive(
+    name = "rapidjson",
+    url = "https://github.com/Tencent/rapidjson/archive/refs/tags/v1.1.0.tar.gz",
+    strip_prefix = "rapidjson-1.1.0",
+    build_file = "@valdi//third-party/rapidjson:rapidjson.BUILD",
+    integrity = "sha256-v3ymWH6RhUPFdO98wRvS+pjMfK+2Z5lwlLvl6/BAnhY=",
+)
+
+http_archive(
+    name = "mapbox_geometry",
+    url = "https://github.com/mapbox/geometry.hpp/archive/refs/tags/v2.0.3.tar.gz",
+    strip_prefix = "geometry.hpp-2.0.3",
+    build_file = "@valdi//third-party/mapbox_geometry:mapbox_geometry.BUILD",
+    integrity = "sha256-8O6ZlBscbHk/6WyUX5nUaeL37KzJEhtTMCFnwBqfXOA=",
+)
+
+http_archive(
+    name = "mapbox_variant",
+    url = "https://github.com/mapbox/variant/archive/refs/tags/v2.0.0.tar.gz",
+    strip_prefix = "variant-2.0.0",
+    build_file = "@valdi//third-party/mapbox_variant:mapbox_variant.BUILD",
+    integrity = "sha256-DJybyKfFzNyJJPL6USmfBBTB0xWWpOx0+Nl67sJkEZM=",
+)
+
+http_archive(
+    name = "earcut",
+    url = "https://github.com/mapbox/earcut.hpp/archive/refs/tags/v2.2.4.tar.gz",
+    strip_prefix = "earcut.hpp-2.2.4",
+    build_file = "@valdi//third-party/earcut:earcut.BUILD",
+    integrity = "sha256-WOynl+9vyiJdXWn4zGdPHtGh/LEuC3AKFg1S5j8fH2A=",
+)
+
+http_archive(
+    name = "sqlite",
+    url = "https://www.sqlite.org/2024/sqlite-amalgamation-3450100.zip",
+    strip_prefix = "sqlite-amalgamation-3450100",
+    build_file = "@valdi//third-party/sqlite:sqlite.BUILD",
+    integrity = "sha256-zZynhnvVnSM0VTWdqRiH1e/aCJh3EJMfpyLr84HQTF4=",
+)
+
 http_archive(
     name = "expat_config",
     url = SKIA_URL,

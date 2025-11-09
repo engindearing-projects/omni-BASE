@@ -53,3 +53,8 @@ npm_repositories()
 load("//bzl:workspace_postinit.bzl", "valdi_post_initialize_workspace")
 
 valdi_post_initialize_workspace()
+
+# OmniTAK Mobile Dependencies
+load("//bzl:omnitak_dependencies.bzl", "setup_omnitak_dependencies")
+
+setup_omnitak_dependencies(VALDI_PLATFORM_DEPENDENCIES)

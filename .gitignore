@@ -10,3 +10,7 @@ scripts/valdi-swift-toolchain
 scripts/mirroring/bin
 .nlo-venv
 **deploy_manifest.txt
+# Node.js
+node_modules/
+package-lock.json
+
