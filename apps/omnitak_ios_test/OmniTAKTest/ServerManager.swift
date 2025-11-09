@@ -51,8 +51,8 @@ class ServerManager: ObservableObject {
         // Add default server if no servers exist
         if servers.isEmpty {
             let defaultServer = TAKServer(
-                name: "FreeTAK Server",
-                host: "204.48.30.216",
+                name: "Taky Server",
+                host: "127.0.0.1",
                 port: 8087,
                 protocolType: "tcp",
                 useTLS: false,

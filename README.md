@@ -14,7 +14,7 @@
 
 - ✅ Built and installed on iPhone 15 Pro (iOS 18.7.1)
 - ✅ Full ATAK-style UI with tactical theme
-- ✅ Connected to live TAK server (204.48.30.216:8087 via TCP)
+- ✅ Configured with local Taky server (127.0.0.1:8087 via TCP)
 - ✅ Drawing tools fully operational (circles, polygons)
 - ✅ Multi-server management working
 - ✅ Real-time map with satellite imagery
@@ -104,12 +104,29 @@ omni-BASE/
 
 ## Quick Start
 
+### Setting Up Taky Server (Required)
+
+Before running the app, you need a TAK server. We recommend using **Taky** for local development:
+
+```bash
+# Install Taky
+pip install taky
+
+# Start Taky server in debug mode
+taky -l debug
+```
+
+The Taky server will start on `127.0.0.1:8087` (default TCP port). The app is pre-configured to connect to this server automatically.
+
+**Note:** Keep the Taky server running while using the app. Press Ctrl+C to stop the server.
+
 ### iOS Prerequisites
 
 - Xcode 15.0+
 - iOS 15.0+ deployment target
 - Rust toolchain (for building core library)
 - macOS with Apple Silicon or Intel
+- **Taky server** running locally (see above)
 
 ### Android Prerequisites
 
@@ -118,6 +135,7 @@ omni-BASE/
 - Android NDK r21+
 - Rust toolchain with Android targets
 - Node.js 18+
+- **Taky server** running locally (see above)
 
 ### iOS Installation
 
@@ -188,29 +206,41 @@ For detailed Android build instructions, see [apps/omnitak_android/README.md](ap
 
 ### Using the App
 
-1. **Launch** - App auto-connects to default FreeTAK Server
-2. **View Map** - Satellite imagery with tactical overlays
-3. **Manage Servers** - Tap status bar to access server list
-4. **Add Server** - Tap "+" to configure new TAK server
-5. **Switch Servers** - Tap bolt icon to connect to different server
-6. **Broadcast Position** - Tap "Broadcast" to send CoT update
-7. **Toggle Layers** - Tap "Layers" to change map type and unit filters
+1. **Start Taky Server** - Run `taky -l debug` to start local TAK server on port 8087
+2. **Launch App** - App auto-connects to default Taky Server
+3. **View Map** - Satellite imagery with tactical overlays
+4. **Manage Servers** - Tap status bar to access server list
+5. **Add Server** - Tap "+" to configure new TAK server
+6. **Switch Servers** - Tap bolt icon to connect to different server
+7. **Broadcast Position** - Tap "Broadcast" to send CoT update
+8. **Toggle Layers** - Tap "Layers" to change map type and unit filters
 
 ## Configuration
 
-### Default TAK Server
+### Default TAK Server (Taky)
 
-The app ships with a default FreeTAK Server configuration:
+The app ships with a default local Taky Server configuration:
 
 ```swift
 TAKServer(
-    name: "FreeTAK Server",
-    host: "204.48.30.216",
+    name: "Taky Server",
+    host: "127.0.0.1",
     port: 8087,
     protocolType: "tcp",
     useTLS: false
 )
 ```
+
+**Starting Taky Server:**
+```bash
+# Install Taky (if not already installed)
+pip install taky
+
+# Start Taky server in debug mode
+taky -l debug
+```
+
+The server will start on `127.0.0.1:8087` and the app will automatically connect on launch.
 
 ### Adding Custom Servers
 
