@@ -41,6 +41,8 @@
 		A1111111111111111111111100000224 /* RegionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001224 /* RegionSelectionView.swift */; };
 		A1111111111111111111111100000225 /* TileDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001225 /* TileDownloader.swift */; };
 		A1111111111111111111111100000226 /* UnitTrailOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001226 /* UnitTrailOverlay.swift */; };
+		B27730A80EFE4C35B011E80B /* NavigationDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF376425AEE40719940DF80 /* NavigationDrawer.swift */; };
+		AA9C8D61216843BF9D313BA3 /* MultiServerFederation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB3CBE2B1304F47B80493AB /* MultiServerFederation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -93,6 +95,8 @@
 		A1111111111111111111111100001224 /* RegionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionSelectionView.swift; sourceTree = "<group>"; };
 		A1111111111111111111111100001225 /* TileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileDownloader.swift; sourceTree = "<group>"; };
 		A1111111111111111111111100001226 /* UnitTrailOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitTrailOverlay.swift; sourceTree = "<group>"; };
+		3FF376425AEE40719940DF80 /* NavigationDrawer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDrawer.swift; sourceTree = "<group>"; };
+		BFB3CBE2B1304F47B80493AB /* MultiServerFederation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiServerFederation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +155,8 @@
 				A1111111111111111111111100001224 /* RegionSelectionView.swift */,
 				A1111111111111111111111100001225 /* TileDownloader.swift */,
 				A1111111111111111111111100001226 /* UnitTrailOverlay.swift */,
+				3FF376425AEE40719940DF80 /* NavigationDrawer.swift */,
+				BFB3CBE2B1304F47B80493AB /* MultiServerFederation.swift */,
 				A1111111111111111111111100000051 /* Info.plist */,
 			);
 			path = OmniTAKTest;
@@ -254,6 +260,8 @@
 				A1111111111111111111111100000224 /* RegionSelectionView.swift in Sources */,
 				A1111111111111111111111100000225 /* TileDownloader.swift in Sources */,
 				A1111111111111111111111100000226 /* UnitTrailOverlay.swift in Sources */,
+				B27730A80EFE4C35B011E80B /* NavigationDrawer.swift in Sources */,
+				AA9C8D61216843BF9D313BA3 /* MultiServerFederation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

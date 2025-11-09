@@ -130,9 +130,9 @@ struct DrawerHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // iTAK Logo with underline
+            // YA-TAK Logo with underline
             VStack(alignment: .leading, spacing: 4) {
-                Text("iTAK")
+                Text("YA-TAK")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(Color(hex: "#FFFC00"))
 

@@ -382,9 +382,9 @@ struct ATAKStatusBar: View {
                 .frame(width: 48, height: 48)
             }
 
-            // iTAK Title with LED Status Indicator
+            // YA-TAK Title with LED Status Indicator
             HStack(spacing: 8) {
-                Text("iTAK")
+                Text("YA-TAK")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(Color(red: 1.0, green: 0.988, blue: 0.0)) // #FFFC00
 
