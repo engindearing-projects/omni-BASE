@@ -1,0 +1,52 @@
+workspace(name = "omnitak_plugin")
+
+# Load iOS rules
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Swift rules
+http_archive(
+    name = "build_bazel_rules_swift",
+    sha256 = "bb01097c7c7a1407f8ad49a1a0b1960655cf823c26ad2782d0b7d15b323838e2",
+    url = "https://github.com/bazelbuild/rules_swift/releases/download/1.13.0/rules_swift.1.13.0.tar.gz",
+)
+
+load(
+    "@build_bazel_rules_swift//swift:repositories.bzl",
+    "swift_rules_dependencies",
+)
+
+swift_rules_dependencies()
+
+load(
+    "@build_bazel_rules_swift//swift:extras.bzl",
+    "swift_rules_extra_dependencies",
+)
+
+swift_rules_extra_dependencies()
+
+# Apple rules
+http_archive(
+    name = "build_bazel_rules_apple",
+    sha256 = "9e26307516c4d5f2ad4aee90ac01eb8cd31f9b8e6f3dd5f7c3c6c35cf47c8663",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.1.1/rules_apple.3.1.1.tar.gz",
+)
+
+load(
+    "@build_bazel_rules_apple//apple:repositories.bzl",
+    "apple_rules_dependencies",
+)
+
+apple_rules_dependencies()
+
+load(
+    "@build_bazel_apple_support//lib:repositories.bzl",
+    "apple_support_dependencies",
+)
+
+apple_support_dependencies()
+
+# Reference to main OmniTAK project for plugin system module
+local_repository(
+    name = "omnitak",
+    path = "../..",
+)

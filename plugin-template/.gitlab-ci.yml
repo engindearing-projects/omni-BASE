@@ -1,0 +1,165 @@
+# OmniTAK Plugin Build Pipeline
+# This pipeline builds, tests, signs, and publishes your plugin
+
+variables:
+  PLUGIN_ID: "com.example.myplugin"
+  IOS_MIN_VERSION: "14.0"
+  BAZEL_VERSION: "7.0.0"
+
+stages:
+  - validate
+  - build
+  - test
+  - sign
+  - package
+  - publish
+
+# Validate plugin manifest and structure
+validate:
+  stage: validate
+  image: python:3.11
+  script:
+    - echo "Validating plugin manifest..."
+    - python3 scripts/validate_plugin.py
+    - echo "Checking plugin structure..."
+    - ls -la ios/Sources/
+    - test -f plugin.json || (echo "plugin.json not found" && exit 1)
+    - test -f ios/Sources/PluginMain.swift || (echo "PluginMain.swift not found" && exit 1)
+  only:
+    - branches
+    - tags
+
+# Build iOS plugin
+build_ios:
+  stage: build
+  tags:
+    - macos
+    - xcode
+  before_script:
+    - echo "Setting up build environment..."
+    - xcodebuild -version
+    - swift --version
+  script:
+    - echo "Building iOS plugin..."
+    - ./scripts/build_plugin_ios.sh debug
+  artifacts:
+    paths:
+      - bazel-bin/ios/
+    expire_in: 1 hour
+  only:
+    - branches
+    - tags
+
+# Build iOS plugin for release
+build_ios_release:
+  stage: build
+  tags:
+    - macos
+    - xcode
+  script:
+    - echo "Building iOS plugin (release)..."
+    - ./scripts/build_plugin_ios.sh release
+  artifacts:
+    paths:
+      - bazel-bin/ios/
+    expire_in: 1 day
+  only:
+    - main
+    - tags
+
+# Run tests
+test_ios:
+  stage: test
+  tags:
+    - macos
+    - xcode
+  dependencies:
+    - build_ios
+  script:
+    - echo "Running plugin tests..."
+    - ./scripts/test_plugin_ios.sh
+  coverage: '/Code coverage: \d+\.\d+%/'
+  artifacts:
+    reports:
+      junit: test-results/*.xml
+  only:
+    - branches
+    - tags
+
+# Code signing (only for main branch and tags)
+sign_ios:
+  stage: sign
+  tags:
+    - macos
+    - xcode
+  dependencies:
+    - build_ios_release
+  before_script:
+    - echo "Setting up code signing..."
+    # Decode signing certificate
+    - echo "$IOS_SIGNING_CERT" | base64 -d > signing_cert.p12
+    # Decode provisioning profile
+    - echo "$IOS_PROVISIONING_PROFILE" | base64 -d > profile.mobileprovision
+    # Import certificate to keychain
+    - security create-keychain -p travis temp.keychain
+    - security default-keychain -s temp.keychain
+    - security unlock-keychain -p travis temp.keychain
+    - security import signing_cert.p12 -k temp.keychain -P "$IOS_SIGNING_CERT_PASSWORD" -T /usr/bin/codesign
+    - security set-key-partition-list -S apple-tool:,apple: -s -k travis temp.keychain
+    # Install provisioning profile
+    - mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+    - cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+  script:
+    - echo "Signing plugin framework..."
+    - ./scripts/sign_plugin_ios.sh
+  after_script:
+    - echo "Cleaning up signing materials..."
+    - rm -f signing_cert.p12 profile.mobileprovision
+    - security delete-keychain temp.keychain || true
+  artifacts:
+    paths:
+      - dist/signed/
+    expire_in: 1 week
+  only:
+    - main
+    - tags
+
+# Package plugin bundle
+package:
+  stage: package
+  image: python:3.11
+  dependencies:
+    - sign_ios
+  script:
+    - echo "Packaging plugin bundle..."
+    - ./scripts/package_plugin.sh
+    - ls -lh dist/*.omniplugin
+  artifacts:
+    paths:
+      - dist/*.omniplugin
+    expire_in: 1 week
+  only:
+    - main
+    - tags
+
+# Publish to plugin registry (only for tags)
+publish:
+  stage: publish
+  image: curlimages/curl:latest
+  dependencies:
+    - package
+  script:
+    - echo "Publishing plugin to registry..."
+    - |
+      VERSION=${CI_COMMIT_TAG:-dev}
+      PLUGIN_FILE=$(ls dist/*.omniplugin)
+      echo "Publishing $PLUGIN_FILE as version $VERSION"
+
+      # Upload to GitLab Package Registry
+      curl --header "PRIVATE-TOKEN: $PLUGIN_REGISTRY_TOKEN" \
+           --upload-file "$PLUGIN_FILE" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PLUGIN_ID}/${VERSION}/$(basename $PLUGIN_FILE)"
+
+      echo "Plugin published successfully!"
+  only:
+    - tags

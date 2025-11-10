@@ -1,0 +1,26 @@
+{
+  "id": "com.example.myplugin",
+  "name": "My Plugin",
+  "version": "1.0.0",
+  "description": "A sample OmniTAK plugin",
+  "author": "Your Name",
+  "license": "MIT",
+  "omnitak_version": ">=1.0.0",
+  "type": "ui",
+  "platforms": [
+    "ios"
+  ],
+  "permissions": [
+    "cot.read",
+    "ui.create"
+  ],
+  "entry_points": {
+    "ios": "MyPlugin"
+  },
+  "dependencies": [],
+  "metadata": {
+    "homepage": "https://github.com/yourname/myplugin",
+    "repository": "https://github.com/yourname/myplugin",
+    "category": "tools"
+  }
+}
