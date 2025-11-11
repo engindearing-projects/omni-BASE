@@ -19,6 +19,10 @@ struct ATAKMapView: View {
     @State private var showDrawingList = false
     @State private var showNavigationDrawer = false
     @State private var currentScreen = "map"
+    @State private var showSettings = false
+    @State private var showPlugins = false
+    @State private var showTools = false
+    @State private var showAbout = false
     @State private var mapType: MKMapType = .satellite
     @State private var showTraffic = false
     @State private var trackingMode: MapUserTrackingMode = .follow
@@ -198,13 +202,43 @@ struct ATAKMapView: View {
                 onNavigate: { screen in
                     currentScreen = screen
                     print("🧭 Navigate to: \(screen)")
-                    // TODO: Implement screen navigation
+
+                    // Navigate to appropriate screen
+                    switch screen {
+                    case "map":
+                        // Already on map, just close drawer
+                        break
+                    case "settings":
+                        showSettings = true
+                    case "servers":
+                        showServerConfig = true
+                    case "plugins":
+                        showPlugins = true
+                    case "tools":
+                        showTools = true
+                    case "about":
+                        showAbout = true
+                    default:
+                        print("⚠️ Unknown screen: \(screen)")
+                    }
                 }
             )
             .zIndex(1001) // Above all other UI elements
         }
         .sheet(isPresented: $showServerConfig) {
             ServerConfigView(takService: takService)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .sheet(isPresented: $showPlugins) {
+            PluginsView()
+        }
+        .sheet(isPresented: $showTools) {
+            ToolsView()
+        }
+        .sheet(isPresented: $showAbout) {
+            AboutView()
         }
         .onAppear {
             setupTAKConnection()
@@ -361,25 +395,18 @@ struct ATAKStatusBar: View {
     let onServerTap: () -> Void
     let onMenuTap: () -> Void
 
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+
+    var isLandscape: Bool {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+    }
+
     var body: some View {
         HStack(spacing: 12) {
-            // Hamburger Menu Button - ATAK Style
-            Button(action: onMenuTap) {
-                VStack(spacing: 4) {
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: 24, height: 3)
-                        .cornerRadius(2)
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: 24, height: 3)
-                        .cornerRadius(2)
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: 24, height: 3)
-                        .cornerRadius(2)
-                }
-                .frame(width: 48, height: 48)
+            // Hamburger Menu Button - ATAK Style (Left side in portrait)
+            if !isLandscape {
+                hamburgerButton
             }
 
             // YA-TAK Title with LED Status Indicator
@@ -447,9 +474,34 @@ struct ATAKStatusBar: View {
             Text(Date().formatted(date: .omitted, time: .shortened))
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.white)
+
+            // Hamburger Menu Button - ATAK Style (Right side in landscape)
+            if isLandscape {
+                hamburgerButton
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+    }
+
+    private var hamburgerButton: some View {
+        Button(action: onMenuTap) {
+            VStack(spacing: 4) {
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: 24, height: 3)
+                    .cornerRadius(2)
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: 24, height: 3)
+                    .cornerRadius(2)
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: 24, height: 3)
+                    .cornerRadius(2)
+            }
+            .frame(width: 48, height: 48)
+        }
     }
 }
 
@@ -1209,8 +1261,8 @@ struct TacticalMapView: UIViewRepresentable {
                     annotationView?.annotation = annotation
                 }
 
-                // Create small point marker
-                let size = CGSize(width: 12, height: 12)
+                // Create small point marker - smaller size for better visibility on small screens
+                let size = CGSize(width: 8, height: 8)
                 let renderer = UIGraphicsImageRenderer(size: size)
                 let image = renderer.image { context in
                     UIColor.systemYellow.setFill()
@@ -1218,7 +1270,7 @@ struct TacticalMapView: UIViewRepresentable {
                     path.fill()
 
                     UIColor.white.setStroke()
-                    path.lineWidth = 2
+                    path.lineWidth = 1.5
                     path.stroke()
                 }
 
@@ -1317,5 +1369,277 @@ class DrawingMarkerAnnotation: NSObject, MKAnnotation {
         self.title = marker.name
         self.subtitle = "Drawing Marker"
         super.init()
+    }
+}
+
+// MARK: - Settings View
+
+struct SettingsView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Application")) {
+                    HStack {
+                        Text("Version")
+                        Spacer()
+                        Text("1.0.0")
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Section(header: Text("Map Settings")) {
+                    Toggle("Show Traffic", isOn: .constant(false))
+                    Toggle("Show Labels", isOn: .constant(true))
+                    Toggle("Show Scale", isOn: .constant(true))
+                }
+
+                Section(header: Text("Display")) {
+                    Toggle("Dark Mode", isOn: .constant(false))
+                    Picker("Map Type", selection: .constant("satellite")) {
+                        Text("Standard").tag("standard")
+                        Text("Satellite").tag("satellite")
+                        Text("Hybrid").tag("hybrid")
+                    }
+                }
+
+                Section(header: Text("Preferences")) {
+                    Toggle("Location Updates", isOn: .constant(true))
+                    Toggle("Background Updates", isOn: .constant(false))
+                    Stepper("Update Interval: 5s", value: .constant(5), in: 1...60)
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Plugins View
+
+struct PluginsView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            List {
+                Section(header: Text("Installed Plugins")) {
+                    HStack {
+                        Image(systemName: "map.fill")
+                            .foregroundColor(Color(hex: "#FFFC00"))
+                            .frame(width: 30)
+                        VStack(alignment: .leading) {
+                            Text("Offline Maps")
+                                .font(.headline)
+                            Text("Tile caching for offline use")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text("Enabled")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    }
+
+                    HStack {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .foregroundColor(Color(hex: "#FFFC00"))
+                            .frame(width: 30)
+                        VStack(alignment: .leading) {
+                            Text("Team Chat")
+                                .font(.headline)
+                            Text("CoT-based messaging")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text("Enabled")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    }
+                }
+
+                Section(header: Text("Available Plugins")) {
+                    Text("No additional plugins available")
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle("Plugins")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Tools View
+
+struct ToolsView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            List {
+                Section(header: Text("Map Tools")) {
+                    Button {
+                        // Action
+                    } label: {
+                        HStack {
+                            Image(systemName: "pencil.tip.crop.circle")
+                                .foregroundColor(Color(hex: "#FFFC00"))
+                                .frame(width: 30)
+                            Text("Drawing Tools")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Button {
+                        // Action
+                    } label: {
+                        HStack {
+                            Image(systemName: "ruler")
+                                .foregroundColor(Color(hex: "#FFFC00"))
+                                .frame(width: 30)
+                            Text("Measure Distance")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Button {
+                        // Action
+                    } label: {
+                        HStack {
+                            Image(systemName: "location.viewfinder")
+                                .foregroundColor(Color(hex: "#FFFC00"))
+                                .frame(width: 30)
+                            Text("Coordinate Converter")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                Section(header: Text("Data Tools")) {
+                    Button {
+                        // Action
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down")
+                                .foregroundColor(Color(hex: "#FFFC00"))
+                                .frame(width: 30)
+                            Text("Import Data")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Button {
+                        // Action
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(Color(hex: "#FFFC00"))
+                                .frame(width: 30)
+                            Text("Export Data")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Tools")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - About View
+
+struct AboutView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 30) {
+                Spacer()
+
+                // Logo and Title
+                VStack(spacing: 16) {
+                    Text("YA-TAK")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(Color(hex: "#FFFC00"))
+
+                    Text("Yet Another TAK")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+
+                    Text("Version 1.0.0")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                VStack(spacing: 16) {
+                    Text("Powered by omni-TAK")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Text("Compatible with TAK Server")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+
+                    Divider()
+                        .padding(.horizontal, 40)
+
+                    Text("Built with SwiftUI & MapKit")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+
+                    Text("© 2024 omni-TAK Project")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("About")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
