@@ -104,7 +104,7 @@ struct ATAKMapView: View {
                     onServerTap: { showServerConfig = true },
                     onMenuTap: {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            showNavigationDrawer.toggle()
+                            showToolsMenu = true
                         }
                     }
                 )
