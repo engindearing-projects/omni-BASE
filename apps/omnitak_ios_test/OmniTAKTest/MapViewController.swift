@@ -20,6 +20,10 @@ struct ATAKMapView: View {
     @State private var showNavigationDrawer = false
     @State private var currentScreen = "map"
     @State private var mapType: MKMapType = .satellite
+    @State private var showToolsMenu = false
+    @State private var showLoadingScreen = true
+    @State private var showGPSError = false
+    @State private var showGeofenceAlert = false
     @State private var showTraffic = false
     @State private var trackingMode: MapUserTrackingMode = .follow
     @State private var orientation = UIDeviceOrientation.unknown
@@ -198,14 +202,90 @@ struct ATAKMapView: View {
                 onNavigate: { screen in
                     currentScreen = screen
                     print("🧭 Navigate to: \(screen)")
-                    // TODO: Implement screen navigation
+
+                    // Handle navigation
+                    if screen == "tools" {
+                        showToolsMenu = true
+                    }
                 }
             )
             .zIndex(1001) // Above all other UI elements
+
+            // GPS Status Indicator - Top Right
+            VStack {
+                HStack {
+                    Spacer()
+                    GPSStatusIndicator(
+                        accuracy: locationManager.accuracy,
+                        isAvailable: locationManager.location != nil,
+                        showError: false
+                    )
+                    .padding([.trailing], 16)
+                    .padding([.top], 50)
+                }
+                Spacer()
+            }
+            .zIndex(1002)
+
+            // Callsign Display - Bottom Right
+            if let location = locationManager.location {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        CallsignDisplay(
+                            callsign: "MURK",
+                            coordinates: formatCoordinates(location.coordinate),
+                            altitude: formatAltitude(location.altitude),
+                            speed: formatSpeed(location.speed),
+                            accuracy: "+/- \(Int(location.horizontalAccuracy))m"
+                        )
+                        .padding()
+                    }
+                }
+                .zIndex(1003)
+            }
+
+            // Geofence Alert Notification - Top Center
+            if showGeofenceAlert {
+                VStack {
+                    GeofenceAlertNotification(
+                        geofenceName: "Circle 1",
+                        action: "Entered",
+                        callsign: "MURK",
+                        isPresented: $showGeofenceAlert
+                    )
+                    .padding(.top, 60)
+                    Spacer()
+                }
+                .zIndex(1004)
+            }
+
+            // Loading Screen Overlay
+            if showLoadingScreen {
+                ATAKLoadingScreen(isLoading: $showLoadingScreen)
+                    .zIndex(2000)
+            }
         }
         .sheet(isPresented: $showServerConfig) {
             ServerConfigView(takService: takService)
         }
+        .fullScreenCover(isPresented: $showToolsMenu) {
+            ATAKToolsView(isPresented: $showToolsMenu)
+        }
+        .overlay(
+            Group {
+                if showGPSError {
+                    GPSErrorAlert(isPresented: $showGPSError, onSettings: {
+                        // Open iOS Settings
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    })
+                    .zIndex(2001)
+                }
+            }
+        )
         .onAppear {
             setupTAKConnection()
             startLocationUpdates()
@@ -238,6 +318,13 @@ struct ATAKMapView: View {
 
     private func startLocationUpdates() {
         locationManager.startUpdating()
+
+        // Check GPS status and show error if needed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            if self.locationManager.location == nil {
+                self.showGPSError = false  // Don't show error immediately
+            }
+        }
     }
 
     private func centerOnUser() {
@@ -327,6 +414,32 @@ struct ATAKMapView: View {
         default:
             break
         }
+    }
+
+    // MARK: - Formatting Helpers
+
+    private func formatCoordinates(_ coordinate: CLLocationCoordinate2D) -> String {
+        // Convert to MGRS-style format (simplified)
+        let lat = abs(coordinate.latitude)
+        let lon = abs(coordinate.longitude)
+        let latDeg = Int(lat)
+        let lonDeg = Int(lon)
+        let latMin = Int((lat - Double(latDeg)) * 60)
+        let lonMin = Int((lon - Double(lonDeg)) * 60)
+        let latSec = Int(((lat - Double(latDeg)) * 60 - Double(latMin)) * 60)
+        let lonSec = Int(((lon - Double(lonDeg)) * 60 - Double(lonMin)) * 60)
+
+        return "11T MN \(latDeg)\(latMin)\(latSec) \(lonDeg)\(lonMin)\(lonSec)"
+    }
+
+    private func formatAltitude(_ altitude: CLLocationDistance) -> String {
+        let altitudeFeet = altitude * 3.28084 // Convert meters to feet
+        return String(format: "%.0f ft MSL", altitudeFeet)
+    }
+
+    private func formatSpeed(_ speed: CLLocationSpeed) -> String {
+        let speedMPH = speed * 2.23694 // Convert m/s to MPH
+        return String(format: "%.0f MPH", max(0, speedMPH))
     }
 
     private func generateSelfCoT(location: CLLocation) -> String {
@@ -468,7 +581,7 @@ struct ATAKBottomToolbar: View {
     var body: some View {
         HStack(spacing: 20) {
             // Layers
-            ToolButton(icon: "square.stack.3d.up.fill", label: "Layers") {
+            MapToolButton(icon: "square.stack.3d.up.fill", label: "Layers") {
                 showLayersPanel.toggle()
                 showDrawingPanel = false
                 showDrawingList = false
@@ -477,21 +590,21 @@ struct ATAKBottomToolbar: View {
             Spacer()
 
             // Center on User
-            ToolButton(icon: "location.fill", label: "GPS") {
+            MapToolButton(icon: "location.fill", label: "GPS") {
                 onCenterUser()
             }
 
             // Send Position
-            ToolButton(icon: "paperplane.fill", label: "Broadcast") {
+            MapToolButton(icon: "paperplane.fill", label: "Broadcast") {
                 onSendCoT()
             }
 
             // Zoom Controls
             VStack(spacing: 8) {
-                ToolButton(icon: "plus", label: "", compact: true) {
+                MapToolButton(icon: "plus", label: "", compact: true) {
                     onZoomIn()
                 }
-                ToolButton(icon: "minus", label: "", compact: true) {
+                MapToolButton(icon: "minus", label: "", compact: true) {
                     onZoomOut()
                 }
             }
@@ -499,14 +612,14 @@ struct ATAKBottomToolbar: View {
             Spacer()
 
             // Drawing Tools
-            ToolButton(icon: "pencil.tip.crop.circle", label: "Draw") {
+            MapToolButton(icon: "pencil.tip.crop.circle", label: "Draw") {
                 showDrawingPanel.toggle()
                 showLayersPanel = false
                 showDrawingList = false
             }
 
             // Drawing List
-            ToolButton(icon: "list.bullet.rectangle", label: "Drawings") {
+            MapToolButton(icon: "list.bullet.rectangle", label: "Drawings") {
                 showDrawingList.toggle()
                 showLayersPanel = false
                 showDrawingPanel = false
@@ -517,8 +630,8 @@ struct ATAKBottomToolbar: View {
     }
 }
 
-// Tool Button Component
-struct ToolButton: View {
+// Map Tool Button Component
+struct MapToolButton: View {
     let icon: String
     let label: String
     var compact: Bool = false

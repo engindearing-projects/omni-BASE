@@ -43,6 +43,9 @@
 		A1111111111111111111111100000226 /* UnitTrailOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1111111111111111111111100001226 /* UnitTrailOverlay.swift */; };
 		AA9C8D61216843BF9D313BA3 /* MultiServerFederation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB3CBE2B1304F47B80493AB /* MultiServerFederation.swift */; };
 		B27730A80EFE4C35B011E80B /* NavigationDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF376425AEE40719940DF80 /* NavigationDrawer.swift */; };
+
+		3025C35F05D6415A9F0287E7 /* ATAKToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 809324E1A2EE4993BDAB1366 /* ATAKToolsView.swift */; };
+		82E4995A4250443895E9EB26 /* ATAKLoadingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD845711A3254AF8A58ED2B9 /* ATAKLoadingScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -97,6 +100,9 @@
 		A1111111111111111111111100001225 /* TileDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileDownloader.swift; sourceTree = "<group>"; };
 		A1111111111111111111111100001226 /* UnitTrailOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitTrailOverlay.swift; sourceTree = "<group>"; };
 		BFB3CBE2B1304F47B80493AB /* MultiServerFederation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiServerFederation.swift; sourceTree = "<group>"; };
+
+		809324E1A2EE4993BDAB1366 /* ATAKToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATAKToolsView.swift; sourceTree = "<group>"; };
+		FD845711A3254AF8A58ED2B9 /* ATAKLoadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATAKLoadingScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,7 +164,9 @@
 				3FF376425AEE40719940DF80 /* NavigationDrawer.swift */,
 				BFB3CBE2B1304F47B80493AB /* MultiServerFederation.swift */,
 				A1111111111111111111111100000051 /* Info.plist */,
-			);
+			
+				809324E1A2EE4993BDAB1366 /* ATAKToolsView.swift */,
+				FD845711A3254AF8A58ED2B9 /* ATAKLoadingScreen.swift */,);
 			path = OmniTAKTest;
 			sourceTree = "<group>";
 		};
@@ -262,7 +270,9 @@
 				A1111111111111111111111100000226 /* UnitTrailOverlay.swift in Sources */,
 				B27730A80EFE4C35B011E80B /* NavigationDrawer.swift in Sources */,
 				AA9C8D61216843BF9D313BA3 /* MultiServerFederation.swift in Sources */,
-			);
+			
+				3025C35F05D6415A9F0287E7 /* ATAKToolsView.swift in Sources */,
+				82E4995A4250443895E9EB26 /* ATAKLoadingScreen.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
