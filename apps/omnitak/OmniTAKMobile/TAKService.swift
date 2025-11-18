@@ -102,24 +102,8 @@ class DirectTCPSender {
                 complete(true)
             }, .main)
 
-            // Log TLS negotiation details for debugging
-            #if DEBUG
-            sec_protocol_options_set_tls_negotiation_monitor(secOptions, .main) { (metadata) in
-                let version = sec_protocol_metadata_get_negotiated_tls_protocol_version(metadata)
-                let ciphersuite = sec_protocol_metadata_get_negotiated_tls_ciphersuite(metadata)
-
-                let versionString: String
-                switch version {
-                case .TLSv10: versionString = "TLS 1.0"
-                case .TLSv11: versionString = "TLS 1.1"
-                case .TLSv12: versionString = "TLS 1.2"
-                case .TLSv13: versionString = "TLS 1.3"
-                default: versionString = "Unknown"
-                }
-
-                print("🔐 TLS Negotiated: \(versionString), Cipher: 0x\(String(format: "%04X", ciphersuite.rawValue))")
-            }
-            #endif
+            // Note: TLS negotiation monitoring is macOS-only
+            // On iOS, check connection logs for TLS details
 
             // Configure client certificate if provided
             if let certName = certificateName, !certName.isEmpty {
