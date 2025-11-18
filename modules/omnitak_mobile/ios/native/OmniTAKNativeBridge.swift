@@ -50,6 +50,35 @@ private func omnitak_get_status(_ connection_id: UInt64, _ status_out: UnsafeMut
 @_silgen_name("omnitak_version")
 private func omnitak_version() -> UnsafePointer<CChar>
 
+// MARK: - Enrollment FFI
+
+@_silgen_name("omnitak_enrollment_init")
+private func omnitak_enrollment_init() -> Int32
+
+@_silgen_name("omnitak_enroll")
+private func omnitak_enroll(
+    _ server_url: UnsafePointer<CChar>,
+    _ username: UnsafePointer<CChar>,
+    _ password: UnsafePointer<CChar>,
+    _ validity_days: UInt32
+) -> Int32
+
+@_silgen_name("omnitak_enrollment_get_result")
+private func omnitak_enrollment_get_result(
+    _ cert_pem_out: UnsafeMutablePointer<CChar>?,
+    _ cert_pem_len: Int,
+    _ key_pem_out: UnsafeMutablePointer<CChar>?,
+    _ key_pem_len: Int,
+    _ ca_pem_out: UnsafeMutablePointer<CChar>?,
+    _ ca_pem_len: Int,
+    _ server_host_out: UnsafeMutablePointer<CChar>?,
+    _ server_host_len: Int,
+    _ server_port_out: UnsafeMutablePointer<UInt16>?
+) -> Int32
+
+@_silgen_name("omnitak_enrollment_clear_result")
+private func omnitak_enrollment_clear_result()
+
 // MARK: - C Structs
 
 private struct ConnectionStatus {
@@ -351,6 +380,117 @@ public class OmniTAKNativeBridge: NSObject {
 
         print("[OmniTAK] Certificate imported: \(certId)")
         completion(certId)
+    }
+
+    // MARK: - Certificate Enrollment
+
+    /// Enroll with a TAK server to obtain a client certificate
+    ///
+    /// - Parameters:
+    ///   - serverUrl: TAK server URL (e.g., "https://tak-server.example.com:8443")
+    ///   - username: Username for authentication
+    ///   - password: Password for authentication
+    ///   - validityDays: Certificate validity period in days (default: 365)
+    ///   - completion: Completion handler with certificate ID on success, nil on failure
+    @objc public func enrollCertificate(
+        serverUrl: String,
+        username: String,
+        password: String,
+        validityDays: Int = 365,
+        completion: @escaping (String?, String?) -> Void
+    ) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            // Initialize enrollment client
+            let initResult = omnitak_enrollment_init()
+            if initResult != 0 {
+                print("[OmniTAK] Failed to initialize enrollment client")
+                completion(nil, "Failed to initialize enrollment client")
+                return
+            }
+
+            // Start enrollment
+            let enrollResult = serverUrl.withCString { serverUrlPtr in
+                username.withCString { usernamePtr in
+                    password.withCString { passwordPtr in
+                        omnitak_enroll(serverUrlPtr, usernamePtr, passwordPtr, UInt32(validityDays))
+                    }
+                }
+            }
+
+            if enrollResult != 0 {
+                print("[OmniTAK] Failed to start enrollment")
+                completion(nil, "Failed to start enrollment")
+                return
+            }
+
+            // Poll for result (wait up to 30 seconds)
+            var attempts = 0
+            var success = false
+
+            while attempts < 60 {
+                Thread.sleep(forTimeInterval: 0.5)
+
+                let bufferSize = 8192
+                let certBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: bufferSize)
+                let keyBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: bufferSize)
+                let caBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: bufferSize)
+                let hostBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: 256)
+                var port: UInt16 = 0
+
+                defer {
+                    certBuffer.deallocate()
+                    keyBuffer.deallocate()
+                    caBuffer.deallocate()
+                    hostBuffer.deallocate()
+                }
+
+                let result = omnitak_enrollment_get_result(
+                    certBuffer, bufferSize,
+                    keyBuffer, bufferSize,
+                    caBuffer, bufferSize,
+                    hostBuffer, 256,
+                    &port
+                )
+
+                if result == 1 {
+                    // Success! Convert to Swift strings
+                    let certPem = String(cString: certBuffer)
+                    let keyPem = String(cString: keyBuffer)
+                    let caPem = String(cString: caBuffer)
+                    let serverHost = String(cString: hostBuffer)
+
+                    // Clear result
+                    omnitak_enrollment_clear_result()
+
+                    // Import the certificate
+                    let certId = UUID().uuidString
+                    let bundle = CertificateBundle(
+                        certPem: certPem,
+                        keyPem: keyPem,
+                        caPem: caPem.isEmpty ? nil : caPem
+                    )
+
+                    self.certificates[certId] = bundle
+
+                    print("[OmniTAK] Enrollment successful: \(certId), server: \(serverHost):\(port)")
+                    success = true
+                    completion(certId, nil)
+                    break
+                } else if result == -1 {
+                    // Failed
+                    omnitak_enrollment_clear_result()
+                    print("[OmniTAK] Enrollment failed")
+                    completion(nil, "Enrollment failed - check credentials")
+                    break
+                }
+
+                attempts += 1
+            }
+
+            if !success && attempts >= 60 {
+                completion(nil, "Enrollment timed out")
+            }
+        }
     }
 }
 

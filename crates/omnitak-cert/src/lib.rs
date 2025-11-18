@@ -1,6 +1,9 @@
 //! # OmniTAK Certificate Management
 //!
 //! Certificate and TLS configuration handling
+//! Includes certificate enrollment for TAK servers requiring username/password authentication.
+
+pub mod enrollment;
 
 use anyhow::{Context, Result};
 use rustls::{Certificate, ClientConfig, PrivateKey, RootCertStore};

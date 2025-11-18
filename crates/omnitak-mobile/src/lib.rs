@@ -20,10 +20,12 @@ use tokio::runtime::Runtime;
 mod connection;
 mod callbacks;
 mod error;
+mod enrollment_ffi;
 
 pub use connection::*;
 pub use callbacks::*;
 pub use error::*;
+pub use enrollment_ffi::*;
 
 /// Global state management
 pub struct OmniTAKMobile {

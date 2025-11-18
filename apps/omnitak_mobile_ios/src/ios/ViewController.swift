@@ -16,6 +16,7 @@ class ViewController: UIViewController {
     private var mapView: MLNMapView!
     private var statusLabel: UILabel!
     private var connectButton: UIButton!
+    private var enrollButton: UIButton!
     private var testButton: UIButton!
 
     private var omnitakBridge: OmniTAKNativeBridge?
@@ -68,6 +69,11 @@ class ViewController: UIViewController {
         connectButton = createButton(title: "Connect to TAK Server", action: #selector(connectButtonTapped))
         view.addSubview(connectButton)
 
+        // Create enroll button
+        enrollButton = createButton(title: "Enroll with TAK Server", action: #selector(enrollButtonTapped))
+        enrollButton.backgroundColor = .systemGreen
+        view.addSubview(enrollButton)
+
         // Create test button
         testButton = createButton(title: "Send Test CoT", action: #selector(testButtonTapped))
         testButton.isEnabled = false
@@ -82,8 +88,13 @@ class ViewController: UIViewController {
 
             connectButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             connectButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            connectButton.bottomAnchor.constraint(equalTo: testButton.topAnchor, constant: -12),
+            connectButton.bottomAnchor.constraint(equalTo: enrollButton.topAnchor, constant: -12),
             connectButton.heightAnchor.constraint(equalToConstant: 50),
+
+            enrollButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            enrollButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            enrollButton.bottomAnchor.constraint(equalTo: testButton.topAnchor, constant: -12),
+            enrollButton.heightAnchor.constraint(equalToConstant: 50),
 
             testButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             testButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -170,6 +181,86 @@ class ViewController: UIViewController {
                 self.connectButton.isEnabled = true
             }
         }
+    }
+
+    @objc private func enrollButtonTapped() {
+        // Show enrollment dialog
+        let alert = UIAlertController(title: "Enroll with TAK Server", message: "Enter your credentials to obtain a certificate", preferredStyle: .alert)
+
+        alert.addTextField { textField in
+            textField.placeholder = "Server URL (https://...)"
+            textField.text = "https://tak-server.example.com:8443"
+            textField.keyboardType = .URL
+        }
+
+        alert.addTextField { textField in
+            textField.placeholder = "Username"
+            textField.autocapitalizationType = .none
+        }
+
+        alert.addTextField { textField in
+            textField.placeholder = "Password"
+            textField.isSecureTextEntry = true
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        alert.addAction(UIAlertAction(title: "Enroll", style: .default) { [weak self] _ in
+            guard let self = self,
+                  let bridge = self.omnitakBridge,
+                  let serverUrl = alert.textFields?[0].text,
+                  let username = alert.textFields?[1].text,
+                  let password = alert.textFields?[2].text,
+                  !serverUrl.isEmpty, !username.isEmpty, !password.isEmpty else {
+                self?.updateStatus("Invalid enrollment credentials")
+                return
+            }
+
+            self.updateStatus("Enrolling with \(serverUrl)...")
+            self.enrollButton.isEnabled = false
+
+            bridge.enrollCertificate(
+                serverUrl: serverUrl,
+                username: username,
+                password: password,
+                validityDays: 365
+            ) { [weak self] certId, error in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+
+                    self.enrollButton.isEnabled = true
+
+                    if let certId = certId {
+                        self.updateStatus("Enrollment successful! Certificate ID: \(certId)")
+                        print("[OmniTAK] Enrollment successful, cert ID: \(certId)")
+
+                        // Show success alert
+                        let successAlert = UIAlertController(
+                            title: "Enrollment Successful",
+                            message: "Certificate obtained and saved. You can now connect with TLS using this certificate.",
+                            preferredStyle: .alert
+                        )
+                        successAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(successAlert, animated: true)
+                    } else {
+                        let errorMsg = error ?? "Unknown error"
+                        self.updateStatus("Enrollment failed: \(errorMsg)")
+                        print("[OmniTAK] Enrollment failed: \(errorMsg)")
+
+                        // Show error alert
+                        let errorAlert = UIAlertController(
+                            title: "Enrollment Failed",
+                            message: errorMsg,
+                            preferredStyle: .alert
+                        )
+                        errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(errorAlert, animated: true)
+                    }
+                }
+            }
+        })
+
+        present(alert, animated: true)
     }
 
     @objc private func testButtonTapped() {

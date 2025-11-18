@@ -11,3 +11,19 @@ rustls-pemfile = { workspace = true }
 webpki-roots = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
+
+# HTTP client for certificate enrollment
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# Serialization for enrollment API
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Encoding/decoding
+base64 = "0.22"
+
+# Async runtime for enrollment
+tokio = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
