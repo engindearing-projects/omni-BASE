@@ -4,7 +4,7 @@ Full-featured native iOS tactical awareness app with ATAK-style interface, CoT m
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 <table>
   <tr>
@@ -32,18 +32,16 @@ Full-featured native iOS tactical awareness app with ATAK-style interface, CoT m
 </table>
 
 **Key Features Shown:**
-- 📱 **Portrait-optimized UI** - Compact translucent status bar
-- 🗺️ **Satellite mapping** - High-resolution imagery
-- 🎯 **Bottom toolbar** - Quick access to essential tools
-- 🎨 **Drawing tools** - Full tactical graphics support
-- 📊 **Real-time status** - Connection, GPS, messages
-- 🧭 **Coordinate display** - MGRS/UTM/Lat-Lon formats
+- Portrait-optimized UI with compact translucent status bar
+- Satellite mapping with high-resolution imagery
+- Bottom toolbar for quick access to essential tools
+- Full tactical graphics support with drawing tools
+- Real-time status showing connection, GPS, messages
+- Coordinate display in MGRS/UTM/Lat-Lon formats
 
 ---
 
-## 🚀 Complete Beginner's Guide
-
-**Never built an iOS app before? Start here!**
+## Complete Beginner's Guide
 
 This guide will walk you through every step with no prior iOS development experience required.
 
@@ -67,13 +65,13 @@ If your macOS version is less than 12.0, you'll need to upgrade your Mac first.
 
 ## Prerequisites Setup
 
-### 1. Install Xcode (Required - ~15 minutes)
+### 1. Install Xcode (Required - approximately 15 minutes)
 
 **Option A: Mac App Store (Easiest)**
 1. Open **App Store** on your Mac
 2. Search for **"Xcode"**
 3. Click **"Get"** or **"Install"** (it's free)
-4. Wait 10-15 minutes for ~13 GB download
+4. Wait 10-15 minutes for approximately 13 GB download
 5. Once installed, open Xcode
 6. Click **"Install"** when prompted for additional components
 7. Accept the license agreement
@@ -93,10 +91,10 @@ xcodebuild -version
 # Build version ...
 ```
 
-✅ **If you see version 15.0 or higher, you're good!**
-❌ **If command not found:** Xcode isn't installed properly
+If you see version 15.0 or higher, you're ready to proceed.
+If command not found: Xcode isn't installed properly
 
-### 2. Install Command Line Tools (Required - ~5 minutes)
+### 2. Install Command Line Tools (Required - approximately 5 minutes)
 
 ```bash
 # Install command line tools
@@ -117,10 +115,10 @@ xcode-select -p
 # /Applications/Xcode.app/Contents/Developer
 ```
 
-✅ **If you see the path above, you're good!**
-❌ **If error:** Run `sudo xcode-select --reset` and try again
+If you see the path above, you're ready to proceed.
+If error: Run `sudo xcode-select --reset` and try again
 
-### 3. Install Git (Usually Pre-installed - ~1 minute)
+### 3. Install Git (Usually Pre-installed - approximately 1 minute)
 
 ```bash
 # Check if Git is installed
@@ -130,17 +128,17 @@ git --version
 # git version 2.x.x
 ```
 
-✅ **If you see a version number, you're good!**
-❌ **If command not found:** Install from [git-scm.com](https://git-scm.com/download/mac)
+If you see a version number, you're ready to proceed.
+If command not found: Install from [git-scm.com](https://git-scm.com/download/mac)
 
-### 4. Apple ID Setup (Free - ~2 minutes)
+### 4. Apple ID Setup (Free - approximately 2 minutes)
 
-**You need an Apple ID to run apps on devices (even your own iPhone).**
+You need an Apple ID to run apps on devices (even your own iPhone).
 
 If you don't have one:
 1. Go to [appleid.apple.com](https://appleid.apple.com)
 2. Click **"Create Your Apple ID"**
-3. Follow the prompts (it's free!)
+3. Follow the prompts (it's free)
 
 **Add Apple ID to Xcode:**
 1. Open **Xcode**
@@ -151,11 +149,11 @@ If you don't have one:
 6. Enter your Apple ID and password
 7. Click **"Next"**
 
-✅ **You should see your Apple ID listed with a "Personal Team"**
+You should see your Apple ID listed with a "Personal Team"
 
 ---
 
-## 📦 Clone and Build the Project
+## Clone and Build the Project
 
 ### Step 1: Clone the Repository
 
@@ -166,10 +164,10 @@ Open **Terminal** (Applications → Utilities → Terminal) and run:
 cd ~/Desktop  # or any folder you prefer
 
 # Clone the repository
-git clone https://github.com/your-username/omni-BASE.git
+git clone https://github.com/engindearing-projects/omniTAK-mobile.git
 
 # Navigate to the project
-cd omni-BASE/apps/omnitak
+cd omniTAK-mobile/apps/omnitak
 
 # Verify you're in the right place
 ls -la
@@ -183,19 +181,19 @@ README.md                    <- This file
 ...
 ```
 
-✅ **If you see `OmniTAKMobile.xcodeproj`, you're in the right place!**
-❌ **If not found:** You may be in the wrong directory. Run `pwd` to see where you are.
+If you see `OmniTAKMobile.xcodeproj`, you're in the right place.
+If not found: You may be in the wrong directory. Run `pwd` to see where you are.
 
 ### Step 2: Open in Xcode and Build for Simulator
 
-**This is the easiest way to test - no iPhone needed!**
+This is the easiest way to test - no iPhone needed.
 
 ```bash
 # Open the project in Xcode (from Terminal)
 open OmniTAKMobile.xcodeproj
 ```
 
-**Xcode should open with the project loaded.**
+Xcode should open with the project loaded.
 
 #### Configure Simulator (One-Time Setup)
 
@@ -211,15 +209,15 @@ open OmniTAKMobile.xcodeproj
    ```
 4. **Select any iPhone simulator** (e.g., "iPhone 16 Pro")
 
-✅ **The dropdown should now show:** `OmniTAKMobile > iPhone 16 Pro`
+The dropdown should now show: `OmniTAKMobile > iPhone 16 Pro`
 
 #### Build and Run
 
 **Method 1: Using Xcode GUI (Recommended)**
 
-1. Click the **▶ Play button** at top-left (or press `⌘ + R`)
+1. Click the **Play button** at top-left (or press `⌘ + R`)
 2. Watch the build progress bar at the top
-3. **First build takes 2-5 minutes** - be patient!
+3. **First build takes 2-5 minutes** - be patient
 4. You'll see messages like:
    ```
    Building...
@@ -247,25 +245,25 @@ xcodebuild -scheme OmniTAKMobile \
 #### What You Should See
 
 After the app launches in the simulator:
-- 📱 An iOS device window appears (looks like a real iPhone)
-- 🗺️ A satellite map view (centered on Washington DC by default)
-- 📊 Status bar at top showing "OmniTAK" and connection status
-- 🎯 Bottom toolbar with GPS, zoom, draw buttons
-- 🔴 "DISC" (disconnected) indicator - this is normal (no server configured yet)
+- An iOS device window appears (looks like a real iPhone)
+- A satellite map view (centered on Washington DC by default)
+- Status bar at top showing "OmniTAK" and connection status
+- Bottom toolbar with GPS, zoom, draw buttons
+- "DISC" (disconnected) indicator - this is normal (no server configured yet)
 
 **Simulator Limitations:**
-- ❌ GPS location is simulated (doesn't use real location)
-- ❌ Can't connect to real TAK servers without network configuration
-- ✅ All UI features work perfectly
-- ✅ Drawing, maps, and offline features work
+- GPS location is simulated (doesn't use real location)
+- Can't connect to real TAK servers without network configuration
+- All UI features work properly
+- Drawing, maps, and offline features work
 
 ---
 
 ### Step 3: Build for Physical iPhone/iPad (Optional)
 
-**Want to test on your actual iPhone? Follow these steps.**
+Want to test on your actual iPhone? Follow these steps.
 
-#### A. Configure Code Signing (One-Time - ~3 minutes)
+#### A. Configure Code Signing (One-Time - approximately 3 minutes)
 
 **Why do I need this?** Apple requires all apps to be signed, even for testing on your own device.
 
@@ -282,7 +280,7 @@ After the app launches in the simulator:
 
 4. **Configure Automatic Signing**
    - Find the checkbox **"Automatically manage signing"**
-   - ✅ **Check this box**
+   - Check this box
    - Under "Team", click the dropdown
    - Select your **Apple ID** (it should say "Personal Team")
 
@@ -294,12 +292,12 @@ After the app launches in the simulator:
      ```
    - Replace `yourname` with your actual name or any unique text
 
-✅ **Success looks like:**
+**Success looks like:**
 - No red errors in the Signing section
 - You see "Signing Certificate: Apple Development: your@email.com"
 - Bundle Identifier is unique
 
-❌ **Common errors:**
+**Common errors:**
 - "Failed to create provisioning profile" → Your Apple ID isn't added to Xcode (see Prerequisites Step 4)
 - "Bundle identifier already in use" → Change the bundle ID to something unique
 
@@ -341,7 +339,7 @@ xcrun xctrace list devices
    - It will show the device name (e.g., "John's iPhone")
 
 2. **Build and Run**
-   - Click the **▶ Play button** (or press `⌘ + R`)
+   - Click the **Play button** (or press `⌘ + R`)
    - **First build on device takes 3-7 minutes**
    - You'll see build progress at the top
 
@@ -351,9 +349,9 @@ xcrun xctrace list devices
    Running OmniTAKMobile on John's iPhone
    ```
 
-#### D. Trust the App (First Install Only - ~1 minute)
+#### D. Trust the App (First Install Only - approximately 1 minute)
 
-**The app will install but won't open yet. You need to trust it first.**
+The app will install but won't open yet. You need to trust it first.
 
 1. **On your iPhone/iPad:**
    - Go to **Settings** → **General** → **VPN & Device Management**
@@ -367,21 +365,21 @@ xcrun xctrace list devices
 3. **Launch the App**
    - Go to your home screen
    - Find and tap **OmniTAKMobile** icon
-   - The app should launch successfully! 🎉
+   - The app should launch successfully
 
 #### What You Should See on Your Device
 
-- 🗺️ Satellite map view of your current location (GPS works!)
-- 📊 Compact translucent status bar at top
-- 🎯 Bottom toolbar with GPS, zoom, draw buttons
-- 📍 Your real GPS location shown as a blue dot
-- 🔴 "DISC" indicator (normal - no server configured yet)
+- Satellite map view of your current location (GPS works)
+- Compact translucent status bar at top
+- Bottom toolbar with GPS, zoom, draw buttons
+- Your real GPS location shown as a blue dot
+- "DISC" indicator (normal - no server configured yet)
 
 **Device Benefits:**
-- ✅ Real GPS location tracking
-- ✅ Full performance (faster than simulator)
-- ✅ Test all sensors (compass, accelerometer)
-- ✅ Real network connectivity
+- Real GPS location tracking
+- Full performance (faster than simulator)
+- Test all sensors (compass, accelerometer)
+- Real network connectivity
 
 ## First Launch - Configure TAK Server
 
@@ -411,41 +409,41 @@ xcrun xctrace list devices
 
 ## App Features
 
-### 🗺️ Map & Navigation
+### Map & Navigation
 - **Multi-layer maps**: Satellite, Hybrid, Standard
 - **MGRS Grid overlay** with configurable density
 - **GPS tracking** with bearing and accuracy
 - **Compass overlay** and coordinate display
 - **Zoom controls** and gesture navigation
 
-### 📡 TAK Server Integration
+### TAK Server Integration
 - **Multi-server support**: Connect to multiple TAK servers
 - **CoT messaging**: Send/receive Cursor-on-Target messages
 - **Position broadcasting**: Automatic self-SA updates
 - **SSL/TLS support**: Secure connections with certificates
 - **Federation support**: Multi-server message routing
 
-### ✏️ Drawing & Annotations
+### Drawing & Annotations
 - **Drawing tools**: Lines, polygons, circles, markers
 - **Color customization**: Choose colors for each drawing
 - **Persistent storage**: Drawings saved locally
 - **CoT generation**: Drawings broadcast as CoT messages
 - **Edit/delete**: Manage drawings with radial menu
 
-### 💬 Communications
+### Communications
 - **Chat system**: Send messages to teams/individuals
 - **Team management**: Create and manage tactical teams
 - **Contact list**: View connected units
 - **Emergency beacon**: Send 911/SOS alerts
 
-### 📊 Tactical Tools
+### Tactical Tools
 - **Geofencing**: Create zones with entry/exit alerts
 - **Route planning**: Plan and navigate routes
 - **Range & Bearing**: Measure distances and bearings
 - **Elevation profiles**: View terrain elevation
 - **Line of Sight**: Calculate visibility between points
 
-### 🎯 Advanced Features
+### Advanced Features
 - **Waypoint navigation**: Create and navigate to waypoints
 - **Track recording**: Record movement breadcrumbs
 - **Mission packages**: Share data packages
@@ -454,13 +452,13 @@ xcrun xctrace list devices
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
-**Having issues? Find your problem below and follow the exact steps to fix it.**
+Having issues? Find your problem below and follow the steps to fix it.
 
 ### Common Build Errors
 
-#### ❌ "No such module 'SwiftUI'" or "Cannot find type 'View'"
+#### "No such module 'SwiftUI'" or "Cannot find type 'View'"
 
 **Problem:** Xcode is using the wrong Swift version or toolchain.
 
@@ -475,7 +473,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ "Code signing error" / "No signing certificate"
+#### "Code signing error" / "No signing certificate"
 
 **Problem:** You haven't configured your Apple ID or bundle identifier.
 
@@ -489,7 +487,7 @@ xcrun xctrace list devices
    - Select **OmniTAKMobile** (blue icon) in left sidebar
    - Select **OmniTAKMobile** under TARGETS
    - Click **Signing & Capabilities** tab
-   - ✅ Check **"Automatically manage signing"**
+   - Check **"Automatically manage signing"**
    - Select your Team (your Apple ID)
 4. If you still see errors:
    - Change **Bundle Identifier** to: `com.YOURNAME.omnitak`
@@ -497,7 +495,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ "Sandbox: rsync.samba deny(1) file-write-create"
+#### "Sandbox: rsync.samba deny(1) file-write-create"
 
 **Problem:** macOS security blocking build files.
 
@@ -510,7 +508,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ Build takes forever or freezes at "Compiling..."
+#### Build takes forever or freezes at "Compiling..."
 
 **Problem:** Xcode indexes or derived data corruption.
 
@@ -534,7 +532,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ "The app installation failed" / "Unable to install..."
+#### "The app installation failed" / "Unable to install..."
 
 **Problem:** Old version of app still installed or device storage full.
 
@@ -555,7 +553,7 @@ xcrun xctrace list devices
 
 ### Common Device Issues
 
-#### ❌ "iPhone not showing in device dropdown"
+#### "iPhone not showing in device dropdown"
 
 **Problem:** Device not recognized by Xcode.
 
@@ -574,7 +572,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ "Developer Mode Required" (iOS 16+)
+#### "Developer Mode Required" (iOS 16+)
 
 **Problem:** Developer Mode is not enabled on your device.
 
@@ -587,7 +585,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ "Untrusted Developer" / App won't open
+#### "Untrusted Developer" / App won't open
 
 **Problem:** You haven't trusted your developer certificate.
 
@@ -603,7 +601,7 @@ xcrun xctrace list devices
 
 ### Simulator Issues
 
-#### ❌ Simulator is slow or laggy
+#### Simulator is slow or laggy
 
 **Problem:** Simulator using too many resources.
 
@@ -617,7 +615,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ Simulator shows black screen
+#### Simulator shows black screen
 
 **Problem:** Simulator crashed or didn't load properly.
 
@@ -631,7 +629,7 @@ xcrun xctrace list devices
 
 ### Runtime Issues
 
-#### ❌ App crashes immediately on launch
+#### App crashes immediately on launch
 
 **Problem:** Could be several things.
 
@@ -653,9 +651,9 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ GPS location not working (Simulator)
+#### GPS location not working (Simulator)
 
-**This is normal!** Simulators use a fake location by default.
+This is normal. Simulators use a fake location by default.
 
 **Set custom location:**
 1. Simulator menu → **Features** → **Location** → **Custom Location**
@@ -666,7 +664,7 @@ xcrun xctrace list devices
 
 ---
 
-#### ❌ Map shows blank/white screen
+#### Map shows blank/white screen
 
 **Problem:** Network issue or map tiles not loading.
 
@@ -840,7 +838,7 @@ xcodebuild test \
 ```swift
 // In AppDelegate or main app file
 #if DEBUG
-print("🐛 Debug mode enabled")
+print("Debug mode enabled")
 // Enable detailed TAK protocol logging
 TAKService.debugMode = true
 #endif
@@ -883,9 +881,8 @@ sudo tcpdump -i rvi0 -n -s 0 -w omnitak.pcap
 ## Support
 
 For issues, questions, or contributions:
-- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/discussions)
-- **Documentation**: [Wiki](https://github.com/your-repo/wiki)
+- **Issues**: [GitHub Issues](https://github.com/engindearing-projects/omniTAK-mobile/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/engindearing-projects/omniTAK-mobile/discussions)
 
 ## Credits
 
