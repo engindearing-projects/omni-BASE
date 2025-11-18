@@ -25,6 +25,7 @@ pub mod router;
 pub mod config;
 pub mod marti;
 pub mod error;
+pub mod tls;
 
 pub use server::TakServer;
 pub use client::{Client, ClientId};

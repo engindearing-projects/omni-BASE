@@ -5,8 +5,7 @@ use bytes::BytesMut;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpStream;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::sync::mpsc;
 use tokio::time::{timeout, Duration};
 use tracing::{debug, error, info, warn};
@@ -64,17 +63,20 @@ impl ClientInfo {
 }
 
 /// Client connection handler
-pub struct Client {
+pub struct Client<S> {
     pub info: ClientInfo,
-    pub stream: TcpStream,
+    pub stream: S,
     pub rx_broadcast: mpsc::Receiver<Arc<String>>,
     pub read_timeout: Duration,
 }
 
-impl Client {
+impl<S> Client<S>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
     /// Create a new client connection
     pub fn new(
-        stream: TcpStream,
+        stream: S,
         addr: SocketAddr,
         rx_broadcast: mpsc::Receiver<Arc<String>>,
         timeout_secs: u64,

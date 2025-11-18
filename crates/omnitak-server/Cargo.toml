@@ -19,6 +19,7 @@ tokio-util = { workspace = true }
 rustls = { workspace = true }
 rustls-pemfile = { workspace = true }
 tokio-rustls = { workspace = true }
+webpki = "0.22"
 
 # Serialization
 serde = { workspace = true }
@@ -57,3 +58,11 @@ tokio-test = "0.4"
 [[example]]
 name = "server"
 path = "examples/server.rs"
+
+[[example]]
+name = "tls_server"
+path = "examples/tls_server.rs"
+
+[[example]]
+name = "tls_client"
+path = "examples/tls_client.rs"
