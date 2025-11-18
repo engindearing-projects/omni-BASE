@@ -1,6 +1,6 @@
 # OmniTAK iOS - Deployment Guide
 
-## 🚀 Deploy to Real iPhone
+##  Deploy to Real iPhone
 
 ### Prerequisites
 - Mac with Xcode installed
@@ -61,7 +61,7 @@ When prompted:
 3. Blue GPS dot will appear on map
 ```
 
-## 📡 Connect to TAK Server
+##  Connect to TAK Server
 
 ### Default Server
 - Host: `204.48.30.216`
@@ -88,7 +88,7 @@ When prompted:
    - Their icons appear on map
 ```
 
-## 🗺️ Using the Map
+##  Using the Map
 
 ### Navigation
 - **Pan**: Drag with one finger
@@ -96,12 +96,12 @@ When prompted:
 - **Rotate**: Twist with two fingers
 
 ### Toolbar Buttons
-- **GPS** (📍): Center map on your location, zoom to tactical view
-- **Broadcast** (📤): Send your position to TAK server
+- **GPS** (): Center map on your location, zoom to tactical view
+- **Broadcast** (): Send your position to TAK server
 - **Zoom +** (+): Zoom in (more detail)
 - **Zoom -** (-): Zoom out (wider view)
-- **Measure** (📏): Distance measurement (coming soon)
-- **Route** (🛤️): Route planning (coming soon)
+- **Measure** (): Distance measurement (coming soon)
+- **Route** (): Route planning (coming soon)
 
 ### Layers Panel
 ```
@@ -116,7 +116,7 @@ When prompted:
    - Unknown: Yellow units
 ```
 
-## 🎯 Tactical Features
+##  Tactical Features
 
 ### Self-Position Broadcast
 Your CoT message includes:
@@ -143,7 +143,7 @@ Top status bar shows:
 - **TX counter**: Messages sent
 - **GPS accuracy**: ±Xm (lower is better)
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### "Unable to install"
 ```
@@ -189,7 +189,7 @@ Solution: Verify server is sending
 4. Check console logs in Xcode
 ```
 
-## 📊 Performance Tips
+##  Performance Tips
 
 ### Battery Life
 - Use "While Using App" location permission (not "Always")
@@ -208,7 +208,7 @@ Solution: Verify server is sending
 - Fair: Near windows, slow movement
 - Poor: Indoor, dense urban
 
-## 🎖️ Field Deployment
+##  Field Deployment
 
 ### Pre-Mission Checklist
 - [ ] iPhone fully charged
@@ -230,7 +230,7 @@ Solution: Verify server is sending
 - Charge devices
 - Update server config if needed
 
-## 🚨 Emergency Use
+##  Emergency Use
 
 ### Lost Connection
 1. Check TAK indicator (should be green)
@@ -250,7 +250,7 @@ Solution: Verify server is sending
 - Coordinate with team on protocol
 - Have backup comms plan (radio, phone)
 
-## 📱 Additional Info
+##  Additional Info
 
 ### System Requirements
 - iPhone: 6S or newer
@@ -259,29 +259,29 @@ Solution: Verify server is sending
 - RAM: Works on all models
 
 ### Supported Protocols
-- ✅ TCP (default)
-- ✅ TLS/SSL
-- ✅ WebSocket
-- ✅ UDP (ready, not tested)
+-  TCP (default)
+-  TLS/SSL
+-  WebSocket
+-  UDP (ready, not tested)
 
 ### Supported CoT Types
-- ✅ Point (position) events
-- ✅ Friendly (a-f-*)
-- ✅ Hostile (a-h-*)
-- ✅ Unknown (a-u-*)
-- 🔧 Shape events (coming soon)
-- 🔧 Route events (coming soon)
+-  Point (position) events
+-  Friendly (a-f-*)
+-  Hostile (a-h-*)
+-  Unknown (a-u-*)
+-  Shape events (coming soon)
+-  Route events (coming soon)
 
-## 🎯 Success Criteria
+##  Success Criteria
 
 Your deployment is successful when:
-- ✅ Green TAK indicator shows
-- ✅ Your position appears on teammate's maps
-- ✅ Teammate positions appear on your map
-- ✅ Message counters increment
-- ✅ GPS accuracy <10m
+-  Green TAK indicator shows
+-  Your position appears on teammate's maps
+-  Teammate positions appear on your map
+-  Message counters increment
+-  GPS accuracy <10m
 
-## 📞 Support
+##  Support
 
 For issues or questions:
 1. Check FEATURE_VERIFICATION.md
@@ -291,4 +291,4 @@ For issues or questions:
 
 ---
 
-**You're ready to deploy! Good luck in the field! 🎖️**
+**You're ready to deploy! Good luck in the field! **

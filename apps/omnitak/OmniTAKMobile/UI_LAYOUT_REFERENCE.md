@@ -27,7 +27,7 @@
 ┌────────────────────────────────────┐
 │ [Filter Icon] FILTER UNITS (2) [X] │  ← Header
 ├────────────────────────────────────┤
-│ [🔍] Search callsign or UID...     │  ← Search Bar
+│ [] Search callsign or UID...     │  ← Search Bar
 ├────────────────────────────────────┤
 │ QUICK FILTERS                      │
 │ ┌─────────┬─────────┐              │
@@ -43,22 +43,22 @@
 │ 2 filter(s) active                 │  ← Active Indicator
 ├────────────────────────────────────┤
 │ AFFILIATION                        │
-│ ☑ Friendly                         │
-│ ☑ Hostile                          │  ← Affiliation Toggles
-│ ☐ Neutral                          │
-│ ☐ Unknown                          │
-│ ☐ Assumed Friend                   │
-│ ☐ Suspect                          │
+│  Friendly                         │
+│  Hostile                          │  ← Affiliation Toggles
+│  Neutral                          │
+│  Unknown                          │
+│  Assumed Friend                   │
+│  Suspect                          │
 ├────────────────────────────────────┤
 │ CATEGORY                           │
 │ ┌─────────┬─────────┐              │
-│ │ ☑ Ground│ ☑ Air   │              │
+│ │  Ground│  Air   │              │
 │ ├─────────┼─────────┤              │  ← Category Toggles (2x4)
-│ │ ☐ Naval │ ☐ Sub   │              │
+│ │  Naval │  Sub   │              │
 │ ├─────────┼─────────┤              │
-│ │ ☐ Instal│ ☐ Sensor│              │
+│ │  Instal│  Sensor│              │
 │ ├─────────┼─────────┤              │
-│ │ ☐ Equip │ ☐ Other │              │
+│ │  Equip │  Other │              │
 │ └─────────┴─────────┘              │
 ├────────────────────────────────────┤
 │ > ADVANCED FILTERS                 │  ← Expandable
@@ -95,26 +95,26 @@
 │ ┌────────────────────────────────────┐ │
 │ │ [Shield] Alpha-1        [2m]     > │ │
 │ │ Ground   Cyan Team                 │ │  ← Unit Row
-│ │ 📍 450m  🧭 045° NE                │ │
+│ │  450m   045° NE                │ │
 │ └────────────────────────────────────┘ │
 │ ┌────────────────────────────────────┐ │
 │ │ [Shield] Bravo-2        [5m]     > │ │
 │ │ Ground   Blue Team                 │ │
-│ │ 📍 1.2km  🧭 180° S                │ │
+│ │  1.2km   180° S                │ │
 │ └────────────────────────────────────┘ │
 │                                        │
 │ ▼ HOSTILE (12)                         │  ← Section Header
 │ ┌────────────────────────────────────┐ │
-│ │ [⚠️] Enemy-1          [1h] STALE > │ │
+│ │ [] Enemy-1          [1h] STALE > │ │
 │ │ Air      Unknown                   │ │
-│ │ 📍 15km  🧭 270° W                 │ │
+│ │  15km   270° W                 │ │
 │ └────────────────────────────────────┘ │
 │                                        │
 │ ▼ UNKNOWN (3)                          │  ← Section Header
 │ ┌────────────────────────────────────┐ │
 │ │ [?] Contact-X         [30s]      > │ │
 │ │ Ground   Unknown                   │ │
-│ │ 📍 N/A   🧭 N/A                    │ │
+│ │  N/A    N/A                    │ │
 │ └────────────────────────────────────┘ │
 │                                        │
 └────────────────────────────────────────┘

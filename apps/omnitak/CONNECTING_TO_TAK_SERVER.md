@@ -3,9 +3,9 @@
 ## Prerequisites
 
 TAK Server 5.5 (official from tak.gov) requires:
-- ✅ TLS 1.2 or 1.3 (supported by default)
-- ✅ Client certificate authentication (usually required)
-- ✅ Self-signed CA (OmniTAK accepts these)
+-  TLS 1.2 or 1.3 (supported by default)
+-  Client certificate authentication (usually required)
+-  Self-signed CA (OmniTAK accepts these)
 
 ## Method 1: Auto-Discover (Easiest for Local Network)
 
@@ -23,14 +23,14 @@ This will scan ports: `8087, 8089, 8443, 8444, 8446`
 ### Step 2: Look for Your Server
 You should see something like:
 ```
-📡 Found 2 server(s)
+ Found 2 server(s)
 ━━━━━━━━━━━━━━━━━━
-🔒 TAK Server (SSL)
+ TAK Server (SSL)
    192.168.1.100:8089
    [Connect]
 ```
 
-⚠️ **Note**: Auto-discover won't work without a certificate if the server requires auth. You'll need to enroll first.
+ **Note**: Auto-discover won't work without a certificate if the server requires auth. You'll need to enroll first.
 
 ## Method 2: Certificate Enrollment (Recommended)
 
@@ -108,7 +108,7 @@ If you already have `.p12` certificate files:
 - Server Name: `TAK Server 5.5`
 - Host: `192.168.1.100`
 - Port: `8089`
-- Use TLS/SSL: ✅ ON
+- Use TLS/SSL:  ON
 - Certificate: Select the one you just imported
 
 ## Method 4: Quick Setup (Preset)
@@ -255,10 +255,10 @@ openssl s_client -connect 192.168.1.100:8089 \
 
 Watch debug console for:
 ```
-🔒 Using TLS/SSL (TLS 1.2-1.3, legacy cipher suites enabled, accepting self-signed certs)
-🔐 Configuring client certificate: your-cert
-✅ Client certificate loaded successfully
-✅ DirectTLS: Connected to 192.168.1.100:8089
+ Using TLS/SSL (TLS 1.2-1.3, legacy cipher suites enabled, accepting self-signed certs)
+ Configuring client certificate: your-cert
+ Client certificate loaded successfully
+ DirectTLS: Connected to 192.168.1.100:8089
 ```
 
 ## Quick Reference
@@ -266,10 +266,10 @@ Watch debug console for:
 ### Minimum Info Needed
 
 To connect to TAK Server 5.5, you need:
-- ✅ Server IP: `192.168.1.100` (example)
-- ✅ Port: `8089` (typical)
-- ✅ Client Certificate: `.p12` file
-- ✅ Certificate Password: `atakatak` (or custom)
+-  Server IP: `192.168.1.100` (example)
+-  Port: `8089` (typical)
+-  Client Certificate: `.p12` file
+-  Certificate Password: `atakatak` (or custom)
 
 ### Fastest Methods Ranked
 
@@ -289,7 +289,7 @@ To connect to TAK Server 5.5, you need:
 6. Scan QR from TAK Server admin
 7. Enter password (from admin)
 8. Wait for enrollment (15 sec)
-9. ✅ Success! Connected to TAK Server
+9.  Success! Connected to TAK Server
 10. See green "Connected" status
 11. Start sharing position data
 ```
@@ -310,12 +310,12 @@ Certificate Password: _______________
 
 In Xcode debug console, look for:
 ```
-🌐 Using explicit IPv4: 192.168.1.100
-🔒 Using TLS/SSL (TLS 1.2-1.3...)
-🔓 Accepting server certificate (self-signed CA)
-🔐 Configuring client certificate: ...
-✅ Client certificate loaded successfully
-✅ DirectTLS: Connected to 192.168.1.100:8089
+ Using explicit IPv4: 192.168.1.100
+ Using TLS/SSL (TLS 1.2-1.3...)
+ Accepting server certificate (self-signed CA)
+ Configuring client certificate: ...
+ Client certificate loaded successfully
+ DirectTLS: Connected to 192.168.1.100:8089
 ```
 
 ### Common Issues & Fixes
@@ -330,6 +330,6 @@ In Xcode debug console, look for:
 
 ---
 
-**You're ready to connect!** 🚀
+**You're ready to connect!** 
 
 TAK Server 5.5 is fully supported with TLS 1.2/1.3 and client certificate authentication.

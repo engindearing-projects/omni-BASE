@@ -12,7 +12,7 @@ OmniTAK Mobile includes comprehensive TLS/SSL support for connecting to TAK serv
 - **Recommended for**: All modern TAK servers (2020+)
 
 ### Legacy Mode (Opt-in)
-- **Minimum**: TLS 1.0 ⚠️
+- **Minimum**: TLS 1.0 
 - **Maximum**: TLS 1.3
 - **Use only when**: Connecting to very old TAK servers that cannot be upgraded
 
@@ -34,7 +34,7 @@ TLS_RSA_WITH_AES_128_CBC_SHA
 
 ## Features
 
-### ✅ What's Supported
+###  What's Supported
 
 - **TLS 1.2 and 1.3** (default, secure)
 - **TLS 1.0 and 1.1** (opt-in, legacy mode)
@@ -44,7 +44,7 @@ TLS_RSA_WITH_AES_128_CBC_SHA
 - **Automatic TLS version negotiation**
 - **Real-time TLS negotiation logging** (debug mode)
 
-### 🔒 Security Features
+###  Security Features
 
 - **Self-signed CA support**: Accepts server certificates signed by custom CAs
 - **Client certificates**: Mutual TLS authentication with .p12 certificates
@@ -64,7 +64,7 @@ let server = TAKServer(
     port: 8089,
     protocolType: "ssl",
     useTLS: true,
-    allowLegacyTLS: true  // ⚠️ Enable TLS 1.0/1.1
+    allowLegacyTLS: true  //  Enable TLS 1.0/1.1
 )
 ```
 
@@ -86,11 +86,11 @@ let server = TAKServer(
 In debug builds, OmniTAK logs detailed TLS negotiation information:
 
 ```
-🔒 Using TLS/SSL (TLS 1.2-1.3, legacy cipher suites enabled, accepting self-signed certs)
-🔓 Accepting server certificate (self-signed CA)
-🔐 Configuring client certificate: my-cert
-✅ Client certificate loaded successfully
-🔐 TLS Negotiated: TLS 1.2, Cipher: 0xC030
+ Using TLS/SSL (TLS 1.2-1.3, legacy cipher suites enabled, accepting self-signed certs)
+ Accepting server certificate (self-signed CA)
+ Configuring client certificate: my-cert
+ Client certificate loaded successfully
+ TLS Negotiated: TLS 1.2, Cipher: 0xC030
 ```
 
 ### Log Details
@@ -178,7 +178,7 @@ openssl ciphers -v 'ALL:COMPLEMENTOFALL'
 
 ## Security Considerations
 
-### ⚠️ Legacy TLS Risks
+###  Legacy TLS Risks
 
 Enabling `allowLegacyTLS: true` allows TLS 1.0 and 1.1, which have known vulnerabilities:
 
@@ -190,16 +190,16 @@ Enabling `allowLegacyTLS: true` allows TLS 1.0 and 1.1, which have known vulnera
 ### When to Use Legacy Mode
 
 **Only enable legacy TLS when:**
-1. ✅ Server cannot be upgraded
-2. ✅ Network is trusted (VPN, private network)
-3. ✅ Temporary solution until server is upgraded
-4. ✅ Testing/development only
+1.  Server cannot be upgraded
+2.  Network is trusted (VPN, private network)
+3.  Temporary solution until server is upgraded
+4.  Testing/development only
 
 **Do NOT enable for:**
-1. ❌ Production deployments
-2. ❌ Public/untrusted networks
-3. ❌ Sensitive operations
-4. ❌ Modern servers
+1.  Production deployments
+2.  Public/untrusted networks
+3.  Sensitive operations
+4.  Modern servers
 
 ### Best Practices
 
@@ -328,4 +328,4 @@ A: Check debug logs for "TLS Negotiated: TLS X.X" message.
 
 **Remember**: Default TLS 1.2+ mode is secure and works with 95% of TAK servers. Only enable legacy mode when absolutely necessary!
 
-🔒 **Secure by default, legacy when needed.**
+ **Secure by default, legacy when needed.**
