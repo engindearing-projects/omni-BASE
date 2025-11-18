@@ -17,7 +17,7 @@ extension RadialMenuConfiguration {
     // MARK: - Empty Map Context Menu
 
     /// Menu for long-press on empty map area - primary actions for map interaction
-    /// Options: Drop Point, Measure, Draw, R&B Line, Route Here (ATAK-style)
+    /// Options: Drop Point, Measure, Draw, Layers, R&B Line, Route Here (ATAK-style)
     static func mapContextMenu(at coordinate: CLLocationCoordinate2D) -> RadialMenuConfiguration {
         let items = [
             RadialMenuItem(
@@ -37,6 +37,12 @@ extension RadialMenuConfiguration {
                 label: "Draw",
                 color: .cyan,
                 action: .custom("draw_shape")
+            ),
+            RadialMenuItem(
+                icon: "square.3.layers.3d",
+                label: "Layers",
+                color: Color(hex: "#FFFF00"),  // ATAK accent yellow
+                action: .custom("show_layers")
             ),
             RadialMenuItem(
                 icon: "line.diagonal",

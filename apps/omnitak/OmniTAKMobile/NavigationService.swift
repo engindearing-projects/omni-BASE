@@ -54,29 +54,39 @@ class NavigationService: NSObject, ObservableObject {
 
     func startLocationUpdates() {
         locationManager.startUpdatingLocation()
+        #if DEBUG
         print("📍 Started location updates")
+        #endif
     }
 
     func stopLocationUpdates() {
         locationManager.stopUpdatingLocation()
+        #if DEBUG
         print("📍 Stopped location updates")
+        #endif
     }
 
     // MARK: - Compass/Heading Updates
 
     func startHeadingUpdates() {
         guard isCompassAvailable else {
+            #if DEBUG
             print("⚠️ Compass not available on this device")
+            #endif
             return
         }
 
         locationManager.startUpdatingHeading()
+        #if DEBUG
         print("🧭 Started compass updates")
+        #endif
     }
 
     func stopHeadingUpdates() {
         locationManager.stopUpdatingHeading()
+        #if DEBUG
         print("🧭 Stopped compass updates")
+        #endif
     }
 
     // MARK: - Navigation Control
@@ -97,7 +107,9 @@ class NavigationService: NSObject, ObservableObject {
             updateNavigationData(location: location)
         }
 
+        #if DEBUG
         print("🎯 Started navigation to: \(waypoint.name)")
+        #endif
     }
 
     /// Stop navigation
@@ -108,7 +120,9 @@ class NavigationService: NSObject, ObservableObject {
         // Keep location updates running but can optionally stop heading
         stopHeadingUpdates()
 
+        #if DEBUG
         print("⏹️ Stopped navigation")
+        #endif
     }
 
     /// Toggle navigation to waypoint
@@ -279,7 +293,9 @@ extension NavigationService: CLLocationManagerDelegate {
 
             // Check if we've arrived
             if hasArrivedAtTarget() {
+                #if DEBUG
                 print("✅ Arrived at waypoint: \(navigationState.targetWaypoint?.name ?? "Unknown")")
+                #endif
                 // Could trigger a notification here
             }
         }
@@ -300,12 +316,16 @@ extension NavigationService: CLLocationManagerDelegate {
 
         switch status {
         case .authorizedWhenInUse, .authorizedAlways:
+            #if DEBUG
             print("✅ Location authorization granted")
+            #endif
             startLocationUpdates()
         case .denied, .restricted:
             print("❌ Location authorization denied")
         case .notDetermined:
+            #if DEBUG
             print("⏳ Location authorization not determined")
+            #endif
         @unknown default:
             break
         }

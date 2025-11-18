@@ -434,7 +434,9 @@ struct PointDropperView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
 
+        #if DEBUG
         print("📍 Quick dropped \(affiliation.displayName) marker: \(marker.name)")
+        #endif
     }
 
     private func dropMarker() {

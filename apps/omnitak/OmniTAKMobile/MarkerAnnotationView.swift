@@ -437,7 +437,9 @@ struct LongPressMarkerGesture {
         // Notify
         onMarkerCreated?(marker)
 
+        #if DEBUG
         print("📍 Long press marker created at: \(coordinate.latitude), \(coordinate.longitude)")
+        #endif
     }
 }
 

@@ -1,0 +1,44 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Import the pre-built Rust XCFramework
+# This contains the compiled Rust library for both device and simulator architectures
+cc_import(
+    name = "omnitak_mobile_xcframework_device",
+    static_library = "OmniTAKMobile.xcframework/ios-arm64/libomnitak_mobile.a",
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "omnitak_mobile_xcframework_simulator",
+    static_library = "OmniTAKMobile.xcframework/ios-arm64_x86_64-simulator/libomnitak_mobile.a",
+    visibility = ["//visibility:public"],
+)
+
+# Platform-specific XCFramework selector
+alias(
+    name = "OmniTAKMobile.xcframework",
+    actual = select({
+        "@platforms//os:ios": ":omnitak_mobile_xcframework_device",
+        "//conditions:default": ":omnitak_mobile_xcframework_simulator",
+    }),
+    visibility = ["//visibility:public"],
+)
+
+# Swift bridge between TypeScript and Rust FFI
+# Provides OmniTAKNativeBridge for calling Rust functions
+swift_library(
+    name = "OmniTAKNativeBridge",
+    srcs = ["OmniTAKNativeBridge.swift"],
+    module_name = "OmniTAKNativeBridge",
+    deps = [
+        ":OmniTAKMobile.xcframework",
+    ],
+    copts = [
+        "-Osize",
+        "-Xfrontend",
+        "-internalize-at-link",
+    ],
+    visibility = ["//visibility:public"],
+)

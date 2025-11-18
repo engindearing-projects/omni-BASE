@@ -78,7 +78,9 @@ class PointDropperService: ObservableObject {
         updateRecentMarkers(marker)
         saveMarkers()
 
+        #if DEBUG
         print("📍 Created \(affiliation.displayName) marker: \(name) at (\(coordinate.latitude), \(coordinate.longitude))")
+        #endif
 
         // Broadcast if requested
         if broadcast {
@@ -120,7 +122,9 @@ class PointDropperService: ObservableObject {
             updateRecentMarkers(updatedMarker)
             saveMarkers()
 
+            #if DEBUG
             print("✏️ Updated marker: \(marker.name)")
+            #endif
             onEvent?(.markerUpdated(updatedMarker))
         }
     }
@@ -131,7 +135,9 @@ class PointDropperService: ObservableObject {
         recentMarkers.removeAll { $0.id == marker.id }
         saveMarkers()
 
+        #if DEBUG
         print("🗑️ Deleted marker: \(marker.name)")
+        #endif
         onEvent?(.markerDeleted(marker))
     }
 
@@ -147,7 +153,9 @@ class PointDropperService: ObservableObject {
         markers.removeAll()
         recentMarkers.removeAll()
         saveMarkers()
+        #if DEBUG
         print("🗑️ Deleted all markers")
+        #endif
     }
 
     /// Delete markers by affiliation
@@ -156,7 +164,9 @@ class PointDropperService: ObservableObject {
         markers.removeAll { $0.affiliation == affiliation }
         recentMarkers.removeAll { $0.affiliation == affiliation }
         saveMarkers()
+        #if DEBUG
         print("🗑️ Deleted \(count) \(affiliation.displayName) markers")
+        #endif
     }
 
     // MARK: - SALUTE Report
@@ -201,7 +211,9 @@ class PointDropperService: ObservableObject {
                 saveMarkers()
             }
 
+            #if DEBUG
             print("📤 Broadcast marker: \(marker.name)")
+            #endif
             onEvent?(.markerBroadcast(marker))
         } else {
             print("❌ Failed to broadcast marker: \(marker.name)")
@@ -293,7 +305,9 @@ class PointDropperService: ObservableObject {
     func startDropping(affiliation: MarkerAffiliation) {
         currentAffiliation = affiliation
         dropperState = .placing
+        #if DEBUG
         print("🎯 Point dropper active: \(affiliation.displayName)")
+        #endif
     }
 
     func cancelDropping() {
@@ -339,7 +353,9 @@ class PointDropperService: ObservableObject {
 
     private func loadAllMarkers() {
         markers = persistence.loadMarkers()
+        #if DEBUG
         print("📂 Loaded \(markers.count) point markers")
+        #endif
 
         // Populate recent markers from loaded data
         recentMarkers = Array(markersSortedByTime().prefix(maxRecentMarkers))
@@ -404,7 +420,9 @@ class PointMarkerPersistence {
         do {
             let data = try encoder.encode(markers)
             userDefaults.set(data, forKey: markersKey)
+            #if DEBUG
             print("💾 Saved \(markers.count) point markers to UserDefaults")
+            #endif
         } catch {
             print("❌ Failed to save point markers: \(error)")
         }
@@ -428,6 +446,8 @@ class PointMarkerPersistence {
 
     func clearAll() {
         userDefaults.removeObject(forKey: markersKey)
+        #if DEBUG
         print("🗑️ Cleared all point marker data from UserDefaults")
+        #endif
     }
 }

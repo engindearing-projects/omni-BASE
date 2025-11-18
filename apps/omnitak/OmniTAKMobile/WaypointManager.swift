@@ -57,7 +57,9 @@ class WaypointManager: ObservableObject {
         waypoints.append(waypoint)
         saveWaypoints()
 
+        #if DEBUG
         print("📍 Created waypoint: \(name) at (\(coordinate.latitude), \(coordinate.longitude))")
+        #endif
         return waypoint
     }
 
@@ -78,7 +80,9 @@ class WaypointManager: ObservableObject {
             updatedWaypoint.touch()
             waypoints[index] = updatedWaypoint
             saveWaypoints()
+            #if DEBUG
             print("✏️ Updated waypoint: \(waypoint.name)")
+            #endif
         }
     }
 
@@ -93,7 +97,9 @@ class WaypointManager: ObservableObject {
 
         saveWaypoints()
         saveRoutes()
+        #if DEBUG
         print("🗑️ Deleted waypoint: \(waypoint.name)")
+        #endif
     }
 
     /// Delete waypoint by ID
@@ -109,7 +115,9 @@ class WaypointManager: ObservableObject {
         routes.removeAll()
         saveWaypoints()
         saveRoutes()
+        #if DEBUG
         print("🗑️ Deleted all waypoints and routes")
+        #endif
     }
 
     /// Get waypoints sorted by distance from a location
@@ -152,7 +160,9 @@ class WaypointManager: ObservableObject {
         let route = WaypointRoute(name: name, color: color)
         routes.append(route)
         saveRoutes()
+        #if DEBUG
         print("🛣️ Created route: \(name)")
+        #endif
         return route
     }
 
@@ -166,7 +176,9 @@ class WaypointManager: ObservableObject {
         if let index = routes.firstIndex(where: { $0.id == route.id }) {
             routes[index] = route
             saveRoutes()
+            #if DEBUG
             print("✏️ Updated route: \(route.name)")
+            #endif
         }
     }
 
@@ -174,7 +186,9 @@ class WaypointManager: ObservableObject {
     func deleteRoute(_ route: WaypointRoute) {
         routes.removeAll { $0.id == route.id }
         saveRoutes()
+        #if DEBUG
         print("🗑️ Deleted route: \(route.name)")
+        #endif
     }
 
     /// Add waypoint to route
@@ -237,7 +251,9 @@ class WaypointManager: ObservableObject {
         waypoints.append(waypoint)
         saveWaypoints()
 
+        #if DEBUG
         print("📥 Imported waypoint from CoT: \(callsign)")
+        #endif
         return waypoint
     }
 
@@ -294,7 +310,9 @@ class WaypointManager: ObservableObject {
 
     private func loadAllWaypoints() {
         waypoints = persistence.loadWaypoints()
+        #if DEBUG
         print("📂 Loaded \(waypoints.count) waypoints")
+        #endif
     }
 
     private func saveWaypoints() {
@@ -303,7 +321,9 @@ class WaypointManager: ObservableObject {
 
     private func loadAllRoutes() {
         routes = persistence.loadRoutes()
+        #if DEBUG
         print("📂 Loaded \(routes.count) routes")
+        #endif
     }
 
     private func saveRoutes() {
@@ -354,7 +374,9 @@ class WaypointPersistence {
         do {
             let data = try encoder.encode(waypoints)
             userDefaults.set(data, forKey: waypointsKey)
+            #if DEBUG
             print("💾 Saved \(waypoints.count) waypoints to UserDefaults")
+            #endif
         } catch {
             print("❌ Failed to save waypoints: \(error)")
         }
@@ -380,7 +402,9 @@ class WaypointPersistence {
         do {
             let data = try encoder.encode(routes)
             userDefaults.set(data, forKey: routesKey)
+            #if DEBUG
             print("💾 Saved \(routes.count) routes to UserDefaults")
+            #endif
         } catch {
             print("❌ Failed to save routes: \(error)")
         }
@@ -405,6 +429,8 @@ class WaypointPersistence {
     func clearAll() {
         userDefaults.removeObject(forKey: waypointsKey)
         userDefaults.removeObject(forKey: routesKey)
+        #if DEBUG
         print("🗑️ Cleared all waypoint data from UserDefaults")
+        #endif
     }
 }

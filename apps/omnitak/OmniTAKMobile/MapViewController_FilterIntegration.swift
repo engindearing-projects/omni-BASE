@@ -333,7 +333,9 @@ struct ATAKMapViewWithFilters: View {
                 protocolType: activeServer.protocolType,
                 useTLS: activeServer.useTLS
             )
+            #if DEBUG
             print("🔌 Auto-connecting to: \(activeServer.displayName)")
+            #endif
         }
     }
 
@@ -348,7 +350,9 @@ struct ATAKMapViewWithFilters: View {
                 mapRegion.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
             }
             trackingMode = .follow
+            #if DEBUG
             print("🎯 Centered on user: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+            #endif
         } else {
             print("❌ No location available")
         }
@@ -363,7 +367,9 @@ struct ATAKMapViewWithFilters: View {
         let cotXml = generateSelfCoT(location: location)
         let success = takService.sendCoT(xml: cotXml)
         if success {
+            #if DEBUG
             print("📤 Broadcast position: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+            #endif
         }
     }
 
@@ -372,7 +378,9 @@ struct ATAKMapViewWithFilters: View {
             mapRegion.span.latitudeDelta = max(mapRegion.span.latitudeDelta / 2, 0.001)
             mapRegion.span.longitudeDelta = max(mapRegion.span.longitudeDelta / 2, 0.001)
         }
+        #if DEBUG
         print("🔍 Zoom in: \(mapRegion.span.latitudeDelta)")
+        #endif
     }
 
     private func zoomOut() {
@@ -380,7 +388,9 @@ struct ATAKMapViewWithFilters: View {
             mapRegion.span.latitudeDelta = min(mapRegion.span.latitudeDelta * 2, 180)
             mapRegion.span.longitudeDelta = min(mapRegion.span.longitudeDelta * 2, 180)
         }
+        #if DEBUG
         print("🔍 Zoom out: \(mapRegion.span.latitudeDelta)")
+        #endif
     }
 
     private func toggleLayer(_ layer: String) {
@@ -393,13 +403,19 @@ struct ATAKMapViewWithFilters: View {
             switch layer {
             case "satellite":
                 mapType = .satellite
+                #if DEBUG
                 print("🗺️ Map type: Satellite")
+                #endif
             case "hybrid":
                 mapType = .hybrid
+                #if DEBUG
                 print("🗺️ Map type: Hybrid")
+                #endif
             case "standard":
                 mapType = .standard
+                #if DEBUG
                 print("🗺️ Map type: Standard")
+                #endif
             default:
                 break
             }
@@ -416,7 +432,9 @@ struct ATAKMapViewWithFilters: View {
             print("👥 Friendly units: \(showFriendly ? "ON" : "OFF")")
         case "hostile":
             showHostile.toggle()
+            #if DEBUG
             print("⚠️ Hostile units: \(showHostile ? "ON" : "OFF")")
+            #endif
         case "unknown":
             showUnknown.toggle()
             print("❓ Unknown units: \(showUnknown ? "ON" : "OFF")")

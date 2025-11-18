@@ -61,9 +61,9 @@ struct ATAKMapView: View {
     @State private var showUnknown = false
 
     // Map overlay states
-    @State private var showCompass = true
-    @State private var showCoordinates = true
-    @State private var showScaleBar = true
+    @State private var showCompass = false  // Hidden by default for max map space
+    @State private var showCoordinates = false  // Hidden by default for max map space
+    @State private var showScaleBar = false  // Hidden by default for max map space
     @State private var showGrid = false
 
     // New ATAK-style UI states
@@ -75,6 +75,7 @@ struct ATAKMapView: View {
     @State private var showOverlaySettings = false
     @State private var showBreadcrumbTrails = false
     @State private var showRBLines = false
+    @State private var showCallsignPanel = false  // Hidden by default for max map space
 
     init() {
         let store = DrawingStore()
@@ -159,10 +160,6 @@ struct ATAKMapView: View {
                         }
                     }
                 )
-                .background(Color.black.opacity(0.7))
-                .cornerRadius(8)
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
 
                 Spacer()
 
@@ -173,12 +170,11 @@ struct ATAKMapView: View {
                     showDrawingPanel: $showDrawingPanel,
                     showDrawingList: $showDrawingList,
                     onCenterUser: centerOnUser,
-                    onSendCoT: sendSelfPosition,
                     onZoomIn: zoomIn,
                     onZoomOut: zoomOut
                 )
                 .padding(.horizontal, 8)
-                .padding(.bottom, isCursorModeActive ? 160 : 20)
+                .padding(.bottom, isCursorModeActive ? 160 : 8)
 
                 // Quick Action Toolbar - New ATAK-style bottom toolbar
                 if showQuickActionToolbar && !isCursorModeActive {
@@ -198,7 +194,7 @@ struct ATAKMapView: View {
                         }
                     )
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 90)
+                    .padding(.bottom, 15)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -282,7 +278,9 @@ struct ATAKMapView: View {
                 connectionStatus: takService.isConnected ? "CONNECTED" : "DISCONNECTED",
                 onNavigate: { screen in
                     currentScreen = screen
+                    #if DEBUG
                     print("🧭 Navigate to: \(screen)")
+                    #endif
 
                     // Handle navigation
                     switch screen {
@@ -346,8 +344,8 @@ struct ATAKMapView: View {
             }
             .zIndex(1002)
 
-            // Callsign Display - Bottom Right (above toolbar)
-            if let location = locationManager.location {
+            // Callsign Display - Bottom Right (above toolbar) - Hidden by default for max map space
+            if showCallsignPanel, let location = locationManager.location {
                 VStack {
                     Spacer()
                     HStack {
@@ -506,31 +504,31 @@ struct ATAKMapView: View {
             VStack {
                 Spacer()
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text("CENTER")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.system(size: 8, weight: .bold))
                             .foregroundColor(.gray)
                         Text(mapStateManager.formattedCenterCoordinate)
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
                             .foregroundColor(.white)
 
                         Button(action: {
                             mapStateManager.cycleCoordinateFormat()
                         }) {
                             Text(mapStateManager.coordinateFormat.shortName)
-                                .font(.system(size: 9, weight: .bold))
+                                .font(.system(size: 8, weight: .bold))
                                 .foregroundColor(.cyan)
-                                .padding(.horizontal, 6)
+                                .padding(.horizontal, 5)
                                 .padding(.vertical, 2)
                                 .background(Color.cyan.opacity(0.2))
-                                .cornerRadius(4)
+                                .cornerRadius(3)
                         }
                     }
-                    .padding(8)
+                    .padding(6)
                     .background(Color.black.opacity(0.8))
-                    .cornerRadius(8)
-                    .padding(.leading, 12)
-                    .padding(.bottom, 200)
+                    .cornerRadius(6)
+                    .padding(.leading, 8)
+                    .padding(.bottom, 75)
                     Spacer()
                 }
             }
@@ -607,6 +605,8 @@ struct ATAKMapView: View {
             radialMenuCoordinator.configure(drawingStore: drawingStore)
             // Configure position broadcasting service
             positionBroadcastService.configure(takService: takService, locationManager: locationManager)
+            // Enable auto-broadcast by default for continuous position reporting
+            positionBroadcastService.isEnabled = true
             // Load overlay coordinator settings
             overlayCoordinator.loadSettings()
             // Load map state manager preferences
@@ -641,6 +641,26 @@ struct ATAKMapView: View {
             DispatchQueue.main.async {
                 // Sync with local showGrid state if needed
                 showGrid = newValue
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .radialMenuCustomAction)) { notification in
+            guard let userInfo = notification.userInfo,
+                  let identifier = userInfo["identifier"] as? String else {
+                return
+            }
+
+            // Handle custom actions from radial menu
+            switch identifier {
+            case "show_layers":
+                withAnimation(.spring()) {
+                    showLayersPanel.toggle()
+                }
+            case "draw_shape":
+                withAnimation(.spring()) {
+                    showDrawingPanel.toggle()
+                }
+            default:
+                print("Unknown custom action: \(identifier)")
             }
         }
     }
@@ -704,7 +724,9 @@ struct ATAKMapView: View {
                 certificateName: activeServer.certificateName,
                 certificatePassword: activeServer.certificatePassword
             )
+            #if DEBUG
             print("🔌 Auto-connecting to: \(activeServer.displayName)")
+            #endif
         }
     }
 
@@ -726,7 +748,9 @@ struct ATAKMapView: View {
                 mapRegion.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
             }
             trackingMode = .follow
+            #if DEBUG
             print("🎯 Centered on user: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+            #endif
         } else {
             print("❌ No location available")
         }
@@ -764,9 +788,13 @@ struct ATAKMapView: View {
             )
 
             federation.broadcast(event: cotEvent)
+            #if DEBUG
             print("📤 Broadcast position to \(federation.getConnectedCount()) server(s): \(location.coordinate.latitude), \(location.coordinate.longitude)")
+            #endif
         } else {
+            #if DEBUG
             print("⚠️ No servers connected - cannot broadcast position")
+            #endif
         }
     }
 
@@ -775,7 +803,9 @@ struct ATAKMapView: View {
             mapRegion.span.latitudeDelta = max(mapRegion.span.latitudeDelta / 2, 0.001)
             mapRegion.span.longitudeDelta = max(mapRegion.span.longitudeDelta / 2, 0.001)
         }
+        #if DEBUG
         print("🔍 Zoom in: \(mapRegion.span.latitudeDelta)")
+        #endif
     }
 
     private func zoomOut() {
@@ -783,7 +813,9 @@ struct ATAKMapView: View {
             mapRegion.span.latitudeDelta = min(mapRegion.span.latitudeDelta * 2, 180)
             mapRegion.span.longitudeDelta = min(mapRegion.span.longitudeDelta * 2, 180)
         }
+        #if DEBUG
         print("🔍 Zoom out: \(mapRegion.span.latitudeDelta)")
+        #endif
     }
 
     private func toggleLayer(_ layer: String) {
@@ -799,13 +831,19 @@ struct ATAKMapView: View {
             switch layer {
             case "satellite":
                 mapType = .satellite
+                #if DEBUG
                 print("🗺️ Map type: Satellite")
+                #endif
             case "hybrid":
                 mapType = .hybrid
+                #if DEBUG
                 print("🗺️ Map type: Hybrid")
+                #endif
             case "standard":
                 mapType = .standard
+                #if DEBUG
                 print("🗺️ Map type: Standard")
+                #endif
             default:
                 break
             }
@@ -824,7 +862,9 @@ struct ATAKMapView: View {
             print("👥 Friendly units: \(showFriendly ? "ON" : "OFF")")
         case "hostile":
             showHostile.toggle()
+            #if DEBUG
             print("⚠️ Hostile units: \(showHostile ? "ON" : "OFF")")
+            #endif
         case "unknown":
             showUnknown.toggle()
             print("❓ Unknown units: \(showUnknown ? "ON" : "OFF")")
@@ -843,16 +883,22 @@ struct ATAKMapView: View {
             switch overlay {
             case "compass":
                 showCompass.toggle()
+                #if DEBUG
                 print("🧭 Compass: \(showCompass ? "ON" : "OFF")")
+                #endif
             case "coordinates":
                 showCoordinates.toggle()
+                #if DEBUG
                 print("📍 Coordinates: \(showCoordinates ? "ON" : "OFF")")
+                #endif
             case "scale":
                 showScaleBar.toggle()
                 print("📏 Scale Bar: \(showScaleBar ? "ON" : "OFF")")
             case "grid":
                 showGrid.toggle()
+                #if DEBUG
                 print("🗺️ Grid: \(showGrid ? "ON" : "OFF")")
+                #endif
             default:
                 break
             }
@@ -954,95 +1000,99 @@ struct ATAKStatusBar: View {
     let onServerTap: () -> Void
     let onMenuTap: () -> Void
 
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    // Portrait mode detection
+    var isPortrait: Bool {
+        verticalSizeClass == .regular
+    }
+
     var body: some View {
-        HStack(spacing: 12) {
-            // OmniTAK Title with LED Status Indicator
-            HStack(spacing: 8) {
-                Text("OmniTAK")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Color(red: 1.0, green: 0.988, blue: 0.0)) // #FFFC00
+        HStack(spacing: isPortrait ? 8 : 12) {
+            // Compact OmniTAK branding with status indicator
+            HStack(spacing: 4) {
+                // LED-style connection indicator
+                Circle()
+                    .fill(isConnected ? Color.green : Color.red)
+                    .frame(width: 6, height: 6)
+                    .shadow(color: isConnected ? .green : .red, radius: 3)
 
-                HStack(spacing: 6) {
-                    // LED-style connection indicator with glow
-                    Circle()
-                        .fill(isConnected ? Color.green : Color.red)
-                        .frame(width: 8, height: 8)
-                        .shadow(color: isConnected ? .green : .red, radius: 4)
-
-                    Text(isConnected ? "CONN" : "DISC")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(isConnected ? .green : .red)
+                if !isPortrait {
+                    Text("OmniTAK")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(Color(red: 1.0, green: 0.988, blue: 0.0))
                 }
             }
 
-            Spacer()
-
-            // Server Name Button
+            // Server Name Button (compact)
             Button(action: onServerTap) {
-                HStack(spacing: 4) {
+                HStack(spacing: 2) {
                     Image(systemName: "server.rack")
-                        .font(.system(size: 10))
-                    Text(serverName ?? "TAK")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 9))
+                    Text(serverName ?? "Offi...")
+                        .font(.system(size: 10, weight: .medium))
                         .lineLimit(1)
                 }
                 .foregroundColor(isConnected ? .green : .gray)
             }
 
-            // Messages
-            HStack(spacing: 2) {
+            // Messages (compact)
+            HStack(spacing: 4) {
                 Image(systemName: "arrow.down.circle.fill")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
+                    .foregroundColor(.cyan)
                 Text("\(messagesReceived)")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.cyan)
             }
-            .foregroundColor(.cyan)
 
-            HStack(spacing: 2) {
+            HStack(spacing: 4) {
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
+                    .foregroundColor(.orange)
                 Text("\(messagesSent)")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.orange)
             }
-            .foregroundColor(.orange)
 
             Spacer()
 
-            // GPS Status
-            HStack(spacing: 4) {
+            // GPS Status (compact)
+            HStack(spacing: 2) {
                 Image(systemName: gpsAccuracy < 10 ? "location.fill" : "location.slash.fill")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
                 Text(String(format: "±%.0fm", gpsAccuracy))
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10, weight: .medium))
             }
             .foregroundColor(gpsAccuracy < 10 ? .green : .yellow)
 
-            // Time
+            // Time (compact)
             Text(Date().formatted(date: .omitted, time: .shortened))
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.white)
 
-            // Hamburger Menu Button - ATAK Style (moved to right side)
+            // Hamburger Menu Button (compact)
             Button(action: onMenuTap) {
-                VStack(spacing: 4) {
+                VStack(spacing: 2) {
                     Rectangle()
                         .fill(Color.white)
-                        .frame(width: 24, height: 3)
-                        .cornerRadius(2)
+                        .frame(width: 18, height: 2)
+                        .cornerRadius(1)
                     Rectangle()
                         .fill(Color.white)
-                        .frame(width: 24, height: 3)
-                        .cornerRadius(2)
+                        .frame(width: 18, height: 2)
+                        .cornerRadius(1)
                     Rectangle()
                         .fill(Color.white)
-                        .frame(width: 24, height: 3)
-                        .cornerRadius(2)
+                        .frame(width: 18, height: 2)
+                        .cornerRadius(1)
                 }
-                .frame(width: 48, height: 48)
+                .frame(width: 32, height: 32)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.black.opacity(0.5))  // Translucent background
     }
 }
 
@@ -1054,33 +1104,18 @@ struct ATAKBottomToolbar: View {
     @Binding var showDrawingPanel: Bool
     @Binding var showDrawingList: Bool
     let onCenterUser: () -> Void
-    let onSendCoT: () -> Void
     let onZoomIn: () -> Void
     let onZoomOut: () -> Void
 
     var body: some View {
-        HStack(spacing: 20) {
-            // Layers
-            MapToolButton(icon: "square.stack.3d.up.fill", label: "Layers") {
-                showLayersPanel.toggle()
-                showDrawingPanel = false
-                showDrawingList = false
-            }
-
-            Spacer()
-
+        HStack(spacing: 12) {
             // Center on User
             MapToolButton(icon: "location.fill", label: "GPS") {
                 onCenterUser()
             }
 
-            // Send Position
-            MapToolButton(icon: "paperplane.fill", label: "Broadcast") {
-                onSendCoT()
-            }
-
             // Zoom Controls
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 MapToolButton(icon: "plus", label: "", compact: true) {
                     onZoomIn()
                 }
@@ -1105,8 +1140,8 @@ struct ATAKBottomToolbar: View {
                 showDrawingPanel = false
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 }
 
@@ -1125,19 +1160,19 @@ struct MapToolButton: View {
             generator.impactOccurred()
             action()
         }) {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: compact ? 16 : 20, weight: .semibold))
+                    .font(.system(size: compact ? 14 : 18, weight: .semibold))
                 if !label.isEmpty {
                     Text(label)
-                        .font(.system(size: 9, weight: .medium))
+                        .font(.system(size: 8, weight: .medium))
                 }
             }
             .foregroundColor(.white)
-            .frame(width: compact ? 36 : 56, height: compact ? 36 : 56)
+            .frame(width: compact ? 32 : 50, height: compact ? 32 : 50)
             .background(isPressed ? Color.cyan.opacity(0.5) : Color.black.opacity(0.6))
-            .cornerRadius(8)
-            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+            .cornerRadius(6)
+            .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
             .scaleEffect(isPressed ? 0.95 : 1.0)
         }
         .buttonStyle(.plain)
@@ -1400,7 +1435,9 @@ struct ServerConfigView: View {
 
                     if federation.getConnectedCount() > 0 {
                         Button(action: {
+                            #if DEBUG
                             print("🔌 Disconnecting all servers...")
+                            #endif
                             federation.disconnectAll()
                         }) {
                             HStack {
@@ -1453,7 +1490,9 @@ struct ServerConfigView: View {
         if let federatedServer = federation.servers.first(where: { $0.id == serverId }) {
             // Server exists - toggle connection
             if federatedServer.status == .connected {
+                #if DEBUG
                 print("🔌 Disconnecting from \(server.name)...")
+                #endif
                 federation.disconnectServer(id: serverId)
             } else {
                 print("⚡ Connecting to \(server.name)...")
@@ -1491,7 +1530,9 @@ struct ServerConfigView: View {
             // Remove from federation if present
             let serverId = server.id.uuidString
             if federation.servers.contains(where: { $0.id == serverId }) {
+                #if DEBUG
                 print("🗑️ Removing \(server.name) from federation...")
+                #endif
                 federation.removeServer(id: serverId)
             }
 

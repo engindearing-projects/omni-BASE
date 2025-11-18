@@ -39,10 +39,14 @@ class DirectTCPSender {
         let nwHost: NWEndpoint.Host
         if let ipv4 = IPv4Address(host) {
             nwHost = NWEndpoint.Host.ipv4(ipv4)
+            #if DEBUG
             print("🌐 Using explicit IPv4: \(host)")
+            #endif
         } else {
             nwHost = NWEndpoint.Host(host)
+            #if DEBUG
             print("🌐 Using hostname: \(host)")
+            #endif
         }
 
         let endpoint = NWEndpoint.hostPort(
@@ -68,21 +72,31 @@ class DirectTCPSender {
             // TAK servers typically use self-signed certificates
             sec_protocol_options_set_verify_block(secOptions, { (metadata, trust, complete) in
                 // Accept all server certificates (similar to verify_server: false in Rust)
+                #if DEBUG
                 print("🔓 Accepting server certificate (self-signed CA)")
+                #endif
                 complete(true)
             }, .main)
 
             // Configure client certificate if provided
             if let certName = certificateName, !certName.isEmpty {
+                #if DEBUG
                 print("🔐 Configuring client certificate: \(certName)")
+                #endif
                 if let identity = loadClientCertificate(name: certName, password: certificatePassword ?? "atakatak") {
                     sec_protocol_options_set_local_identity(secOptions, identity)
+                    #if DEBUG
                     print("✅ Client certificate loaded successfully")
+                    #endif
                 } else {
+                    #if DEBUG
                     print("⚠️ Failed to load client certificate, continuing without it")
+                    #endif
                 }
             } else {
+                #if DEBUG
                 print("🔒 Using TLS without client certificate")
+                #endif
             }
 
             let tcpOptions = NWProtocolTCP.Options()
@@ -94,12 +108,16 @@ class DirectTCPSender {
                 parameters.preferNoProxies = true
             }
 
+            #if DEBUG
             print("🔒 Using TLS/SSL (TLS 1.2+, accepting self-signed certs)")
+            #endif
         } else if protocolType.lowercased() == "udp" {
             // UDP
             currentProtocol = .udp
             parameters = NWParameters.udp
+            #if DEBUG
             print("📡 Using UDP")
+            #endif
         } else {
             // TCP (default)
             currentProtocol = .tcp
@@ -111,7 +129,9 @@ class DirectTCPSender {
                 parameters.preferNoProxies = true
             }
 
+            #if DEBUG
             print("🔌 Using TCP")
+            #endif
         }
 
         connection = NWConnection(to: endpoint, using: parameters)
@@ -120,7 +140,9 @@ class DirectTCPSender {
             guard let self = self else { return }
             switch state {
             case .ready:
+                #if DEBUG
                 print("✅ Direct\(self.currentProtocol): Connected to \(host):\(port)")
+                #endif
                 self.onConnectionStateChanged?(true)
                 // Start the receive loop
                 self.startReceiveLoop()
@@ -130,9 +152,13 @@ class DirectTCPSender {
                 self.onConnectionStateChanged?(false)
                 completion(false)
             case .waiting(let error):
+                #if DEBUG
                 print("⏳ Direct\(self.currentProtocol): Waiting to connect: \(error)")
+                #endif
             case .cancelled:
+                #if DEBUG
                 print("🔌 Direct\(self.currentProtocol): Connection cancelled")
+                #endif
                 self.onConnectionStateChanged?(false)
             default:
                 break
@@ -161,7 +187,9 @@ class DirectTCPSender {
             }
 
             if isComplete {
+                #if DEBUG
                 print("🔌 DirectNetwork: Connection closed by server")
+                #endif
                 self.onConnectionStateChanged?(false)
                 return
             }
@@ -173,11 +201,15 @@ class DirectTCPSender {
 
     private func processReceivedData(_ data: Data) {
         guard let receivedString = String(data: data, encoding: .utf8) else {
+            #if DEBUG
             print("⚠️ DirectNetwork: Failed to decode received data as UTF-8")
+            #endif
             return
         }
 
+        #if DEBUG
         print("📥 DirectNetwork: Received \(data.count) bytes")
+        #endif
 
         bufferLock.lock()
         receiveBuffer += receivedString
@@ -201,20 +233,26 @@ class DirectTCPSender {
         for message in messages {
             if CoTMessageParser.isValidCoTMessage(message) {
                 messagesReceived += 1
+                #if DEBUG
                 print("📨 DirectNetwork: Complete message #\(messagesReceived) extracted (\(message.count) chars)")
+                #endif
 
                 // Call the message handler
                 DispatchQueue.main.async { [weak self] in
                     self?.onMessageReceived?(message)
                 }
             } else {
+                #if DEBUG
                 print("⚠️ DirectNetwork: Invalid CoT message discarded")
+                #endif
             }
         }
 
         // Warn if buffer is getting too large (potential memory leak)
         if receiveBuffer.count > 100000 {
+            #if DEBUG
             print("⚠️ DirectNetwork: Buffer size warning: \(receiveBuffer.count) chars")
+            #endif
             // Clear buffer if it's absurdly large (malformed data protection)
             if receiveBuffer.count > 1000000 {
                 print("❌ DirectNetwork: Buffer overflow protection - clearing buffer")
@@ -254,7 +292,9 @@ class DirectTCPSender {
             if let error = error {
                 print("❌ DirectNetwork: Send failed: \(error)")
             } else {
+                #if DEBUG
                 print("📤 DirectNetwork: Sent \(data.count) bytes")
+                #endif
             }
         })
 
@@ -265,7 +305,9 @@ class DirectTCPSender {
         connection?.cancel()
         connection = nil
         clearReceiveBuffer()
+        #if DEBUG
         print("🔌 DirectNetwork: Disconnected")
+        #endif
     }
 
     func resetStatistics() {
@@ -281,7 +323,9 @@ class DirectTCPSender {
             return nil
         }
 
+        #if DEBUG
         print("📂 Found certificate at: \(certPath)")
+        #endif
 
         // Load certificate data
         guard let certData = try? Data(contentsOf: URL(fileURLWithPath: certPath)) as CFData else {
@@ -397,7 +441,9 @@ class TAKService: ObservableObject {
                 if !connected && self?.isConnected == true {
                     self?.isConnected = false
                     self?.connectionStatus = "Disconnected"
+                    #if DEBUG
                     print("🔌 TAKService: Connection lost")
+                    #endif
                 }
             }
         }
@@ -412,14 +458,18 @@ class TAKService: ObservableObject {
             bytesReceived = tcp.bytesReceived
         }
 
+        #if DEBUG
         print("📥 TAKService: Processing message #\(messagesReceived)")
+        #endif
 
         // Parse the message using CoTMessageParser
         if let eventType = CoTMessageParser.parse(xml: xml) {
             // Route to event handler
             eventHandler.handle(event: eventType)
         } else {
+            #if DEBUG
             print("⚠️ TAKService: Failed to parse CoT message")
+            #endif
         }
     }
 
@@ -429,7 +479,9 @@ class TAKService: ObservableObject {
     }
 
     func connect(host: String, port: UInt16, protocolType: String, useTLS: Bool, certificateName: String? = nil, certificatePassword: String? = nil) {
+        #if DEBUG
         print("🔌 TAKService.connect() called with host=\(host), port=\(port), protocol=\(protocolType), tls=\(useTLS), cert=\(certificateName ?? "none")")
+        #endif
 
         // Use DirectTCPSender for actual network communication
         connectionStatus = "Connecting..."
@@ -441,7 +493,9 @@ class TAKService: ObservableObject {
                     self.isConnected = true
                     self.connectionStatus = "Connected"
                     self.lastError = ""
+                    #if DEBUG
                     print("✅ DirectTCP Connected to TAK server: \(host):\(port)")
+                    #endif
 
                     // Also initialize Rust FFI (for potential future use)
                     var protocolCode: Int32
@@ -470,7 +524,9 @@ class TAKService: ObservableObject {
                     if result > 0 {
                         self.connectionHandle = result
                         self.registerCallback()
+                        #if DEBUG
                         print("📡 Rust FFI also initialized (connection ID: \(result))")
+                        #endif
                     }
                 } else {
                     self.connectionStatus = "Connection Failed"
@@ -494,7 +550,9 @@ class TAKService: ObservableObject {
 
         isConnected = false
         connectionStatus = "Disconnected"
+        #if DEBUG
         print("🔌 Disconnected from TAK server")
+        #endif
     }
 
     func sendCoT(xml: String) -> Bool {
@@ -506,7 +564,9 @@ class TAKService: ObservableObject {
         // Use DirectTCPSender for actual sending
         if directTCP.send(xml: xml) {
             messagesSent += 1
+            #if DEBUG
             print("📤 Sent CoT message via DirectTCP")
+            #endif
 
             // Also send via Rust FFI for testing (even though it's a stub)
             if connectionHandle > 0 {
@@ -787,7 +847,9 @@ private func cotCallback(
                 service.messagesReceived += 1
                 service.lastMessage = message
                 service.onChatMessageReceived?(chatMessage)
+                #if DEBUG
                 print("💬 Received chat message from \(chatMessage.senderCallsign): \(chatMessage.messageText)")
+                #endif
             }
         }
     } else if message.contains("type=\"b-m-p-w\"") || message.contains("<usericon") {
@@ -807,7 +869,9 @@ private func cotCallback(
                     remarks: event.detail.remarks
                 )
 
+                #if DEBUG
                 print("📍 Received waypoint: \(event.detail.callsign)")
+                #endif
             }
         }
     } else {
@@ -827,7 +891,9 @@ private func cotCallback(
                     ChatManager.shared.updateParticipant(participant)
                 }
 
+                #if DEBUG
                 print("📥 Received CoT: \(event.detail.callsign) at (\(event.point.lat), \(event.point.lon))")
+                #endif
             }
         }
     }

@@ -102,7 +102,9 @@ class ServerManager: ObservableObject {
     func addServer(_ server: TAKServer) {
         servers.append(server)
         saveServers()
+        #if DEBUG
         print("✅ Added server: \(server.displayName)")
+        #endif
     }
 
     func updateServer(_ server: TAKServer) {
@@ -116,7 +118,9 @@ class ServerManager: ObservableObject {
             }
 
             saveServers()
+            #if DEBUG
             print("✅ Updated server: \(server.displayName)")
+            #endif
         }
     }
 
@@ -130,7 +134,9 @@ class ServerManager: ObservableObject {
         }
 
         saveServers()
+        #if DEBUG
         print("🗑️ Deleted server: \(server.displayName)")
+        #endif
     }
 
     func setActiveServer(_ server: TAKServer) {

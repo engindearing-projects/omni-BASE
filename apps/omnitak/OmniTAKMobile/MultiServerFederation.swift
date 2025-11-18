@@ -80,7 +80,9 @@ class MultiServerFederation: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
+        #if DEBUG
         print("🌐 MultiServerFederation initialized")
+        #endif
     }
 
     // MARK: - Server Management
@@ -111,7 +113,9 @@ class MultiServerFederation: ObservableObject {
         )
 
         servers.append(server)
+        #if DEBUG
         print("✅ Added server to federation: \(name) (\(id))")
+        #endif
     }
 
     func removeServer(id: String) {
@@ -121,7 +125,9 @@ class MultiServerFederation: ObservableObject {
                 disconnectServer(id: id)
             }
             servers.remove(at: index)
+            #if DEBUG
             print("🗑️ Removed server from federation: \(id)")
+            #endif
         }
     }
 
@@ -142,7 +148,9 @@ class MultiServerFederation: ObservableObject {
 
         let server = servers[index]
         if server.status == .connected {
+            #if DEBUG
             print("⚠️ Server already connected: \(id)")
+            #endif
             return
         }
 
@@ -173,7 +181,9 @@ class MultiServerFederation: ObservableObject {
             if takService.isConnected {
                 if let idx = self.servers.firstIndex(where: { $0.id == id }) {
                     self.servers[idx].status = .connected
+                    #if DEBUG
                     print("✅ Connected to server: \(server.name) (\(id))")
+                    #endif
                 }
             } else {
                 if let idx = self.servers.firstIndex(where: { $0.id == id }) {
@@ -194,7 +204,9 @@ class MultiServerFederation: ObservableObject {
         servers[index].takService = nil
         servers[index].status = .disconnected
 
+        #if DEBUG
         print("🔌 Disconnected from server: \(id)")
+        #endif
     }
 
     func connectAll() {
@@ -308,7 +320,9 @@ class MultiServerFederation: ObservableObject {
                 let success = takService.sendCoT(xml: cotXml)
                 if success {
                     federatedEvents[event.event.uid]?.sharedTo.append(server.id)
+                    #if DEBUG
                     print("✅ Shared event \(event.event.uid) to \(server.name)")
+                    #endif
                 }
             }
         }
@@ -321,17 +335,23 @@ class MultiServerFederation: ObservableObject {
 
         for serverId in serverIds {
             guard let server = servers.first(where: { $0.id == serverId }) else {
+                #if DEBUG
                 print("⚠️ Cannot send to server \(serverId): not found")
+                #endif
                 continue
             }
 
             guard server.status == .connected, let takService = server.takService else {
+                #if DEBUG
                 print("⚠️ Cannot send to server \(serverId): not connected")
+                #endif
                 continue
             }
 
             if !shouldSend(server: server, event: event) {
+                #if DEBUG
                 print("⚠️ Cannot send to server \(serverId): policy restriction")
+                #endif
                 continue
             }
 
@@ -390,6 +410,8 @@ class MultiServerFederation: ObservableObject {
 
     func clearCache() {
         federatedEvents.removeAll()
+        #if DEBUG
         print("🗑️ Event cache cleared")
+        #endif
     }
 }

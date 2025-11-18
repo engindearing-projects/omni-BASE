@@ -26,7 +26,7 @@ struct QuickActionToolbar: View {
     @State private var measureModeActive = false
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             // Zoom to Self
             QuickActionButton(
                 icon: "location.fill",
@@ -68,17 +68,6 @@ struct QuickActionToolbar: View {
                 }
             }
 
-            // Layers Panel
-            QuickActionButton(
-                icon: "square.3.layers.3d",
-                label: "Layers",
-                isActive: showLayersPanel
-            ) {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showLayersPanel.toggle()
-                }
-            }
-
             // Cursor Mode Toggle
             QuickActionButton(
                 icon: "scope",
@@ -90,12 +79,12 @@ struct QuickActionToolbar: View {
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
         .background(
             Color.black.opacity(0.8)
-                .cornerRadius(12)
-                .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
+                .cornerRadius(10)
+                .shadow(color: .black.opacity(0.5), radius: 6, x: 0, y: 3)
         )
     }
 }
@@ -120,14 +109,14 @@ struct QuickActionButton: View {
         }) {
             VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(iconColor)
 
                 Text(label)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 8, weight: .medium))
                     .foregroundColor(labelColor)
             }
-            .frame(width: 48, height: 44)
+            .frame(width: 44, height: 40)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(backgroundColor)
@@ -303,15 +292,6 @@ struct ExtendedQuickActionToolbar: View {
                     isActive: showGrid
                 ) {
                     showGrid.toggle()
-                }
-
-                // Layers
-                QuickActionButton(
-                    icon: "square.3.layers.3d",
-                    label: "Layers",
-                    isActive: showLayersPanel
-                ) {
-                    showLayersPanel.toggle()
                 }
 
                 // Cursor Mode
