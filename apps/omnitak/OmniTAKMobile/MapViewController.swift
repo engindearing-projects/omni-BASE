@@ -1627,6 +1627,7 @@ struct ServerEditView: View {
     @State private var selectedCertificateId: String?
     @State private var showEnrollmentDialog = false
     @State private var showCertificateList = false
+    @State private var showImportSheet = false
     @Environment(\.dismiss) var dismiss
 
     init(server: TAKServer?, onSave: @escaping (TAKServer) -> Void) {
@@ -1702,7 +1703,7 @@ struct ServerEditView: View {
 
                         // Option 2: Import certificate files
                         Button(action: {
-                            showCertificateList = true
+                            showImportSheet = true
                         }) {
                             HStack {
                                 Image(systemName: "doc.badge.plus")
@@ -1782,11 +1783,22 @@ struct ServerEditView: View {
                 }
             }
             .sheet(isPresented: $showEnrollmentDialog) {
-                CertificateEnrollmentView()
+                CertificateEnrollmentView(onEnrollmentComplete: { certificateId, certName in
+                    selectedCertificateId = certificateId
+                    certificateName = certName
+                })
             }
             .sheet(isPresented: $showCertificateList) {
-                // TODO: Create CertificateListView for selecting stored certificates
-                Text("Certificate list coming soon")
+                CertificateSelectionView(onSelect: { certificateId, certName in
+                    selectedCertificateId = certificateId
+                    certificateName = certName
+                })
+            }
+            .sheet(isPresented: $showImportSheet) {
+                CertificateImportSheet(onComplete: { certificateId, certName in
+                    selectedCertificateId = certificateId
+                    certificateName = certName
+                })
             }
         }
     }

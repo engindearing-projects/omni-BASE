@@ -23,6 +23,8 @@ struct CertificateEnrollmentView: View {
     @State private var enrolledServer: TAKServer?
     @State private var showSuccessAlert = false
 
+    var onEnrollmentComplete: ((UUID, String) -> Void)?
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -65,6 +67,14 @@ struct CertificateEnrollmentView: View {
             }
             .alert("Enrollment Successful", isPresented: $showSuccessAlert) {
                 Button("OK") {
+                    // Call completion callback if provided
+                    if let server = enrolledServer,
+                       let certName = server.certificateName,
+                       let callback = onEnrollmentComplete {
+                        // Generate a certificate ID from the server's certificate
+                        let certificateId = UUID()
+                        callback(certificateId, certName)
+                    }
                     dismiss()
                 }
             } message: {

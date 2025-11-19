@@ -385,6 +385,8 @@ struct CertificateImportSheet: View {
     @State private var showError = false
     @State private var errorMessage = ""
 
+    var onComplete: ((UUID, String) -> Void)?
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -528,6 +530,12 @@ struct CertificateImportSheet: View {
                 serverURL: serverURL,
                 username: username
             )
+
+            // Get the most recently added certificate (the one we just imported)
+            if let latestCert = certificateManager.certificates.last {
+                onComplete?(latestCert.id, latestCert.name)
+            }
+
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
