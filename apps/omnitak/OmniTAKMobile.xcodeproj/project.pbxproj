@@ -1224,7 +1224,8 @@
 		FF91C198AF2047A19D7EFCB5 /* WaypointModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7114DEF75D4812B38B42D5 /* WaypointModels.swift */; };
 		FFC99E7200C64C46ACF1C5BD /* SHARED_INTERFACES.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC7A10CA8094221926D72EB /* SHARED_INTERFACES.swift */; };
 		FFEC64AE5E6447CAB5485543 /* WaypointModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58AE288AB01544268B56FCFA /* WaypointModels.swift */; };
-/* End PBXBuildFile section */
+		367F1CFC64E3439597C938EA /* CertificateSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3EBDFAE1BD433EB10A51C1 /* CertificateSelectionView.swift */; };
+	/* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		00342D08B57A40979B7CACB2 /* CertificateEnrollmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateEnrollmentService.swift; sourceTree = "<group>"; };
@@ -2442,7 +2443,8 @@
 		FFAFCB91F96F4A86B9BD66C3 /* WaypointModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaypointModels.swift; sourceTree = "<group>"; };
 		FFCBCD27D7F14CE1B5BE4F78 /* WaypointListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaypointListView.swift; sourceTree = "<group>"; };
 		FFFB3D892C4E4B4ABD4E4C98 /* RoutePlanningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutePlanningView.swift; sourceTree = "<group>"; };
-/* End PBXFileReference section */
+		7A3EBDFAE1BD433EB10A51C1 /* CertificateSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateSelectionView.swift; sourceTree = "<group>"; };
+	/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A1111111111111111111111100000061 /* Frameworks */ = {
@@ -3685,7 +3687,8 @@
 				9573D54B1D21495586BF1A62 /* MGRSGridToggleView.swift */,
 				9870574B6C964F118830B1AB /* IntegratedMapView.swift */,
 				6431EC51BB634F17AF076FC1 /* MapViewIntegrationExample.swift */,
-			);
+			
+				7A3EBDFAE1BD433EB10A51C1 /* CertificateSelectionView.swift */,);
 			path = OmniTAKMobile;
 			sourceTree = "<group>";
 		};
@@ -4980,7 +4983,8 @@
 				5AAB2D751A25450A8C460436 /* MGRSGridToggleView.swift in Sources */,
 				66F7A9D53B50402083E32160 /* IntegratedMapView.swift in Sources */,
 				8BFFEBD645D544FCA8D7BE05 /* MapViewIntegrationExample.swift in Sources */,
-			);
+			
+				367F1CFC64E3439597C938EA /* CertificateSelectionView.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

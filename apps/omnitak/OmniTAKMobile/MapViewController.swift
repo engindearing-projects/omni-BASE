@@ -1624,7 +1624,7 @@ struct ServerEditView: View {
     @State private var useTLS: Bool
     @State private var certificateName: String
     @State private var certificatePassword: String
-    @State private var selectedCertificateId: String?
+    @State private var selectedCertificateId: UUID?
     @State private var showEnrollmentDialog = false
     @State private var showCertificateList = false
     @State private var showImportSheet = false
