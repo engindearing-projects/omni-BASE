@@ -28,6 +28,8 @@ struct SettingsView: View {
     @AppStorage("trailMaxLength") private var trailMaxLength = 100
     @AppStorage("trailColorName") private var trailColorName = "cyan"
 
+    @State private var showNetworkPreferences = false
+
     var body: some View {
         NavigationView {
             List {
@@ -47,6 +49,17 @@ struct SettingsView: View {
                         TextField("Name", text: $userName)
                             .multilineTextAlignment(.trailing)
                             .foregroundColor(.blue)
+                    }
+                }
+
+                // Network Preferences (ATAK Style)
+                Section("NETWORK") {
+                    NavigationLink(destination: NetworkPreferencesView()) {
+                        HStack {
+                            Image(systemName: "wifi")
+                                .foregroundColor(.blue)
+                            Text("Network Preferences")
+                        }
                     }
                 }
 
