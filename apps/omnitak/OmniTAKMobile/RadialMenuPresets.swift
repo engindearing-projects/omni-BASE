@@ -105,7 +105,7 @@ enum RadialMenuPresets {
     // MARK: - Quick Actions Menu
 
     /// Menu for quick tactical actions
-    /// Actions: Drop Point, Start Route, Quick Chat, Emergency
+    /// Actions: Drop Point, Start Route, Quick Chat, Meshtastic, Emergency
     static var quickActionsMenu: RadialMenuConfiguration {
         RadialMenuConfiguration(
             items: [
@@ -126,6 +126,12 @@ enum RadialMenuPresets {
                     label: "Chat",
                     color: .blue,
                     action: .quickChat
+                ),
+                RadialMenuItem(
+                    icon: "dot.radiowaves.left.and.right",
+                    label: "Mesh",
+                    color: .green,
+                    action: .custom("meshtastic")
                 ),
                 RadialMenuItem(
                     icon: "exclamationmark.octagon.fill",

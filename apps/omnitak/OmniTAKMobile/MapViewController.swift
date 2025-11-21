@@ -50,6 +50,7 @@ struct ATAKMapView: View {
     @State private var showLineOfSight = false
     @State private var showEchelonHierarchy = false
     @State private var showMissionSync = false
+    @State private var showMeshtastic = false
 
     // Position broadcasting service
     @ObservedObject private var positionBroadcastService = PositionBroadcastService.shared
@@ -313,6 +314,8 @@ struct ATAKMapView: View {
                         showAbout = true
                     case "selfsa":
                         showPositionBroadcast = true
+                    case "meshtastic":
+                        showMeshtastic = true
                     case "elevation":
                         showElevationProfile = true
                     case "los":
@@ -573,6 +576,9 @@ struct ATAKMapView: View {
         .sheet(isPresented: $showPositionBroadcast) {
             PositionBroadcastView()
         }
+        .sheet(isPresented: $showMeshtastic) {
+            MeshtasticConnectionView()
+        }
         .sheet(isPresented: $showElevationProfile) {
             ElevationProfileView()
         }
@@ -659,6 +665,8 @@ struct ATAKMapView: View {
                 withAnimation(.spring()) {
                     showDrawingPanel.toggle()
                 }
+            case "meshtastic":
+                showMeshtastic = true
             default:
                 print("Unknown custom action: \(identifier)")
             }

@@ -113,6 +113,14 @@ struct NavigationDrawer: View {
                                     handleNavigation("selfsa")
                                 }
 
+                                DrawerMenuItem(
+                                    icon: "dot.radiowaves.left.and.right",
+                                    title: "Meshtastic Mesh",
+                                    isActive: currentScreen == "meshtastic"
+                                ) {
+                                    handleNavigation("meshtastic")
+                                }
+
                                 // Emergency Beacon - highlighted with red icon
                                 EmergencyDrawerMenuItem(
                                     isActive: currentScreen == "emergency"
