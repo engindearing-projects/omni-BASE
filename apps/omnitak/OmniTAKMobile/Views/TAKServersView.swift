@@ -88,7 +88,7 @@ struct TAKServersView: View {
             }
         }
         .sheet(isPresented: $showAddServer) {
-            QuickConnectView()
+            AddServerView()
         }
         .sheet(item: $selectedServer) { server in
             ServerDetailView(server: server)
@@ -104,7 +104,7 @@ struct TAKServersView: View {
         ScrollView {
             VStack(spacing: 0) {
                 ForEach(serverManager.servers) { server in
-                    ServerRow(
+                    ATAKServerRow(
                         server: server,
                         isConnected: serverManager.activeServer?.id == server.id,
                         onTap: { selectedServer = server },
@@ -234,7 +234,7 @@ struct TAKServersView: View {
 
 // MARK: - Server Row (ATAK Style)
 
-struct ServerRow: View {
+struct ATAKServerRow: View {
     let server: TAKServer
     let isConnected: Bool
     let onTap: () -> Void
@@ -360,9 +360,9 @@ struct ServerDetailView: View {
 
                         // Form fields
                         VStack(spacing: 16) {
-                            FormField(label: "Server Name", text: $serverName, placeholder: "My TAK Server")
-                            FormField(label: "Host", text: $serverHost, placeholder: "tak.example.com")
-                            FormField(label: "Port", text: $serverPort, placeholder: "8089", keyboardType: .numberPad)
+                            ATAKFormField(label: "Server Name", text: $serverName, placeholder: "My TAK Server")
+                            ATAKFormField(label: "Host", text: $serverHost, placeholder: "tak.example.com")
+                            ATAKFormField(label: "Port", text: $serverPort, placeholder: "8089", keyboardType: .numberPad)
 
                             Toggle(isOn: $useTLS) {
                                 HStack {
@@ -420,6 +420,117 @@ struct ServerDetailView: View {
 
         ServerManager.shared.updateServer(updatedServer)
         dismiss()
+    }
+}
+
+// MARK: - Add Server View (Simple)
+
+struct AddServerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var serverName = ""
+    @State private var serverHost = ""
+    @State private var serverPort = "8089"
+    @State private var useTLS = true
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        Image(systemName: "server.rack")
+                            .font(.system(size: 60))
+                            .foregroundColor(Color(hex: "#00BCD4"))
+                            .padding(.top, 20)
+
+                        VStack(spacing: 16) {
+                            ATAKFormField(label: "Server Name", text: $serverName, placeholder: "My TAK Server")
+                            ATAKFormField(label: "Host", text: $serverHost, placeholder: "tak.example.com")
+                            ATAKFormField(label: "Port", text: $serverPort, placeholder: "8089", keyboardType: .numberPad)
+
+                            Toggle(isOn: $useTLS) {
+                                HStack {
+                                    Image(systemName: "lock.shield.fill")
+                                        .foregroundColor(useTLS ? Color(hex: "#00FF00") : Color(hex: "#666666"))
+                                    Text("Use TLS/SSL")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .tint(Color(hex: "#00BCD4"))
+                            .padding(16)
+                            .background(Color(hex: "#1A1A1A"))
+                            .cornerRadius(10)
+                        }
+
+                        Button(action: addServer) {
+                            Text("Add Server")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(Color(hex: "#00BCD4"))
+                                .cornerRadius(12)
+                        }
+                        .disabled(serverHost.isEmpty)
+                        .opacity(serverHost.isEmpty ? 0.5 : 1.0)
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                }
+            }
+        }
+    }
+
+    private func addServer() {
+        let port = UInt16(serverPort) ?? 8089
+        let server = TAKServer(
+            name: serverName.isEmpty ? "TAK Server" : serverName,
+            host: serverHost,
+            port: port,
+            protocolType: useTLS ? "ssl" : "tcp",
+            useTLS: useTLS,
+            isDefault: false
+        )
+
+        ServerManager.shared.addServer(server)
+        ServerManager.shared.setActiveServer(server)
+        dismiss()
+    }
+}
+
+// MARK: - Form Field Component
+
+struct ATAKFormField: View {
+    let label: String
+    @Binding var text: String
+    var placeholder: String = ""
+    var keyboardType: UIKeyboardType = .default
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Color(hex: "#CCCCCC"))
+
+            TextField(placeholder, text: $text)
+                .padding(14)
+                .background(Color(hex: "#1A1A1A"))
+                .cornerRadius(10)
+                .foregroundColor(.white)
+                .keyboardType(keyboardType)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+        }
     }
 }
 

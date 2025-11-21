@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E8929C17394445BFAB7742B3 /* NetworkPreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B02B2B4023437280EEDAF5 /* NetworkPreferencesView.swift */; };
+		31151487A72D4552A74E15DF /* TAKServersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C94693DEB048E1A44FE7ED /* TAKServersView.swift */; };
 		004471DFBEB04B626E7620AA /* MeshtasticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294A3D214F63F6CE360B1650 /* MeshtasticManager.swift */; };
 		00FBF209F47A42DBAF64F07D /* Views/VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1DD5C30EDAE495C9D6E71A6 /* Views/VideoPlayerView.swift */; };
 		01B3542FF2FB40E1AFEDDADA /* Utilities/Calculators/MeasurementCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D82B8913CFBB4BDC8356FC36 /* Utilities/Calculators/MeasurementCalculator.swift */; };
@@ -1423,6 +1425,8 @@
 		FFAFCB91F96F4A86B9BD66C3 /* Models/WaypointModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/WaypointModels.swift; sourceTree = "<group>"; };
 		FFCBCD27D7F14CE1B5BE4F78 /* Views/WaypointListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/WaypointListView.swift; sourceTree = "<group>"; };
 		FFFB3D892C4E4B4ABD4E4C98 /* Views/RoutePlanningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/RoutePlanningView.swift; sourceTree = "<group>"; };
+		C2B02B2B4023437280EEDAF5 /* NetworkPreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NetworkPreferencesView.swift; path = Views/NetworkPreferencesView.swift; sourceTree = "<group>"; };
+		E6C94693DEB048E1A44FE7ED /* TAKServersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TAKServersView.swift; path = Views/TAKServersView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1448,7 +1452,9 @@
 				C8AD5080CC6D009511B9C3F7 /* MeshtasticDevicePickerView.swift */,
 				27DA6489B819104445237C1B /* MeshTopologyView.swift */,
 				F331489CF1193923DBCBCEED /* SignalHistoryView.swift */,
-			);
+							C2B02B2B4023437280EEDAF5 /* NetworkPreferencesView.swift */,
+				E6C94693DEB048E1A44FE7ED /* TAKServersView.swift */,
+);
 			name = Views;
 			sourceTree = "<group>";
 		};
@@ -2966,7 +2972,9 @@
 				8CD08918303ACE0EDD1F93EB /* MeshtasticModels.swift in Sources */,
 				03D3665CF42E98053FAEC2FB /* MeshTopologyView.swift in Sources */,
 				79651FC08FFA1DFD27EF1530 /* SignalHistoryView.swift in Sources */,
-			);
+							E8929C17394445BFAB7742B3 /* NetworkPreferencesView.swift in Sources */,
+				31151487A72D4552A74E15DF /* TAKServersView.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -3100,7 +3108,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.4;
+				CURRENT_PROJECT_VERSION = 1.3.5;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3120,7 +3128,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.4;
+				MARKETING_VERSION = 1.3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.engindearing.omnitak.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -3141,7 +3149,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.4;
+				CURRENT_PROJECT_VERSION = 1.3.5;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3161,7 +3169,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.4;
+				MARKETING_VERSION = 1.3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.engindearing.omnitak.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
