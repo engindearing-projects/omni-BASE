@@ -34,7 +34,7 @@ export default function Download() {
                   Available on the App Store. Requires iOS 15.0 or later.
                 </p>
                 <motion.a
-                  href="https://apps.apple.com/app/omnitak"
+                  href="https://apps.apple.com/us/app/omnitakmobile/id6755246992"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.05 }}
