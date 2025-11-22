@@ -123,6 +123,8 @@ class MapOverlayCoordinator: ObservableObject {
     private var mgrsOverlay: MGRSGridOverlay?
     private var activeOverlays: [MapOverlayType: [MKOverlay]] = [:]
     private var cancellables = Set<AnyCancellable>()
+    private var lastMGRSUpdateTime: Date = .distantPast
+    private let mgrsUpdateThrottleInterval: TimeInterval = 0.1 // Update max once per 100ms
 
     // MARK: - Initialization
 
@@ -270,6 +272,13 @@ class MapOverlayCoordinator: ObservableObject {
     }
 
     func updateCenterMGRS(for coordinate: CLLocationCoordinate2D? = nil) {
+        // Throttle updates to prevent excessive CPU usage during map animations
+        let now = Date()
+        guard now.timeIntervalSince(lastMGRSUpdateTime) >= mgrsUpdateThrottleInterval else {
+            return
+        }
+        lastMGRSUpdateTime = now
+
         let coord: CLLocationCoordinate2D
         if let provided = coordinate {
             coord = provided
@@ -466,11 +475,7 @@ class MapOverlayCoordinator: ObservableObject {
 extension MapOverlayCoordinator {
     var mgrsGridEnabled: Bool {
         get {
-            let isVisible = isOverlayVisible(.mgrsGrid)
-            #if DEBUG
-            print("🗺️ [MapOverlayCoordinator] mgrsGridEnabled GET: \(isVisible)")
-            #endif
-            return isVisible
+            return isOverlayVisible(.mgrsGrid)
         }
         set {
             #if DEBUG

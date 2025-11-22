@@ -5,6 +5,21 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.7] - 2025-01-21
+
+### Fixed
+- **High CPU Usage**: Fixed critical performance issue with MapOverlayCoordinator
+  - Removed debug print statement from `mgrsGridEnabled` getter that was spamming console on every access
+  - Added throttling to MGRS coordinate updates (max 10 updates/second instead of unlimited)
+  - Removed redundant `updateCenterMGRS` calls from latitude/longitude onChange handlers
+  - Map animations and panning now use significantly less CPU (reduced from ~180% to normal levels)
+  - Console spam "[MapOverlayCoordinator] mgrsGridEnabled GET: false" eliminated
+
+### Technical Details
+- Added `mgrsUpdateThrottleInterval` (100ms) to limit MGRS coordinate updates during continuous map movements
+- Consolidated MGRS updates to single code path through `updateVisibleOverlays` instead of three separate paths
+- Prevents excessive SwiftUI view re-renders triggered by rapid `@Published` property updates
+
 ## [1.3.0] - 2025-01-20
 
 ### Added - Meshtastic Integration
@@ -98,6 +113,7 @@ This project uses [Semantic Versioning](https://semver.org/):
 - **Minor (0.X.0)**: New features, backward compatible
 - **Patch (0.0.X)**: Bug fixes
 
+[1.3.7]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.3.0...v1.3.7
 [1.3.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/engindearing-projects/omniTAK-mobile/releases/tag/v1.1.0

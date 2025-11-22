@@ -785,13 +785,13 @@ struct ATAKMapView: View {
             .onChange(of: mapRegion.center.latitude) { _ in
                 DispatchQueue.main.async {
                     mapStateManager.updateMapRegion(mapRegion)
-                    overlayCoordinator.updateCenterMGRS(for: mapRegion.center)
+                    // MGRS update handled by updateVisibleOverlays in map coordinator
                 }
             }
             .onChange(of: mapRegion.center.longitude) { _ in
                 DispatchQueue.main.async {
                     mapStateManager.updateMapRegion(mapRegion)
-                    overlayCoordinator.updateCenterMGRS(for: mapRegion.center)
+                    // MGRS update handled by updateVisibleOverlays in map coordinator
                 }
             }
             .onChange(of: overlayCoordinator.mgrsGridEnabled) { newValue in
