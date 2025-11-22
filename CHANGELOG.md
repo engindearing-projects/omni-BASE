@@ -5,6 +5,12 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.8] - 2025-01-22
+
+### Release
+- **App Store Release**: Version 1.3.8 is now available on the iOS App Store
+- Production-ready build with all previous fixes and features
+
 ## [1.3.7] - 2025-01-21
 
 ### Fixed
@@ -113,6 +119,7 @@ This project uses [Semantic Versioning](https://semver.org/):
 - **Minor (0.X.0)**: New features, backward compatible
 - **Patch (0.0.X)**: Bug fixes
 
+[1.3.8]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.3.7...v1.3.8
 [1.3.7]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.3.0...v1.3.7
 [1.3.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.1.0...v1.2.0
