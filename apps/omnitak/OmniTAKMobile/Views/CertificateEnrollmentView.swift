@@ -41,9 +41,11 @@ struct CertificateEnrollmentView: View {
                         qrScannerView
                     }
 
-                    // Progress indicator
+                    // Progress indicator or error display
                     if enrollmentService.progress.isInProgress {
                         progressView
+                    } else if case .failed(let error) = enrollmentService.progress {
+                        errorView(error)
                     }
 
                     Spacer()
@@ -132,13 +134,26 @@ struct CertificateEnrollmentView: View {
                     .background(Color(white: 0.15))
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                 } else if qrScanner.isAuthorized && !qrScanner.hasCameraError {
-                    QRScannerPreview(session: qrScanner.captureSession)
-                        .frame(height: 280)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(hex: "#FFFC00"), lineWidth: 2)
-                        )
+                    ZStack {
+                        QRScannerPreview(session: qrScanner.captureSession)
+                            .frame(height: 280)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color(hex: "#FFFC00"), lineWidth: 2)
+                            )
+                            .onAppear {
+                                // Extra safety: ensure session starts when preview appears
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    if !qrScanner.captureSession.isRunning {
+                                        #if DEBUG
+                                        print("📸 QR Scanner: Preview appeared but session not running, restarting...")
+                                        #endif
+                                        qrScanner.startScanning()
+                                    }
+                                }
+                            }
+                    }
 
                     // Scanning overlay
                     VStack {
@@ -240,13 +255,20 @@ struct CertificateEnrollmentView: View {
             }
         }
         .onAppear {
-            qrScanner.checkPermissions()
+            // Set up callbacks first
             qrScanner.onQRCodeScanned = { code in
                 handleScannedCode(code)
             }
             qrScanner.onCameraError = {
                 // Auto-scroll to manual entry button would go here if needed
             }
+
+            // Check permissions and start camera
+            qrScanner.checkPermissions()
+        }
+        .onDisappear {
+            // Pause scanning when view is hidden
+            qrScanner.stopScanning()
         }
     }
 
@@ -279,6 +301,47 @@ struct CertificateEnrollmentView: View {
         .padding(.top, 16)
     }
 
+    // MARK: - Error View
+
+    private func errorView(_ error: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.red)
+
+            Text("Enrollment Failed")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+
+            Text(error)
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "#CCCCCC"))
+                .multilineTextAlignment(.center)
+
+            Button(action: {
+                enrollmentService.reset()
+                qrScanner.startScanning()
+            }) {
+                Text("Try Again")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color(hex: "#FFFC00"))
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
+        .background(Color.red.opacity(0.1))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.red.opacity(0.3), lineWidth: 1)
+        )
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
+    }
+
     // MARK: - Toggle Button
 
     private var toggleButton: some View {
@@ -286,8 +349,13 @@ struct CertificateEnrollmentView: View {
             withAnimation {
                 showManualEntry.toggle()
                 if !showManualEntry {
-                    qrScanner.startScanning()
+                    // Switching back to QR scanner - restart camera
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        qrScanner.checkPermissions()
+                        qrScanner.startScanning()
+                    }
                 } else {
+                    // Switching to manual entry - stop camera
                     qrScanner.stopScanning()
                 }
             }
@@ -336,6 +404,10 @@ struct CertificateEnrollmentView: View {
                         .padding(.horizontal, 32)
 
                     Button(action: {
+                        #if DEBUG
+                        print("🔐 Certificate Enrollment: Starting enrollment with password")
+                        print("🔐 Certificate Enrollment: URL = \(scannedURL)")
+                        #endif
                         showPasswordPrompt = false
                         startEnrollment(with: scannedURL, password: certificatePassword)
                     }) {
@@ -373,26 +445,125 @@ struct CertificateEnrollmentView: View {
     private func handleScannedCode(_ code: String) {
         qrScanner.stopScanning()
         scannedURL = code
-        showPasswordPrompt = true
+
+        #if DEBUG
+        print("🔍 QR Code Handler: Processing scanned code")
+        print("🔍 QR Code Handler: Code = \(code)")
+        #endif
+
+        // Check if this is a certificate enrollment URL
+        if code.lowercased().contains("enroll") && code.lowercased().hasPrefix("http") {
+            #if DEBUG
+            print("🔍 QR Code Handler: Detected certificate enrollment URL")
+            #endif
+            showPasswordPrompt = true
+        } else {
+            // Try to parse as iTAK/ATAK connection details
+            #if DEBUG
+            print("🔍 QR Code Handler: Attempting to parse as connection details")
+            #endif
+            parseConnectionDetails(code)
+        }
+    }
+
+    private func parseConnectionDetails(_ qrData: String) {
+        // iTAK/ATAK QR codes can be JSON or other formats
+        // Try parsing as JSON first
+        if let jsonData = qrData.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+            #if DEBUG
+            print("🔍 Connection Parser: Parsed as JSON: \(json)")
+            #endif
+            addServerFromJSON(json)
+        } else {
+            // Try other formats or show password prompt as fallback
+            #if DEBUG
+            print("🔍 Connection Parser: Not JSON, treating as enrollment URL")
+            #endif
+            showPasswordPrompt = true
+        }
+    }
+
+    private func addServerFromJSON(_ json: [String: Any]) {
+        // Extract common fields from iTAK/ATAK connection QR codes
+        let host = json["hostname"] as? String ?? json["host"] as? String ?? json["server"] as? String ?? ""
+        let port = json["port"] as? Int ?? json["tcpPort"] as? Int ?? 8087
+        let useTLS = json["useSSL"] as? Bool ?? json["useTLS"] as? Bool ?? false
+        let serverName = json["name"] as? String ?? json["alias"] as? String ?? "TAK Server"
+
+        #if DEBUG
+        print("🔍 Connection Parser: Extracted - host=\(host), port=\(port), TLS=\(useTLS)")
+        #endif
+
+        guard !host.isEmpty else {
+            #if DEBUG
+            print("🔍 Connection Parser: No valid host found, showing password prompt")
+            #endif
+            showPasswordPrompt = true
+            return
+        }
+
+        // Create and add the server
+        let server = TAKServer(
+            name: serverName,
+            host: host,
+            port: UInt16(port),
+            protocolType: useTLS ? "ssl" : "tcp",
+            useTLS: useTLS,
+            isDefault: false
+        )
+
+        #if DEBUG
+        print("🔍 Connection Parser: Adding server to ServerManager")
+        #endif
+
+        ServerManager.shared.addServer(server)
+        ServerManager.shared.setActiveServer(server)
+
+        // Show success
+        enrolledServer = server
+        showSuccessAlert = true
     }
 
     private func startEnrollment(with urlString: String, password: String) {
+        #if DEBUG
+        print("🔐 Certificate Enrollment: startEnrollment() called")
+        #endif
+
         enrollmentTask = Task {
             do {
+                #if DEBUG
+                print("🔐 Certificate Enrollment: Calling enrollFromQRCode...")
+                #endif
                 let server = try await enrollmentService.enrollFromQRCode(urlString, password: password)
+                #if DEBUG
+                print("🔐 Certificate Enrollment: Success! Server = \(server.name)")
+                #endif
                 await MainActor.run {
                     enrolledServer = server
                     showSuccessAlert = true
+                    #if DEBUG
+                    print("🔐 Certificate Enrollment: Showing success alert")
+                    #endif
                 }
             } catch {
+                #if DEBUG
+                print("🔐 Certificate Enrollment: Error - \(error.localizedDescription)")
+                #endif
                 await MainActor.run {
                     enrollmentService.progress = .failed(error.localizedDescription)
+                    #if DEBUG
+                    print("🔐 Certificate Enrollment: Set progress to failed: \(error.localizedDescription)")
+                    #endif
                 }
                 // Allow retry
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
                 await MainActor.run {
                     enrollmentService.reset()
                     qrScanner.startScanning()
+                    #if DEBUG
+                    print("🔐 Certificate Enrollment: Reset and restarted scanning")
+                    #endif
                 }
             }
         }
@@ -549,11 +720,18 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
     }
 
     func checkPermissions() {
+        #if DEBUG
+        print("📸 QR Scanner: checkPermissions() called")
+        #endif
+
         isInitializing = true
 
         // Check if running on simulator
         #if targetEnvironment(simulator)
         DispatchQueue.main.async {
+            #if DEBUG
+            print("📸 QR Scanner: Running on simulator - camera not available")
+            #endif
             self.isInitializing = false
             self.isAuthorized = false
             self.hasCameraError = true
@@ -563,13 +741,27 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
         return
         #endif
 
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        let authStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        #if DEBUG
+        print("📸 QR Scanner: Camera authorization status = \(authStatus.rawValue)")
+        #endif
+
+        switch authStatus {
         case .authorized:
+            #if DEBUG
+            print("📸 QR Scanner: Camera authorized, setting up capture session")
+            #endif
             isAuthorized = true
             setupCaptureSession()
         case .notDetermined:
+            #if DEBUG
+            print("📸 QR Scanner: Camera permission not determined, requesting access")
+            #endif
             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
                 DispatchQueue.main.async {
+                    #if DEBUG
+                    print("📸 QR Scanner: Camera access granted = \(granted)")
+                    #endif
                     self?.isAuthorized = granted
                     if granted {
                         self?.setupCaptureSession()
@@ -582,12 +774,18 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
                 }
             }
         case .denied, .restricted:
+            #if DEBUG
+            print("📸 QR Scanner: Camera access denied or restricted")
+            #endif
             isAuthorized = false
             hasCameraError = true
             statusMessage = "Camera access denied. Please enable in Settings or use manual entry."
             isInitializing = false
             onCameraError?()
         @unknown default:
+            #if DEBUG
+            print("📸 QR Scanner: Unknown camera authorization status")
+            #endif
             isAuthorized = false
             hasCameraError = true
             isInitializing = false
@@ -604,8 +802,15 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
     }
 
     private func setupCaptureSession() {
+        #if DEBUG
+        print("📸 QR Scanner: setupCaptureSession() called")
+        #endif
+
         // Avoid reconfiguring if already set up
         guard !isSessionConfigured else {
+            #if DEBUG
+            print("📸 QR Scanner: Session already configured, starting scanning")
+            #endif
             DispatchQueue.main.async {
                 self.isInitializing = false
             }
@@ -619,10 +824,18 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
         return
         #endif
 
+        #if DEBUG
+        print("📸 QR Scanner: Getting video capture device")
+        #endif
+
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
             handleCameraSetupError("No camera available on this device")
             return
         }
+
+        #if DEBUG
+        print("📸 QR Scanner: Video capture device obtained: \(videoCaptureDevice.localizedName)")
+        #endif
 
         let videoInput: AVCaptureDeviceInput
         do {
@@ -634,6 +847,14 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
 
         // Begin atomic configuration
         captureSession.beginConfiguration()
+
+        // Set session preset for high quality video
+        if captureSession.canSetSessionPreset(.high) {
+            captureSession.sessionPreset = .high
+            #if DEBUG
+            print("📸 QR Scanner: Set session preset to .high")
+            #endif
+        }
 
         // Remove existing inputs/outputs if any
         for input in captureSession.inputs {
@@ -668,12 +889,22 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
         captureSession.commitConfiguration()
         isSessionConfigured = true
 
+        #if DEBUG
+        print("📸 QR Scanner: Capture session configured successfully")
+        #endif
+
         DispatchQueue.main.async {
             self.isInitializing = false
             self.hasCameraError = false
+            #if DEBUG
+            print("📸 QR Scanner: Updated UI state - ready to scan")
+            #endif
         }
 
         // Start scanning on success
+        #if DEBUG
+        print("📸 QR Scanner: Calling startScanning() after successful setup")
+        #endif
         startScanning()
     }
 
@@ -702,7 +933,17 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
     }
 
     func startScanning() {
+        #if DEBUG
+        print("📸 QR Scanner: startScanning() called")
+        print("📸 QR Scanner: isSessionConfigured = \(isSessionConfigured)")
+        print("📸 QR Scanner: isAuthorized = \(isAuthorized)")
+        print("📸 QR Scanner: hasCameraError = \(hasCameraError)")
+        #endif
+
         guard isSessionConfigured else {
+            #if DEBUG
+            print("📸 QR Scanner: Session not configured, attempting setup...")
+            #endif
             // Try to set up the session first
             setupCaptureSession()
             return
@@ -710,12 +951,25 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
+            #if DEBUG
+            print("📸 QR Scanner: Capture session isRunning = \(self.captureSession.isRunning)")
+            #endif
             // Only start if not already running
             if !self.captureSession.isRunning {
+                #if DEBUG
+                print("📸 QR Scanner: Starting capture session...")
+                #endif
                 self.captureSession.startRunning()
                 DispatchQueue.main.async {
                     self.statusMessage = "Position QR code within frame"
+                    #if DEBUG
+                    print("📸 QR Scanner: Capture session started successfully")
+                    #endif
                 }
+            } else {
+                #if DEBUG
+                print("📸 QR Scanner: Capture session already running")
+                #endif
             }
         }
     }
@@ -735,13 +989,16 @@ class QRScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutputObj
            metadataObject.type == .qr,
            let stringValue = metadataObject.stringValue {
 
-            // Validate TAK enrollment URL format
-            if stringValue.hasPrefix("tak://enroll") {
-                statusMessage = "QR code detected!"
-                onQRCodeScanned?(stringValue)
-            } else {
-                statusMessage = "Invalid TAK enrollment QR code"
-            }
+            #if DEBUG
+            print("📸 QR Scanner: Scanned QR code content: \(stringValue)")
+            #endif
+
+            // Accept any QR code - we'll validate the content in the handler
+            statusMessage = "QR code detected!"
+            #if DEBUG
+            print("📸 QR Scanner: QR code detected, passing to handler")
+            #endif
+            onQRCodeScanned?(stringValue)
         }
     }
 
@@ -853,17 +1110,34 @@ struct QRScannerPreview: UIViewRepresentable {
         view.backgroundColor = .black
 
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.frame = view.bounds
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
 
         context.coordinator.previewLayer = previewLayer
 
+        #if DEBUG
+        print("📸 QR Scanner Preview: Created preview layer for session: \(session)")
+        print("📸 QR Scanner Preview: Session is running: \(session.isRunning)")
+        #endif
+
+        // Force initial layout
+        DispatchQueue.main.async {
+            previewLayer.frame = view.bounds
+        }
+
         return view
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
-        context.coordinator.previewLayer?.frame = uiView.bounds
+        DispatchQueue.main.async {
+            if let previewLayer = context.coordinator.previewLayer {
+                previewLayer.frame = uiView.bounds
+                #if DEBUG
+                print("📸 QR Scanner Preview: Updated frame to \(uiView.bounds)")
+                print("📸 QR Scanner Preview: Session is running: \(self.session.isRunning)")
+                #endif
+            }
+        }
     }
 
     func makeCoordinator() -> Coordinator {

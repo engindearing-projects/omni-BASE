@@ -4,10 +4,6 @@
 <dict>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.3.7</string>
-	<key>CFBundleVersion</key>
-	<string>3</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -30,14 +26,6 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required to take photos for chat messages and scan TAK server enrollment QR codes.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>OmniTAK needs access to your location for continuous GPS track recording and position updates even when the app is in the background.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>OmniTAK needs access to your location for map positioning, navigation, and GPS track recording.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo library access is required to select photos for chat messages.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

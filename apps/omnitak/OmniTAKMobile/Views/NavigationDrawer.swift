@@ -15,7 +15,9 @@ struct NavigationDrawer: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
     var isLandscape: Bool {
-        horizontalSizeClass == .regular || verticalSizeClass == .compact
+        // Landscape when height is compact (iPhone landscape)
+        // or both are regular (iPad in any orientation - treat as landscape for ATAK-style menu)
+        verticalSizeClass == .compact || (horizontalSizeClass == .regular && verticalSizeClass == .regular)
     }
 
     var body: some View {
@@ -32,10 +34,12 @@ struct NavigationDrawer: View {
                     .transition(.opacity)
 
                 // Drawer panel with slide-in animation
+                // In landscape (ATAK style), drawer slides from right
+                // In portrait, drawer slides from left
                 HStack(spacing: 0) {
-                    // In landscape, add spacer first to push drawer to right
+                    // In landscape, add spacer first to push drawer to right side
                     if isLandscape {
-                        Spacer()
+                        Spacer(minLength: 0)
                     }
 
                     VStack(spacing: 0) {
@@ -228,25 +232,29 @@ struct NavigationDrawer: View {
                         // Footer
                         DrawerFooter()
                     }
-                    .frame(width: 240)
+                    .frame(width: 280)  // Slightly wider for landscape ATAK style
                     .background(Color(hex: "#1E1E1E"))
                     .overlay(
+                        // Yellow accent border
                         Rectangle()
                             .frame(width: 2)
                             .foregroundColor(Color(hex: "#FFFC00"))
                             .shadow(color: Color(hex: "#FFFC00").opacity(0.5), radius: 4),
+                        // Border on left side of drawer in landscape (leading), right side in portrait (trailing)
                         alignment: isLandscape ? .leading : .trailing
                     )
+                    // Critical: slide from RIGHT in landscape (.trailing edge), LEFT in portrait (.leading edge)
                     .transition(.move(edge: isLandscape ? .trailing : .leading))
 
-                    // In portrait, add spacer after to push drawer to left
+                    // In portrait, add spacer after to push drawer to left side
                     if !isLandscape {
-                        Spacer()
+                        Spacer(minLength: 0)
                     }
                 }
+                .ignoresSafeArea(.all, edges: .vertical)  // Full height drawer
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: isOpen)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isOpen)  // Smoother ATAK-style animation
     }
 
     private func handleNavigation(_ screen: String) {

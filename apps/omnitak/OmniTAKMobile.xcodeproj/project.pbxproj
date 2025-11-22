@@ -3108,7 +3108,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.7;
+				CURRENT_PROJECT_VERSION = 1.3.8;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3118,17 +3118,20 @@
 				INFOPLIST_FILE = OmniTAKMobile/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "OmniTAK Mobile";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "OmniTAK needs continuous location access to maintain situational awareness and track your position for team coordination.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "OmniTAK needs your location to display your position on the tactical map and share it with your team.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is required to take photos for chat messages and scan TAK server enrollment QR codes.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "OmniTAK needs access to your location for continuous GPS track recording and position updates even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "OmniTAK needs access to your location for map positioning, navigation, and GPS track recording.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Photo library access is required to select photos for chat messages.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.7;
+				MARKETING_VERSION = 1.3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.engindearing.omnitak.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -3149,7 +3152,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.7;
+				CURRENT_PROJECT_VERSION = 1.3.8;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3159,17 +3162,20 @@
 				INFOPLIST_FILE = OmniTAKMobile/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "OmniTAK Mobile";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "OmniTAK needs continuous location access to maintain situational awareness and track your position for team coordination.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "OmniTAK needs your location to display your position on the tactical map and share it with your team.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is required to take photos for chat messages and scan TAK server enrollment QR codes.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "OmniTAK needs access to your location for continuous GPS track recording and position updates even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "OmniTAK needs access to your location for map positioning, navigation, and GPS track recording.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Photo library access is required to select photos for chat messages.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.7;
+				MARKETING_VERSION = 1.3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.engindearing.omnitak.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
