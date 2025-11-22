@@ -4,12 +4,12 @@ A cutting-edge promotional website for OmniTAK Mobile, built with Next.js 14 and
 
 ## Features
 
-- ✨ **Futuristic Design**: Glassmorphism, animated particles, and gradient effects
-- 🎨 **Advanced Animations**: Framer Motion for smooth, professional animations
-- 📱 **Fully Responsive**: Optimized for all devices
-- 🔄 **Live Changelog**: Automatically syncs with CHANGELOG.md from the main repo
-- 🎯 **Performance Optimized**: Static export for blazing-fast load times
-- 🌐 **SEO Ready**: Proper meta tags and semantic HTML
+- **Futuristic Design**: Glassmorphism, animated particles, and gradient effects
+- **Advanced Animations**: Framer Motion for smooth, professional animations
+- **Fully Responsive**: Optimized for all devices
+- **Live Changelog**: Automatically syncs with CHANGELOG.md from the main repo
+- **Performance Optimized**: Static export for blazing-fast load times
+- **SEO Ready**: Proper meta tags and semantic HTML
 
 ## Tech Stack
 

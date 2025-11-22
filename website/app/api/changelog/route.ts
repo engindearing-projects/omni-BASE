@@ -48,9 +48,9 @@ export async function GET() {
     return NextResponse.json(
       [
         {
-          version: '1.0.0',
-          date: '2024-01-15',
-          changes: ['Initial release with ATAK compatibility', 'iOS support', 'Team communication features'],
+          version: '1.3.8',
+          date: '2025-01-22',
+          changes: ['App Store Release: Version 1.3.8 is now available on the iOS App Store', 'Production-ready build with all previous fixes and features'],
         },
       ]
     );
