@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd website && npm run build",
+  "outputDirectory": "website/out",
+  "installCommand": "cd website && npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "github": {
+    "silent": true
+  }
+}
