@@ -279,8 +279,8 @@ struct DataPackageImportView: View {
                 .font(.system(size: 11, weight: .bold))
                 .foregroundColor(Color(hex: "#999999"))
 
-            ForEach(importManager.recentImports) { import in
-                RecentImportRow(import: import)
+            ForEach(importManager.recentImports) { importRecord in
+                RecentImportRow(record: importRecord)
             }
         }
     }
@@ -351,7 +351,7 @@ struct InstructionRow: View {
 }
 
 struct RecentImportRow: View {
-    let import: ImportRecord
+    let record: ImportRecord
 
     var body: some View {
         HStack(spacing: 12) {
@@ -359,18 +359,18 @@ struct RecentImportRow: View {
                 .foregroundColor(Color(hex: "#4CAF50"))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(import.packageName)
+                Text(record.packageName)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white)
 
-                Text(import.importDate.formatted())
+                Text(record.importDate.formatted())
                     .font(.system(size: 12))
                     .foregroundColor(Color(hex: "#999999"))
             }
 
             Spacer()
 
-            Text("\(import.itemsImported) items")
+            Text("\(record.itemsImported) items")
                 .font(.system(size: 12))
                 .foregroundColor(Color(hex: "#CCCCCC"))
         }

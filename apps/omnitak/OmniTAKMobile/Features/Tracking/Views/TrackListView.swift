@@ -168,9 +168,9 @@ struct TrackRowView: View {
 
                 // Statistics row
                 HStack(spacing: 16) {
-                    StatBadge(icon: "ruler", value: track.formattedDistance)
-                    StatBadge(icon: "clock", value: track.formattedDuration)
-                    StatBadge(icon: "location.circle", value: "\(track.points.count) pts")
+                    TrackStatBadge(icon: "ruler", value: track.formattedDistance)
+                    TrackStatBadge(icon: "clock", value: track.formattedDuration)
+                    TrackStatBadge(icon: "location.circle", value: "\(track.points.count) pts")
                 }
             }
 
@@ -186,7 +186,7 @@ struct TrackRowView: View {
 
 // MARK: - Stat Badge
 
-struct StatBadge: View {
+private struct TrackStatBadge: View {
     let icon: String
     let value: String
 

@@ -84,38 +84,30 @@ class DataPackageImportManager: ObservableObject {
     // MARK: - Extract ZIP
 
     private func extractZipFile(from sourceURL: URL, to destinationURL: URL) async throws {
-        try await Task.detached {
-            // Use NSFileCoordinator for coordinated file access
-            var coordinatedURL: NSURL?
-            let coordinator = NSFileCoordinator()
-            var error: NSError?
+        // Read the ZIP data
+        let zipData = try Data(contentsOf: sourceURL)
 
-            coordinator.coordinate(readingItemAt: sourceURL as URL, options: [], error: &error) { url in
-                coordinatedURL = url as NSURL
+        // Use the ZipArchive class from KMZHandler
+        guard let archive = ZipArchive(data: zipData) else {
+            throw ImportError.extractionFailed
+        }
+
+        // Create destination directory if needed
+        try fileManager.createDirectory(at: destinationURL, withIntermediateDirectories: true)
+
+        // Extract each entry
+        for entry in archive.entries {
+            let entryURL = destinationURL.appendingPathComponent(entry.fileName)
+
+            // Create parent directories if needed
+            let parentDir = entryURL.deletingLastPathComponent()
+            if !fileManager.fileExists(atPath: parentDir.path) {
+                try fileManager.createDirectory(at: parentDir, withIntermediateDirectories: true)
             }
 
-            guard let readURL = coordinatedURL as URL? else {
-                throw ImportError.extractionFailed
-            }
-
-            // Use unzip command through Process
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-            process.arguments = ["-q", "-o", readURL.path, "-d", destinationURL.path]
-
-            let pipe = Pipe()
-            process.standardError = pipe
-
-            try process.run()
-            process.waitUntilExit()
-
-            if process.terminationStatus != 0 {
-                let errorData = pipe.fileHandleForReading.readDataToEndOfFile()
-                let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
-                print("⚠️ Unzip error: \(errorMessage)")
-                throw ImportError.extractionFailed
-            }
-        }.value
+            // Write the file data
+            try entry.data.write(to: entryURL)
+        }
     }
 
     // MARK: - Find Package Contents
@@ -255,9 +247,14 @@ class DataPackageImportManager: ObservableObject {
             let name: String?
             let host: String
             let port: Int
-            let protocol: String?
+            let protocolType: String?
             let useTLS: Bool?
             let certificateName: String?
+
+            enum CodingKeys: String, CodingKey {
+                case name, host, port, useTLS, certificateName
+                case protocolType = "protocol"
+            }
         }
 
         let decoder = JSONDecoder()
@@ -268,7 +265,7 @@ class DataPackageImportManager: ObservableObject {
             name: config.name ?? "Imported Server",
             host: config.host,
             port: UInt16(config.port),
-            protocolType: config.protocol ?? "tcp",
+            protocolType: config.protocolType ?? "tcp",
             useTLS: config.useTLS ?? false,
             isDefault: false,
             certificateName: config.certificateName

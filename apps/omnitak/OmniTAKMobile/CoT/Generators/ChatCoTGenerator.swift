@@ -50,6 +50,35 @@ class ChatCoTGenerator {
         return xml
     }
 
+    // MARK: - Generate Location Share CoT
+
+    static func generateLocationShareXML(location: CLLocationCoordinate2D, senderUid: String, senderCallsign: String) -> String {
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        let now = Date()
+        let stale = now.addingTimeInterval(300) // 5 minutes stale
+
+        let timeStr = dateFormatter.string(from: now)
+        let staleStr = dateFormatter.string(from: stale)
+
+        let uid = "share.\(senderUid).\(UUID().uuidString)"
+
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <event version="2.0" uid="\(uid)" type="b-m-p-s-m" time="\(timeStr)" start="\(timeStr)" stale="\(staleStr)" how="h-e">
+            <point lat="\(location.latitude)" lon="\(location.longitude)" hae="0.0" ce="9999999" le="9999999"/>
+            <detail>
+                <contact callsign="\(senderCallsign)"/>
+                <link uid="\(senderUid)" type="a-f-G" relation="p-p"/>
+                <remarks>Location shared by \(senderCallsign)</remarks>
+            </detail>
+        </event>
+        """
+
+        return xml
+    }
+
     // MARK: - Parse GeoChat CoT
 
     static func parseGeoChatCoT(xml: String) -> ChatMessage? {

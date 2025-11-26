@@ -116,7 +116,7 @@ class ChatService: ObservableObject {
 
         // Generate location-specific CoT if needed
         let xml = ChatCoTGenerator.generateLocationShareXML(
-            location: location,
+            location: location.coordinate,
             senderUid: currentUserId,
             senderCallsign: currentUserCallsign
         )
