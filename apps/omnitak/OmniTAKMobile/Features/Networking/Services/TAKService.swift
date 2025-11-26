@@ -460,6 +460,9 @@ struct CoTDetail {
 }
 
 class TAKService: ObservableObject {
+    // Shared singleton for global access
+    static let shared = TAKService()
+
     @Published var connectionStatus = "Disconnected"
     @Published var isConnected = false
     @Published var lastError = ""

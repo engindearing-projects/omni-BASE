@@ -200,10 +200,10 @@ struct ConnectionDetailsView: View {
                 .foregroundColor(.white)
 
             VStack(spacing: 12) {
-                InfoRow(icon: "server.rack", label: "Server", value: server.name)
-                InfoRow(icon: "network", label: "Host", value: server.host)
-                InfoRow(icon: "number", label: "Port", value: String(server.port))
-                InfoRow(
+                ConnectionInfoRow(icon: "server.rack", label: "Server", value: server.name)
+                ConnectionInfoRow(icon: "network", label: "Host", value: server.host)
+                ConnectionInfoRow(icon: "number", label: "Port", value: String(server.port))
+                ConnectionInfoRow(
                     icon: server.useTLS ? "lock.shield.fill" : "network",
                     label: "Protocol",
                     value: server.useTLS ? "TLS/SSL" : server.protocolType.uppercased(),
@@ -243,7 +243,7 @@ struct ConnectionDetailsView: View {
     private var quickActionsSection: some View {
         VStack(spacing: 12) {
             if takService.isConnected {
-                ActionButton(
+                ConnectionActionButton(
                     title: "Disconnect",
                     icon: "xmark.circle.fill",
                     color: Color(hex: "#FF6B6B"),
@@ -252,7 +252,7 @@ struct ConnectionDetailsView: View {
                     }
                 )
             } else {
-                ActionButton(
+                ConnectionActionButton(
                     title: "Reconnect",
                     icon: "arrow.clockwise.circle.fill",
                     color: Color(hex: "#00FF00"),
@@ -261,7 +261,7 @@ struct ConnectionDetailsView: View {
                     }
                 )
 
-                ActionButton(
+                ConnectionActionButton(
                     title: "Change Server",
                     icon: "arrow.left.arrow.right.circle.fill",
                     color: Color(hex: "#FFFC00"),
@@ -274,7 +274,7 @@ struct ConnectionDetailsView: View {
     }
 }
 
-struct InfoRow: View {
+private struct ConnectionInfoRow: View {
     let icon: String
     let label: String
     let value: String
@@ -330,7 +330,7 @@ private struct StatCard: View {
     }
 }
 
-struct ActionButton: View {
+private struct ConnectionActionButton: View {
     let title: String
     let icon: String
     let color: Color

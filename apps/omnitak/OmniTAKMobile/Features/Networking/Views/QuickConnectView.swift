@@ -15,7 +15,7 @@ struct QuickConnectView: View {
     @StateObject private var viewModel = QuickConnectViewModel()
     @StateObject private var enrollmentService = CertificateEnrollmentService.shared
 
-    @State private var selectedMethod: ConnectionMethod = .qrCode
+    @State private var selectedMethod: ConnectionMethod = .signIn
     @State private var showSuccessAnimation = false
 
     var body: some View {
@@ -34,6 +34,8 @@ struct QuickConnectView: View {
                     ScrollView {
                         VStack(spacing: 24) {
                             switch selectedMethod {
+                            case .signIn:
+                                SimpleEnrollViewContent()
                             case .qrCode:
                                 QRCodeConnectView()
                             case .autoDiscover:
@@ -163,6 +165,7 @@ struct QuickConnectView: View {
 // MARK: - Connection Methods
 
 enum ConnectionMethod: String, CaseIterable {
+    case signIn = "Sign In"
     case qrCode = "QR Code"
     case autoDiscover = "Auto-Discover"
     case quickSetup = "Quick Setup"
@@ -170,6 +173,7 @@ enum ConnectionMethod: String, CaseIterable {
 
     var icon: String {
         switch self {
+        case .signIn: return "person.badge.key.fill"
         case .qrCode: return "qrcode.viewfinder"
         case .autoDiscover: return "wifi.circle.fill"
         case .quickSetup: return "bolt.circle.fill"
@@ -179,6 +183,7 @@ enum ConnectionMethod: String, CaseIterable {
 
     var description: String {
         switch self {
+        case .signIn: return "Username & password"
         case .qrCode: return "Scan server QR"
         case .autoDiscover: return "Find nearby"
         case .quickSetup: return "Common servers"

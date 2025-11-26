@@ -12,7 +12,7 @@ import SwiftUI
 struct FirstTimeOnboarding: View {
     @Environment(\.dismiss) private var dismiss
     @State private var currentPage = 0
-    @State private var showQuickConnect = false
+    @State private var showEnrollment = false
 
     let pages = OnboardingPage.all
 
@@ -49,8 +49,8 @@ struct FirstTimeOnboarding: View {
                 actionButton
             }
         }
-        .fullScreenCover(isPresented: $showQuickConnect) {
-            QuickConnectView()
+        .fullScreenCover(isPresented: $showEnrollment) {
+            SimpleEnrollView()
         }
     }
 
@@ -74,7 +74,7 @@ struct FirstTimeOnboarding: View {
                         currentPage += 1
                     }
                 } else {
-                    showQuickConnect = true
+                    showEnrollment = true
                 }
             }) {
                 HStack {

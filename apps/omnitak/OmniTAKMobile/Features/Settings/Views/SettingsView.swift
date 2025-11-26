@@ -29,6 +29,7 @@ struct SettingsView: View {
     @AppStorage("trailColorName") private var trailColorName = "cyan"
 
     @State private var showNetworkPreferences = false
+    @State private var showServersSheet = false
 
     var body: some View {
         NavigationView {
@@ -52,13 +53,28 @@ struct SettingsView: View {
                     }
                 }
 
-                // Network Preferences (ATAK Style)
-                Section("NETWORK") {
-                    NavigationLink(destination: NetworkPreferencesView()) {
+                // Servers (Streamlined)
+                Section("SERVERS") {
+                    Button(action: { showServersSheet = true }) {
                         HStack {
-                            Image(systemName: "wifi")
-                                .foregroundColor(.blue)
-                            Text("Network Preferences")
+                            // Status indicator
+                            Circle()
+                                .fill(TAKService.shared.isConnected ? Color(hex: "#00FF00") : Color(hex: "#FF4444"))
+                                .frame(width: 10, height: 10)
+
+                            Text("Manage Servers")
+                                .foregroundColor(.primary)
+
+                            Spacer()
+
+                            // Server count/status
+                            Text(TAKService.shared.isConnected ? "Connected" : "\(ServerManager.shared.servers.count) servers")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
                         }
                     }
                 }
@@ -219,6 +235,9 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showServersSheet) {
+                ServersView()
             }
         }
     }
