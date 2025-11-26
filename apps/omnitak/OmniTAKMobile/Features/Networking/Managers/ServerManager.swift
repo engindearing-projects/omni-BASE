@@ -18,11 +18,12 @@ struct TAKServer: Identifiable, Codable, Equatable {
     var protocolType: String
     var useTLS: Bool
     var isDefault: Bool
+    var enabled: Bool  // Whether server is enabled for connection (like ATAK checkbox)
     var certificateName: String?  // Name of certificate file (e.g., "omnitak-mobile")
     var certificatePassword: String?  // Password for .p12 certificate
     var allowLegacyTLS: Bool  // Allow TLS 1.0/1.1 for extremely old servers (security risk)
 
-    init(id: UUID = UUID(), name: String, host: String, port: UInt16, protocolType: String = "tcp", useTLS: Bool = false, isDefault: Bool = false, certificateName: String? = nil, certificatePassword: String? = nil, allowLegacyTLS: Bool = false) {
+    init(id: UUID = UUID(), name: String, host: String, port: UInt16, protocolType: String = "tcp", useTLS: Bool = false, isDefault: Bool = false, enabled: Bool = true, certificateName: String? = nil, certificatePassword: String? = nil, allowLegacyTLS: Bool = false) {
         self.id = id
         self.name = name
         self.host = host
@@ -30,6 +31,7 @@ struct TAKServer: Identifiable, Codable, Equatable {
         self.protocolType = protocolType
         self.useTLS = useTLS
         self.isDefault = isDefault
+        self.enabled = enabled
         self.certificateName = certificateName
         self.certificatePassword = certificatePassword
         self.allowLegacyTLS = allowLegacyTLS
@@ -145,6 +147,22 @@ class ServerManager: ObservableObject {
         activeServer = server
         saveActiveServer()
         print("🔄 Active server set to: \(server.displayName)")
+    }
+
+    func toggleServerEnabled(_ server: TAKServer) {
+        if let index = servers.firstIndex(where: { $0.id == server.id }) {
+            servers[index].enabled.toggle()
+
+            // Update active server reference if needed
+            if activeServer?.id == server.id {
+                activeServer = servers[index]
+            }
+
+            saveServers()
+            #if DEBUG
+            print("🔀 Server \(server.name) enabled: \(servers[index].enabled)")
+            #endif
+        }
     }
 
     func getDefaultServer() -> TAKServer? {

@@ -177,7 +177,8 @@ struct ServersView: View {
                         isActive: server.id == serverManager.activeServer?.id,
                         isConnected: takService.isConnected && server.id == serverManager.activeServer?.id,
                         onSelect: { selectServer(server) },
-                        onDelete: { deleteServer(server) }
+                        onDelete: { deleteServer(server) },
+                        onToggleEnabled: { toggleServerEnabled(server) }
                     )
                 }
             }
@@ -261,6 +262,15 @@ struct ServersView: View {
         serverManager.deleteServer(server)
     }
 
+    private func toggleServerEnabled(_ server: TAKServer) {
+        serverManager.toggleServerEnabled(server)
+
+        // If disabling the active connected server, disconnect
+        if !server.enabled && takService.isConnected && server.id == serverManager.activeServer?.id {
+            takService.disconnect()
+        }
+    }
+
     private func connectToServer(_ server: TAKServer) {
         takService.connect(
             host: server.host,
@@ -326,58 +336,83 @@ struct ServerRow: View {
     let isConnected: Bool
     let onSelect: () -> Void
     let onDelete: () -> Void
+    let onToggleEnabled: () -> Void
 
     @State private var showDeleteConfirm = false
 
     var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 12) {
-                // Status indicator
-                Circle()
-                    .fill(isConnected ? Color(hex: "#00FF00") : (isActive ? Color(hex: "#FFFC00") : Color(hex: "#444444")))
-                    .frame(width: 10, height: 10)
+        HStack(spacing: 12) {
+            // Enable/Disable checkbox (ATAK style)
+            Button(action: onToggleEnabled) {
+                Image(systemName: server.enabled ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 22))
+                    .foregroundColor(server.enabled ? Color(hex: "#00FF00") : Color(hex: "#666666"))
+            }
+            .buttonStyle(PlainButtonStyle())
 
-                // Server info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(server.name)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.white)
+            // Main server button
+            Button(action: onSelect) {
+                HStack(spacing: 10) {
+                    // Status indicator
+                    Circle()
+                        .fill(isConnected ? Color(hex: "#00FF00") : (isActive && server.enabled ? Color(hex: "#FFFC00") : Color(hex: "#444444")))
+                        .frame(width: 10, height: 10)
 
-                    Text("\(server.host):\(server.port)")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#888888"))
-                }
+                    // Server info
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(server.name)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(server.enabled ? .white : Color(hex: "#666666"))
 
-                Spacer()
+                        Text("\(server.host):\(server.port)")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: "#888888"))
+                    }
 
-                // Active badge
-                if isActive {
-                    Text("ACTIVE")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color(hex: "#FFFC00"))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color(hex: "#FFFC00").opacity(0.15))
-                        .cornerRadius(4)
-                }
+                    Spacer()
 
-                // Delete button
-                Button(action: { showDeleteConfirm = true }) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#666666"))
-                        .frame(width: 32, height: 32)
+                    // Active badge
+                    if isActive && server.enabled {
+                        Text("ACTIVE")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Color(hex: "#FFFC00"))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "#FFFC00").opacity(0.15))
+                            .cornerRadius(4)
+                    }
+
+                    // Disabled badge
+                    if !server.enabled {
+                        Text("DISABLED")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Color(hex: "#666666"))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "#333333"))
+                            .cornerRadius(4)
+                    }
                 }
             }
-            .padding(12)
-            .background(Color(white: isActive ? 0.1 : 0.06))
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isActive ? Color(hex: "#FFFC00").opacity(0.3) : Color.clear, lineWidth: 1)
-            )
+            .buttonStyle(PlainButtonStyle())
+
+            // Delete button
+            Button(action: { showDeleteConfirm = true }) {
+                Image(systemName: "trash")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#666666"))
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(12)
+        .background(Color(white: isActive && server.enabled ? 0.1 : 0.06))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isActive && server.enabled ? Color(hex: "#FFFC00").opacity(0.3) : Color.clear, lineWidth: 1)
+        )
+        .opacity(server.enabled ? 1.0 : 0.6)
         .confirmationDialog("Delete Server", isPresented: $showDeleteConfirm) {
             Button("Delete \(server.name)", role: .destructive) {
                 onDelete()

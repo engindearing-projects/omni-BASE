@@ -527,6 +527,17 @@ struct SimpleEnrollView: View {
             // Set as active server and connect
             await MainActor.run {
                 ServerManager.shared.setActiveServer(server)
+
+                // Actually connect to the server
+                TAKService.shared.connect(
+                    host: server.host,
+                    port: server.port,
+                    protocolType: server.protocolType,
+                    useTLS: server.useTLS,
+                    certificateName: server.certificateName,
+                    certificatePassword: server.certificatePassword
+                )
+
                 enrollmentState = .success
             }
 
@@ -943,6 +954,17 @@ struct SimpleEnrollViewContent: View {
 
             await MainActor.run {
                 ServerManager.shared.setActiveServer(server)
+
+                // Actually connect to the server
+                TAKService.shared.connect(
+                    host: server.host,
+                    port: server.port,
+                    protocolType: server.protocolType,
+                    useTLS: server.useTLS,
+                    certificateName: server.certificateName,
+                    certificatePassword: server.certificatePassword
+                )
+
                 enrollmentState = .success
             }
 
