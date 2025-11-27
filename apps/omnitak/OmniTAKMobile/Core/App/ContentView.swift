@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var takService = TAKService()
+    @ObservedObject private var takService = TAKService.shared
     @State private var serverHost = "127.0.0.1"
     @State private var serverPort = "8087"
     @State private var useTLS = false

@@ -4,7 +4,7 @@ import CoreLocation
 
 // Enhanced ATAK-style Map View with all new features integrated
 struct ATAKMapViewEnhanced: View {
-    @StateObject private var takService = TAKService()
+    @ObservedObject private var takService = TAKService.shared
     @StateObject private var locationManager = LocationManager()
     @StateObject private var drawingStore = DrawingStore()
     @StateObject private var drawingManager: DrawingToolsManager
