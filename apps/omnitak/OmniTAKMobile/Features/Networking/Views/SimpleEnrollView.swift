@@ -57,7 +57,7 @@ struct SimpleEnrollView: View {
     // Advanced options (collapsed by default)
     @State private var showAdvanced = false
     @State private var streamingPort = "8089"
-    @State private var enrollmentPort = "8446"
+    @State private var enrollmentPort = "8446"  // TAK Server standard CSR enrollment port
     @State private var allowLegacyTLS = false
 
     // UI state
@@ -626,7 +626,7 @@ struct SimpleEnrollViewContent: View {
     // Advanced options (collapsed by default)
     @State private var showAdvanced = false
     @State private var streamingPort = "8089"
-    @State private var enrollmentPort = "8446"
+    @State private var enrollmentPort = "8446"  // TAK Server standard CSR enrollment port
     @State private var allowLegacyTLS = false
 
     // UI state

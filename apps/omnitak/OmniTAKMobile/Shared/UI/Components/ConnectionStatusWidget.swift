@@ -130,6 +130,7 @@ struct ConnectionDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var takService: TAKService
     @ObservedObject var serverManager = ServerManager.shared
+    @State private var showServers = false
 
     var body: some View {
         NavigationView {
@@ -164,6 +165,9 @@ struct ConnectionDetailsView: View {
                     }
                     .foregroundColor(Color(hex: "#FFFC00"))
                 }
+            }
+            .sheet(isPresented: $showServers) {
+                ServersView()
             }
         }
     }
@@ -248,7 +252,7 @@ struct ConnectionDetailsView: View {
                     icon: "xmark.circle.fill",
                     color: Color(hex: "#FF6B6B"),
                     action: {
-                        // TODO: Disconnect
+                        takService.disconnect()
                     }
                 )
             } else {
@@ -257,19 +261,28 @@ struct ConnectionDetailsView: View {
                     icon: "arrow.clockwise.circle.fill",
                     color: Color(hex: "#00FF00"),
                     action: {
-                        // TODO: Reconnect
-                    }
-                )
-
-                ConnectionActionButton(
-                    title: "Change Server",
-                    icon: "arrow.left.arrow.right.circle.fill",
-                    color: Color(hex: "#FFFC00"),
-                    action: {
-                        // TODO: Show server picker
+                        if let server = serverManager.activeServer {
+                            takService.connect(
+                                host: server.host,
+                                port: server.port,
+                                protocolType: server.protocolType,
+                                useTLS: server.useTLS,
+                                certificateName: server.certificateName,
+                                certificatePassword: server.certificatePassword
+                            )
+                        }
                     }
                 )
             }
+
+            ConnectionActionButton(
+                title: "Manage Servers",
+                icon: "server.rack",
+                color: Color(hex: "#FFFC00"),
+                action: {
+                    showServers = true
+                }
+            )
         }
     }
 }

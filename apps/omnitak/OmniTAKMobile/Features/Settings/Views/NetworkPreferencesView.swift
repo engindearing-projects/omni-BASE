@@ -12,7 +12,7 @@ import SwiftUI
 struct NetworkPreferencesView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var serverManager = ServerManager.shared
-    @State private var showQuickConnect = false
+    @State private var showServers = false
 
     var body: some View {
         NavigationView {
@@ -48,7 +48,7 @@ struct NetworkPreferencesView: View {
                                 description: "Tap to configure TAK Server connections (\(serverManager.servers.count) server\(serverManager.servers.count == 1 ? "" : "s") configured)",
                                 showIndicator: serverManager.servers.count > 0,
                                 indicatorColor: Color(hex: "#00FF00"),
-                                onTap: { showQuickConnect = true }
+                                onTap: { showServers = true }
                             )
 
                             Divider().background(Color(hex: "#222222"))
@@ -98,8 +98,8 @@ struct NetworkPreferencesView: View {
                 }
             }
         }
-        .sheet(isPresented: $showQuickConnect) {
-            QuickConnectView()
+        .sheet(isPresented: $showServers) {
+            ServersView()
         }
     }
 }

@@ -16,6 +16,7 @@ struct ServersView: View {
     @ObservedObject private var takService = TAKService.shared
 
     @State private var showEnrollment = false
+    @State private var showDataPackageImport = false
 
     var body: some View {
         NavigationView {
@@ -24,9 +25,6 @@ struct ServersView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        // Connection Status
-                        connectionStatus
-
                         // Server List
                         if !serverManager.servers.isEmpty {
                             serverList
@@ -34,6 +32,9 @@ struct ServersView: View {
 
                         // Add Server Button
                         addServerButton
+
+                        // Import Data Package Button
+                        importDataPackageButton
                     }
                     .padding(16)
                 }
@@ -50,48 +51,9 @@ struct ServersView: View {
         .sheet(isPresented: $showEnrollment) {
             SimpleEnrollView()
         }
-    }
-
-    // MARK: - Connection Status
-
-    private var connectionStatus: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(takService.isConnected ? Color(hex: "#00FF00") : Color(hex: "#FF4444"))
-                .frame(width: 14, height: 14)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(takService.isConnected ? "CONNECTED" : "DISCONNECTED")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(takService.isConnected ? Color(hex: "#00FF00") : Color(hex: "#FF4444"))
-
-                if let server = serverManager.activeServer {
-                    Text("\(server.host):\(server.port)")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#888888"))
-                }
-            }
-
-            Spacer()
-
-            // Connect/Disconnect button
-            Button(action: toggleConnection) {
-                Text(takService.isConnected ? "Disconnect" : "Connect")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(takService.isConnected ? .red : Color(hex: "#00FF00"))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(takService.isConnected ? .red : Color(hex: "#00FF00"), lineWidth: 1)
-                    )
-            }
-            .disabled(serverManager.activeServer == nil || !(serverManager.activeServer?.enabled ?? false))
-            .opacity(serverManager.activeServer?.enabled ?? false ? 1.0 : 0.5)
+        .sheet(isPresented: $showDataPackageImport) {
+            DataPackageImportView()
         }
-        .padding(16)
-        .background(Color(white: 0.08))
-        .cornerRadius(12)
     }
 
     // MARK: - Server List
@@ -163,23 +125,40 @@ struct ServersView: View {
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Import Data Package Button
 
-    private func toggleConnection() {
-        if takService.isConnected {
-            takService.disconnect()
-        } else if let server = serverManager.activeServer, server.enabled {
-            print("🔌 Connecting to \(server.host):\(server.port)")
-            takService.connect(
-                host: server.host,
-                port: server.port,
-                protocolType: server.protocolType,
-                useTLS: server.useTLS,
-                certificateName: server.certificateName,
-                certificatePassword: server.certificatePassword
+    private var importDataPackageButton: some View {
+        Button(action: { showDataPackageImport = true }) {
+            HStack(spacing: 12) {
+                Image(systemName: "doc.badge.plus")
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(hex: "#00BCD4"))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Import Data Package")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text("Import .zip with certs & server config")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#888888"))
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .foregroundColor(Color(hex: "#444444"))
+            }
+            .padding(16)
+            .background(Color(white: 0.08))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(hex: "#00BCD4").opacity(0.3), lineWidth: 1)
             )
         }
     }
+
 }
 
 // MARK: - Server Row (Simple)

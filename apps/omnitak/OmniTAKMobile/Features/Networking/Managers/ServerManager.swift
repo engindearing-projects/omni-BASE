@@ -62,19 +62,7 @@ class ServerManager: ObservableObject {
     init() {
         loadServers()
 
-        // Add default server if no servers exist
-        if servers.isEmpty {
-            let defaultServer = TAKServer(
-                name: "Taky Server",
-                host: "127.0.0.1",
-                port: 8087,
-                protocolType: "tcp",
-                useTLS: false,
-                isDefault: true
-            )
-            addServer(defaultServer)
-            setActiveServer(defaultServer)
-        }
+        // No default servers - users must add their own
     }
 
     // MARK: - Persistence

@@ -421,22 +421,55 @@ class CSREnrollmentService {
         print("[CSREnroll] Got issuer (\(issuer.count) bytes) and serial (\(serialNumber.count) bytes)")
 
         // Query for identity using issuer and serial number (TAKaware approach)
-        // This creates a persistent identity linking the certificate with the private key
+        // iOS automatically creates SecIdentity when cert + key have matching public keys
+        // CRITICAL: Use kSecReturnPersistentRef to make iOS create a persistent identity
         let identityArgs: [String: Any] = [
             kSecClass as String: kSecClassIdentity,
             kSecAttrIssuer as String: issuer,
             kSecAttrSerialNumber as String: serialNumber,
-            kSecReturnPersistentRef as String: true  // Important: creates persistent identity
+            kSecReturnPersistentRef as String: true  // This is critical - makes identity persist
         ]
 
-        var identityRef: AnyObject?
+        var identityRef: CFTypeRef?
         let identityStatus = SecItemCopyMatching(identityArgs as CFDictionary, &identityRef)
 
-        if identityStatus == errSecSuccess {
-            print("[CSREnroll] ✅ SecIdentity created successfully!")
+        if identityStatus == errSecSuccess, let _ = identityRef as? Data {
+            print("[CSREnroll] ✅ SecIdentity created with persistent reference!")
+
+            // Verify by querying again with kSecReturnRef
+            let verifyArgs: [String: Any] = [
+                kSecClass as String: kSecClassIdentity,
+                kSecAttrIssuer as String: issuer,
+                kSecAttrSerialNumber as String: serialNumber,
+                kSecReturnRef as String: true
+            ]
+
+            var verifyRef: CFTypeRef?
+            let verifyStatus = SecItemCopyMatching(verifyArgs as CFDictionary, &verifyRef)
+
+            if verifyStatus == errSecSuccess, verifyRef != nil {
+                let identity = verifyRef as! SecIdentity
+                var certRef: SecCertificate?
+                var keyRef: SecKey?
+                let certStatus = SecIdentityCopyCertificate(identity, &certRef)
+                let keyStatus = SecIdentityCopyPrivateKey(identity, &keyRef)
+
+                if certStatus == errSecSuccess && keyStatus == errSecSuccess {
+                    print("[CSREnroll] ✅ Identity validated: certificate and private key accessible")
+                } else {
+                    print("[CSREnroll] ⚠️ Identity incomplete - cert status: \(certStatus), key status: \(keyStatus)")
+                }
+            }
         } else {
             print("[CSREnroll] ⚠️ Identity not found (status: \(identityStatus))")
-            print("[CSREnroll] This may indicate the private key was not properly stored")
+            print("[CSREnroll] Reason: iOS did not automatically link cert with key")
+            print("[CSREnroll] This usually means:")
+            print("[CSREnroll]   1. Certificate and private key have different labels")
+            print("[CSREnroll]   2. Public key in cert doesn't match private key")
+            print("[CSREnroll]   3. Certificate was not stored with proper attributes")
+
+            // Add explicit validation to help diagnose
+            validateCertificateKeyPairing(certificateAlias: certificateAlias, privateKeyTag: privateKeyTag)
         }
 
         // Store mapping for TAKService lookup
@@ -482,6 +515,81 @@ class CSREnrollmentService {
             kSecAttrLabel as String: label
         ]
         SecItemDelete(identityQuery as CFDictionary)
+    }
+
+    /// Validate that certificate and private key can be paired
+    private func validateCertificateKeyPairing(certificateAlias: String, privateKeyTag: String) {
+        print("[CSREnroll] 🔍 Validating certificate-key pairing...")
+
+        // Check if certificate exists
+        let certQuery: [String: Any] = [
+            kSecClass as String: kSecClassCertificate,
+            kSecAttrLabel as String: certificateAlias,
+            kSecReturnRef as String: true,
+            kSecReturnAttributes as String: true
+        ]
+
+        var certItem: CFTypeRef?
+        let certStatus = SecItemCopyMatching(certQuery as CFDictionary, &certItem)
+
+        if certStatus == errSecSuccess {
+            print("[CSREnroll] ✅ Certificate found with label: \(certificateAlias)")
+            if let certDict = certItem as? [String: Any] {
+                print("[CSREnroll]    Certificate attributes: \(certDict.keys.joined(separator: ", "))")
+            }
+        } else {
+            print("[CSREnroll] ❌ Certificate NOT found (status: \(certStatus))")
+            return
+        }
+
+        // Check if private key exists
+        let keyQuery: [String: Any] = [
+            kSecClass as String: kSecClassKey,
+            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
+            kSecAttrApplicationTag as String: privateKeyTag.data(using: .utf8)!,
+            kSecReturnRef as String: true,
+            kSecReturnAttributes as String: true
+        ]
+
+        var keyItem: CFTypeRef?
+        let keyStatus = SecItemCopyMatching(keyQuery as CFDictionary, &keyItem)
+
+        if keyStatus == errSecSuccess {
+            print("[CSREnroll] ✅ Private key found with tag: \(privateKeyTag)")
+            if let keyDict = keyItem as? [String: Any] {
+                print("[CSREnroll]    Key attributes: \(keyDict.keys.joined(separator: ", "))")
+                if let keyLabel = keyDict[kSecAttrLabel as String] as? String {
+                    print("[CSREnroll]    Key label: \(keyLabel)")
+                    if keyLabel == certificateAlias {
+                        print("[CSREnroll] ✅ Labels match!")
+                    } else {
+                        print("[CSREnroll] ❌ Label mismatch! Key: '\(keyLabel)' vs Cert: '\(certificateAlias)'")
+                    }
+                }
+            }
+        } else {
+            print("[CSREnroll] ❌ Private key NOT found (status: \(keyStatus))")
+            return
+        }
+
+        // Try to find identity by label (alternative method)
+        let identityByLabelQuery: [String: Any] = [
+            kSecClass as String: kSecClassIdentity,
+            kSecAttrLabel as String: certificateAlias,
+            kSecReturnRef as String: true
+        ]
+
+        var identityByLabel: CFTypeRef?
+        let identityByLabelStatus = SecItemCopyMatching(identityByLabelQuery as CFDictionary, &identityByLabel)
+
+        if identityByLabelStatus == errSecSuccess {
+            print("[CSREnroll] ✅ Identity found by label: \(certificateAlias)")
+        } else {
+            print("[CSREnroll] ⚠️ Identity NOT found by label (status: \(identityByLabelStatus))")
+            print("[CSREnroll]    This means iOS did not auto-create the identity")
+        }
+
+        print("[CSREnroll] 🔍 Validation complete")
     }
 
     // MARK: - Helper Methods
