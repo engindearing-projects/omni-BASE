@@ -314,7 +314,7 @@ class EmergencyBeaconService: ObservableObject {
                 <emergency type="\(type.rawValue)">\(escapeXML(message))</emergency>
                 <remarks>\(escapeXML(message))</remarks>
                 <status readiness="true"/>
-                <takv device="\(UIDevice.current.model)" platform="OmniTAK-iOS" os="\(UIDevice.current.systemVersion)" version="1.0.0"/>
+                <takv device="\(UIDevice.current.model)" platform="OmniTAK-iOS" os="\(UIDevice.current.systemVersion)" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <__group name="Emergency" role="Team Member"/>
             </detail>
         </event>

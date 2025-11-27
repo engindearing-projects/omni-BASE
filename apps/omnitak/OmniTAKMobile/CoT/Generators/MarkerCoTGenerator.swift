@@ -52,7 +52,7 @@ class MarkerCoTGenerator {
                 <precisionlocation altsrc="GPS" geopointsrc="User"/>
                 <status readiness="true"/>
                 <_marker_>\(marker.affiliation.shortCode)</_marker_>
-                <takv device="iPhone" platform="OmniTAK" os="iOS" version="1.0.0"/>
+                <takv device="iPhone" platform="OmniTAK" os="iOS" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
         """
 
         xml += """

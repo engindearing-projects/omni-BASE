@@ -12,7 +12,7 @@ import CoreLocation
 
 // ATAK-style Map View with tactical interface
 struct ATAKMapView: View {
-    @StateObject private var takService = TAKService()
+    @ObservedObject private var takService = TAKService.shared
     @StateObject private var locationManager = LocationManager()
     @StateObject private var drawingStore = DrawingStore()
     @StateObject private var drawingManager: DrawingToolsManager
@@ -344,7 +344,7 @@ struct ATAKMapView: View {
                 <contact callsign="OmniTAK-iOS" endpoint="*:-1:stcp"/>
                 <__group name="Cyan" role="Team Member"/>
                 <status battery="100"/>
-                <takv device="iPhone" platform="OmniTAK" os="iOS" version="1.0.0"/>
+                <takv device="iPhone" platform="OmniTAK" os="iOS" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <track speed="\(location.speed)" course="\(location.course)"/>
             </detail>
         </event>

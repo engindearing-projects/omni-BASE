@@ -153,7 +153,7 @@ class ChatXMLGenerator {
                 <contact callsign="\(callsign)" endpoint="\(endpoint)"/>
                 <__group name="Cyan" role="Team Member"/>
                 <status battery="100"/>
-                <takv device="iPhone" platform="OmniTAK" os="iOS" version="1.0.0"/>
+                <takv device="iPhone" platform="OmniTAK" os="iOS" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <track speed="\(location.speed)" course="\(location.course)"/>
             </detail>
         </event>

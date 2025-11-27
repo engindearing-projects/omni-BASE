@@ -199,7 +199,7 @@ class PositionBroadcastService: ObservableObject {
                 <contact callsign="\(escapeXML(userCallsign))" endpoint="*:-1:stcp"/>
                 <__group name="\(teamColor)" role="\(teamRole)"/>
                 <status battery="\(Int(batteryLevel * 100))"/>
-                <takv device="\(deviceModel)" platform="OmniTAK-iOS" os="iOS \(iosVersion)" version="1.0.0"/>
+                <takv device="\(deviceModel)" platform="OmniTAK-iOS" os="iOS \(iosVersion)" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <track speed="\(String(format: "%.2f", speed))" course="\(String(format: "%.2f", course))"/>
                 <precisionlocation altsrc="GPS" geopointsrc="GPS"/>
                 <uid Droid="\(escapeXML(userCallsign))"/>

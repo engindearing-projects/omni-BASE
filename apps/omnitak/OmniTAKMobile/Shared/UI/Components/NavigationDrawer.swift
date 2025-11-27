@@ -421,7 +421,7 @@ struct DrawerFooter: View {
                 .font(.system(size: 9))
                 .foregroundColor(Color(hex: "#666666"))
 
-            Text("v1.0.0")
+            Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")")
                 .font(.system(size: 9))
                 .foregroundColor(Color(hex: "#666666"))
         }

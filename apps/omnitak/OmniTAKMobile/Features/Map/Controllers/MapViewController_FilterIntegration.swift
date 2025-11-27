@@ -142,7 +142,7 @@ import CoreLocation
 // MARK: - Modified ATAKMapView (Reference Implementation)
 
 struct ATAKMapViewWithFilters: View {
-    @StateObject private var takService = TAKService()
+    @ObservedObject private var takService = TAKService.shared
     @StateObject private var locationManager = LocationManager()
     @StateObject private var filterManager = CoTFilterManager()          // NEW
     @StateObject private var filterCriteria = CoTFilterCriteria()        // NEW
@@ -455,7 +455,7 @@ struct ATAKMapViewWithFilters: View {
                 <contact callsign="OmniTAK-iOS" endpoint="*:-1:stcp"/>
                 <__group name="Cyan" role="Team Member"/>
                 <status battery="100"/>
-                <takv device="iPhone" platform="OmniTAK" os="iOS" version="1.0.0"/>
+                <takv device="iPhone" platform="OmniTAK" os="iOS" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <track speed="\(location.speed)" course="\(location.course)"/>
             </detail>
         </event>

@@ -4,7 +4,7 @@ import CoreLocation
 
 // ATAK-style Map View with tactical interface
 struct ATAKMapView: View {
-    @StateObject private var takService = TAKService()
+    @ObservedObject private var takService = TAKService.shared
     @StateObject private var federation = MultiServerFederation()  // Multi-server support
     @StateObject private var locationManager = LocationManager()
     @StateObject private var drawingStore: DrawingStore
@@ -156,12 +156,12 @@ struct ATAKMapView: View {
     private var topToolbars: some View {
         VStack(spacing: 0) {
             ATAKStatusBar(
-                connectionStatus: multiServerConnectionStatus(),
-                isConnected: federation.getConnectedCount() > 0,
+                connectionStatus: takService.isConnected ? "Connected" : "Disconnected",
+                isConnected: takService.isConnected,
                 messagesReceived: takService.messagesReceived,
                 messagesSent: takService.messagesSent,
                 gpsAccuracy: locationManager.accuracy,
-                serverName: multiServerDisplayName(),
+                serverName: ServerManager.shared.activeServer?.name ?? "Offline",
                 onServerTap: { showServerConfig = true },
                 onMenuTap: {
                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -169,6 +169,7 @@ struct ATAKMapView: View {
                     }
                 }
             )
+            .id("statusbar-\(takService.isConnected)-\(takService.messagesReceived)-\(takService.messagesSent)")
 
             Spacer()
 
@@ -1181,7 +1182,7 @@ struct ATAKMapView: View {
                 <contact callsign="OmniTAK-iOS" endpoint="*:-1:stcp"/>
                 <__group name="Cyan" role="Team Member"/>
                 <status battery="100"/>
-                <takv device="iPhone" platform="OmniTAK" os="iOS" version="1.0.0"/>
+                <takv device="iPhone" platform="OmniTAK" os="iOS" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <track speed="\(location.speed)" course="\(location.course)"/>
             </detail>
         </event>

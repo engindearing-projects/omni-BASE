@@ -360,7 +360,7 @@ class DigitalPointerService: ObservableObject {
                     expiresIn="\(Int(pointerTimeout))"
                 />
                 <remarks>\(escapeXML(pointerMessage.isEmpty ? "Digital pointer from \(userCallsign)" : pointerMessage))</remarks>
-                <takv device="\(UIDevice.current.model)" platform="OmniTAK-iOS" os="\(UIDevice.current.systemVersion)" version="1.0.0"/>
+                <takv device="\(UIDevice.current.model)" platform="OmniTAK-iOS" os="\(UIDevice.current.systemVersion)" version="\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0")"/>
                 <__group name="Digital Pointer" role="Team Member"/>
             </detail>
         </event>
