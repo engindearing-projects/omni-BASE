@@ -131,10 +131,10 @@
 		9D1E97C264F38CD9B0017F5A /* DrawingPropertiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8A6851F2CB32B82BEA2817 /* DrawingPropertiesView.swift */; };
 		9D4DD979FA07D0D920CA576A /* MEDEVACRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C046FF14CC38A998A3C9C57A /* MEDEVACRequestView.swift */; };
 		9F360AA41C05B15FC6B71F75 /* EchelonModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D5A42ABFBE8EF268B187D8 /* EchelonModels.swift */; };
-		A1645CC72ECC172B00B71E89 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		A1645CC82ECC172B00B71E89 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		A1645CC92ECC172B00B71E89 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		A1645CCA2ECC172B00B71E89 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		A1645CC72ECC172B00B71E89 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		A1645CC82ECC172B00B71E89 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		A1645CC92ECC172B00B71E89 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		A1645CCA2ECC172B00B71E89 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		A20F144DC6EC67643B8C77B0 /* MEDEVACModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE1D24BFD11E3D147A90D0D /* MEDEVACModels.swift */; };
 		A26DB0A674C372557334B01C /* ChatManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7773A5DF20505E3BE995732E /* ChatManager.swift */; };
 		A2712FE1C9DECDE4937A301E /* TerrainVisualizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0CDC96A00B3693A51C3CCB /* TerrainVisualizationService.swift */; };
@@ -185,6 +185,7 @@
 		D6827C08B3BDF4464DEB0B9A /* MeasurementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FE558FCE0F7DAAED8D2AD5 /* MeasurementService.swift */; };
 		D6A7CDDAD5E84516AF411C71 /* Map3DSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697D89D57F2BFE738817AF87 /* Map3DSettingsView.swift */; };
 		DA2A8784EFB5439DE89E2644 /* BloodhoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DCD48A428E5AEB0C328EB16 /* BloodhoundService.swift */; };
+		DA38337220E9661125D0036D /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5ADEAC186F3A6CC4CB7055 /* DeepLinkHandler.swift */; };
 		DA570B3A75475DF16DA4E252 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833DDF1E94F3AD95C29CF6F9 /* NetworkMonitor.swift */; };
 		DABDFF989E658D9DE52E3CA2 /* CoTFilterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D927DC29FB5FDD9F156C1899 /* CoTFilterManager.swift */; };
 		DE13E8D462F0655B012B5AB0 /* RadialMenuModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBC2615A833D70CD96C5723 /* RadialMenuModels.swift */; };
@@ -417,6 +418,7 @@
 		FD181F0D87FB0E91D14DFE79 /* LineOfSightModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LineOfSightModels.swift; path = OmniTAKMobile/Features/Measurement/Models/LineOfSightModels.swift; sourceTree = "<group>"; };
 		FD9F8A771AD5292E85B04E77 /* CASRequestView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CASRequestView.swift; path = OmniTAKMobile/Features/Military/Views/CASRequestView.swift; sourceTree = "<group>"; };
 		FDF66F38A58C0963D1FDD869 /* TrackRecordingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TrackRecordingView.swift; path = OmniTAKMobile/Features/Tracking/Views/TrackRecordingView.swift; sourceTree = "<group>"; };
+		FE5ADEAC186F3A6CC4CB7055 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DeepLinkHandler.swift; path = OmniTAKMobile/Features/Networking/Services/DeepLinkHandler.swift; sourceTree = "<group>"; };
 		FE87E15631B845393B2BA5AD /* SPOTREPModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SPOTREPModels.swift; path = OmniTAKMobile/Features/Military/Models/SPOTREPModels.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -425,10 +427,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1645CC72ECC172B00B71E89 /* (null) in Frameworks */,
-				A1645CC82ECC172B00B71E89 /* (null) in Frameworks */,
-				A1645CC92ECC172B00B71E89 /* (null) in Frameworks */,
-				A1645CCA2ECC172B00B71E89 /* (null) in Frameworks */,
+				A1645CC72ECC172B00B71E89 /* BuildFile in Frameworks */,
+				A1645CC82ECC172B00B71E89 /* BuildFile in Frameworks */,
+				A1645CC92ECC172B00B71E89 /* BuildFile in Frameworks */,
+				A1645CCA2ECC172B00B71E89 /* BuildFile in Frameworks */,
 				39FEDA5607D661F389177B31 /* OmniTAKMobile.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -436,6 +438,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		00F4B215C2ABD8BBC70A3795 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FE5ADEAC186F3A6CC4CB7055 /* DeepLinkHandler.swift */,
+			);
+			name = Services;
+			sourceTree = "<group>";
+		};
 		02C56FB30ABEB3611E10CFC4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -602,6 +612,14 @@
 			children = (
 			);
 			name = Services;
+			sourceTree = "<group>";
+		};
+		1EBFF14344454FC8A68505F9 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				00F4B215C2ABD8BBC70A3795 /* Services */,
+			);
+			name = Networking;
 			sourceTree = "<group>";
 		};
 		202A3101ACC6AF2F620D803A /* Core */ = {
@@ -1048,6 +1066,14 @@
 			name = Network;
 			sourceTree = "<group>";
 		};
+		7305E93FF9B8612CC3C4B8EC /* OmniTAKMobile */ = {
+			isa = PBXGroup;
+			children = (
+				A1E3D624354DF84639A884FE /* Features */,
+			);
+			name = OmniTAKMobile;
+			sourceTree = "<group>";
+		};
 		75821E98A51B93F6EA51D5DB /* Generators */ = {
 			isa = PBXGroup;
 			children = (
@@ -1233,6 +1259,7 @@
 				0F7D455CCA5EFDEC5C816D72 /* Products */,
 				4845AC361AA2A418F02A4E3A /* Frameworks */,
 				A156DBDD2ED6E19C0021BAAF /* Recovered References */,
+				7305E93FF9B8612CC3C4B8EC /* OmniTAKMobile */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1242,6 +1269,14 @@
 				D3F9166C79C04A21BA2FDAA5 /* Assets.xcassets */,
 			);
 			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		A1E3D624354DF84639A884FE /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				1EBFF14344454FC8A68505F9 /* Networking */,
+			);
+			name = Features;
 			sourceTree = "<group>";
 		};
 		A2FC0E315B903EF1C24D71DB /* Views */ = {
@@ -1775,6 +1810,7 @@
 				3FEAC7E3EE536548FBB0F37D /* CertificateFormatConverter.swift in Sources */,
 				2EA7B6EBC0683F9B2FE87994 /* CertificateImportPipeline.swift in Sources */,
 				7931902509B5936FBA2B5226 /* ServersView.swift in Sources */,
+				DA38337220E9661125D0036D /* DeepLinkHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1909,7 +1945,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4.9;
+				CURRENT_PROJECT_VERSION = 1.4.10;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1932,7 +1968,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.9;
+				MARKETING_VERSION = 1.4.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.engindearing.omnitak.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1953,7 +1989,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4.9;
+				CURRENT_PROJECT_VERSION = 1.4.10;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1976,7 +2012,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.9;
+				MARKETING_VERSION = 1.4.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.engindearing.omnitak.mobile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
