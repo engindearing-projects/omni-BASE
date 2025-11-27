@@ -25,6 +25,9 @@ class MarkerCoTGenerator {
         let lon = marker.coordinate.longitude
         let hae = marker.altitude ?? 0.0
 
+        // Convert hex color to ARGB signed integer
+        let argbColor = hexToARGB(marker.affiliation.hexColor)
+
         var xml = """
         <?xml version="1.0" encoding="UTF-8"?>
         <event version="2.0" uid="\(marker.uid)" type="\(marker.cotType)" time="\(dateFormatter.string(from: now))" start="\(dateFormatter.string(from: now))" stale="\(dateFormatter.string(from: stale))" how="h-g-i-g-o">
@@ -32,7 +35,7 @@ class MarkerCoTGenerator {
             <detail>
                 <contact callsign="\(escapeXML(marker.name))"/>
                 <usericon iconsetpath="COT_MAPPING_SPOTMAP/\(marker.affiliation.rawValue.lowercased())_point"/>
-                <color value="\(marker.affiliation.hexColor)"/>
+                <color argb="\(argbColor)"/>
                 <affiliation value="\(marker.affiliation.rawValue)"/>
         """
 
@@ -167,6 +170,21 @@ class MarkerCoTGenerator {
     }
 
     // MARK: - Helper Methods
+
+    /// Convert hex color string (AARRGGBB) to signed 32-bit ARGB integer
+    /// Example: "FF00FFFF" (cyan) -> -16711681
+    private static func hexToARGB(_ hexString: String) -> Int {
+        // Remove any # prefix if present
+        let hex = hexString.replacingOccurrences(of: "#", with: "")
+
+        // Parse as UInt32 first
+        guard let hexValue = UInt32(hex, radix: 16) else {
+            return -1  // Default to white if parsing fails
+        }
+
+        // Convert to signed Int (this handles the negative values correctly)
+        return Int(bitPattern: UInt(hexValue))
+    }
 
     /// Escape XML special characters
     private static func escapeXML(_ string: String) -> String {

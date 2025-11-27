@@ -84,7 +84,8 @@ class PositionBroadcastService: ObservableObject {
         if let savedUID = UserDefaults.standard.string(forKey: "selfPositionUID") {
             self.userUID = savedUID
         } else {
-            let newUID = "ANDROID-\(UUID().uuidString)"
+            // Use iOS-specific UID prefix for proper ATAK icon display
+            let newUID = "IOS-\(UUID().uuidString)"
             self.userUID = newUID
             UserDefaults.standard.set(newUID, forKey: "selfPositionUID")
         }
@@ -190,6 +191,10 @@ class PositionBroadcastService: ObservableObject {
         // CoT type: a-f-G-U-C (friendly ground unit combat)
         let cotType = "a-f-G-U-C"
 
+        // Team color in ARGB format (signed 32-bit integer)
+        // Cyan: 0xFF00FFFF = -16711681
+        let colorARGB = getARGBForTeamColor(teamColor)
+
         // Generate XML
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -203,6 +208,8 @@ class PositionBroadcastService: ObservableObject {
                 <track speed="\(String(format: "%.2f", speed))" course="\(String(format: "%.2f", course))"/>
                 <precisionlocation altsrc="GPS" geopointsrc="GPS"/>
                 <uid Droid="\(escapeXML(userCallsign))"/>
+                <usericon iconsetpath="COT_MAPPING_2525B/a-f/a-f-G-U-C"/>
+                <color argb="\(colorARGB)"/>
             </detail>
         </event>
         """
@@ -296,6 +303,39 @@ class PositionBroadcastService: ObservableObject {
     }
 
     // MARK: - Helpers
+
+    /// Convert team color name to ARGB format (signed 32-bit integer)
+    /// ARGB format: Alpha (FF for opaque) + Red + Green + Blue
+    private func getARGBForTeamColor(_ colorName: String) -> Int {
+        switch colorName.lowercased() {
+        case "cyan":
+            return -16711681  // 0xFF00FFFF
+        case "blue":
+            return -16776961  // 0xFF0000FF
+        case "green":
+            return -16711936  // 0xFF00FF00
+        case "yellow":
+            return -256       // 0xFFFFFF00
+        case "orange":
+            return -23296     // 0xFFFFA500
+        case "red":
+            return -65536     // 0xFFFF0000
+        case "purple":
+            return -8388480   // 0xFF800080
+        case "magenta":
+            return -65281     // 0xFFFF00FF
+        case "white":
+            return -1         // 0xFFFFFFFF
+        case "dark blue":
+            return -16777077  // 0xFF00008B
+        case "maroon":
+            return -8388608   // 0xFF800000
+        case "teal":
+            return -16744320  // 0xFF008080
+        default:
+            return -16711681  // Default to Cyan
+        }
+    }
 
     private func escapeXML(_ string: String) -> String {
         var escaped = string

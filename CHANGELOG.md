@@ -5,6 +5,43 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-11-27
+
+### Added
+- **Enhanced Team Color Support**: Added comprehensive team color system for ATAK compatibility
+  - 12 team color options: Cyan, Blue, Green, Yellow, Orange, Red, Purple, Magenta, White, Dark Blue, Maroon, Teal
+  - Team colors now properly display in ATAK via signed 32-bit ARGB integer format
+  - Color selection persists across app sessions
+
+### Fixed
+- **ATAK Icon Display**: Fixed position markers showing as incorrect icons in ATAK
+  - Changed UID prefix from "ANDROID-" to "IOS-" for proper iOS device identification
+  - Added `<usericon iconsetpath>` element to CoT messages for correct icon rendering
+  - ATAK now displays OmniTAK devices with proper iOS icons instead of generic squares
+
+- **CoT Message Color Format**: Fixed marker colors not displaying in ATAK
+  - Changed marker color format from `<color value>` to `<color argb>`
+  - Added hexToARGB converter for proper signed 32-bit integer color values
+  - Team colors now properly synchronized between OmniTAK and ATAK clients
+
+### Changed
+- **Position Broadcast Service**: Enhanced CoT XML generation for full ATAK compatibility
+  - Added `<usericon iconsetpath="COT_MAPPING_2525B/a-f/a-f-G-U-C"/>` for friendly ground units
+  - Added `<color argb>` with proper team color values
+  - Improved CoT message structure to match ATAK standards
+
+- **Marker CoT Generator**: Updated marker generation for proper ATAK display
+  - Fixed color attribute from `value` to `argb` format
+  - Added support for ARGB color conversion from hex strings
+  - Enhanced marker visibility across TAK ecosystem
+
+### Technical Details
+- Updated `PositionBroadcastService.swift` with iOS UID prefix and proper CoT elements (lines 87-88, 194-215)
+- Added `getARGBForTeamColor()` helper function with 12 color mappings (lines 309-338)
+- Updated `MarkerCoTGenerator.swift` color format and added `hexToARGB()` converter (lines 28-39, 176-187)
+- Project version updated to MARKETING_VERSION 2.2.0
+- All CoT messages now fully compliant with ATAK display standards
+
 ## [2.1.1] - 2025-01-27
 
 ### Fixed
