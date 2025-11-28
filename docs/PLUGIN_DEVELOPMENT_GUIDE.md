@@ -622,5 +622,5 @@ class CoTFilterHandler: CoTHandler {
 
 - **Documentation**: https://docs.omnitak.io
 - **Issues**: https://gitlab.com/omnitak/plugin-template/issues
-- **Discord**: https://discord.gg/omnitak
+- **Discord**: https://discord.gg/VSUjDddRt3
 - **Email**: plugins@omnitak.io

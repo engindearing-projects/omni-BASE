@@ -2,4 +2,4 @@
 
 ## Valdi on Discord
 
-Join the [Valdi Discord Server](https://discord.gg/uJyNEeYX2U) to get help.
+Join the [Valdi Discord Server](https://discord.gg/VSUjDddRt3) to get help.

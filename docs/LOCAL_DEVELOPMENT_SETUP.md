@@ -386,7 +386,7 @@ bazel clean
 
 - **Documentation**: https://docs.omnitak.io
 - **Issues**: https://gitlab.com/engindearing/omni-BASE/issues
-- **Discord**: https://discord.gg/omnitak
+- **Discord**: https://discord.gg/VSUjDddRt3
 - **Email**: plugins@omnitak.io
 
 ## Security Note
