@@ -315,7 +315,7 @@ The plugin will be published to the OmniTAK Plugin Registry and available for in
 
 - Documentation: https://docs.omnitak.io/plugins
 - Issues: https://gitlab.com/omnitak/plugin-template/issues
-- Community: https://discord.gg/omnitak
+- Community: https://discord.gg/VSUjDddRt3
 
 ## License
 

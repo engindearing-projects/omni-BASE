@@ -47,7 +47,7 @@ import { makeCommandHandler } from '../utils/errorUtils';
 import { wrapInColor } from '../utils/logUtils';
 
 /** Discord support link for troubleshooting */
-const DISCORD_SUPPORT_URL = 'https://discord.gg/uJyNEeYX2U';
+const DISCORD_SUPPORT_URL = 'https://discord.gg/VSUjDddRt3';
 
 /**
  * Command line parameters for the doctor command.

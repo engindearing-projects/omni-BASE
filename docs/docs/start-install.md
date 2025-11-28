@@ -4,4 +4,4 @@ Please follow all instructions in [INSTALL.md](../INSTALL.md) carefully, it cont
 
 ## Help!
 
-Reach out on [Discord](https://discord.gg/uJyNEeYX2U) if you get stuck.
+Reach out on [Discord](https://discord.gg/VSUjDddRt3) if you get stuck.

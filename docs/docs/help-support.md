@@ -2,7 +2,7 @@
 
 ## Questions
 
-We have a [Discord](https://discord.gg/uJyNEeYX2U)
+We have a [Discord](https://discord.gg/VSUjDddRt3)
 
 ## Bug Reports
 
