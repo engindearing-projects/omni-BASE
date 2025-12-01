@@ -5,6 +5,46 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-12-01
+
+### Added
+- **Drawing List Access**: Access saved drawings directly from radial menu
+  - Long-press map → "Drawings" option opens list of all drawings
+  - Tap any drawing to zoom map to its location
+  - Edit drawing properties (name, color, radius for circles)
+  - Clear all drawings option
+
+- **Drawing Tools Integration**: Improved radial menu drawing workflow
+  - "Draw" option opens drawing tools panel
+  - "Drawings" option opens saved drawings list
+  - Both accessible from single long-press on map
+
+### Improved
+- **Scale Bar Reactivity**: Smooth real-time updates during map zoom
+  - Instant scale updates while zooming (no more lag/delay)
+  - Rewritten with computed properties for instant reactivity
+  - Matches iTAK/TAKAware smooth zoom behavior
+
+- **Scale Bar Positioning**: Repositioned to avoid UI overlap
+  - Now positioned above zoom controls (+/- buttons)
+  - No longer hidden behind GPS lock button
+
+- **Console Output**: Removed excessive debug logging
+  - Removed 25+ debug print statements from MapViewController
+  - Removed 35+ debug print statements from RadialMenuActionExecutor
+  - Cleaner console output for production use
+
+### Fixed
+- **Radial Menu Actions**: Fixed Draw action to properly open drawing tools
+  - Changed from custom action to proper `.openDrawingTools` action
+  - Notifications correctly trigger panel display
+
+### Technical Details
+- ScaleBarView.swift rewritten with computed properties for instant updates
+- RadialMenuActionExecutor.swift cleaned of all debug logging
+- MapContextMenus.swift updated with proper drawing actions
+- DrawingListPanel with zoom-to-drawing and edit functionality
+
 ## [2.4.0] - 2025-11-29
 
 ### Added

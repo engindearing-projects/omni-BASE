@@ -36,13 +36,13 @@ extension RadialMenuConfiguration {
                 icon: "pencil.tip.crop.circle",
                 label: "Draw",
                 color: .cyan,
-                action: .custom("draw_shape")
+                action: .openDrawingTools
             ),
             RadialMenuItem(
-                icon: "square.3.layers.3d",
-                label: "Layers",
-                color: Color(hex: "#FFFF00"),  // ATAK accent yellow
-                action: .custom("show_layers")
+                icon: "list.bullet.rectangle",
+                label: "Drawings",
+                color: .indigo,
+                action: .openDrawingsList
             ),
             RadialMenuItem(
                 icon: "line.diagonal",
