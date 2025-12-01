@@ -25,68 +25,58 @@ class RadialMenuActionExecutor {
         services: RadialMenuServices
     ) -> Bool {
         switch action {
-        // MARK: - Marker Drop Actions
         case .dropMarker(let affiliation):
             return executeDropMarker(affiliation: affiliation, context: context, services: services)
-
-        // MARK: - Marker Management Actions
         case .editMarker:
             return executeEditMarker(context: context, services: services)
-
         case .deleteMarker:
             return executeDeleteMarker(context: context, services: services)
-
         case .shareMarker:
             return executeShareMarker(context: context, services: services)
-
         case .navigateToMarker:
             return executeNavigateToMarker(context: context, services: services)
-
         case .markerInfo:
             return executeMarkerInfo(context: context, services: services)
-
-        // MARK: - Measurement Actions
         case .measure:
             return executeMeasure(context: context, services: services)
-
         case .measureDistance:
             return executeMeasureDistance(context: context, services: services)
-
         case .measureArea:
             return executeMeasureArea(context: context, services: services)
-
         case .measureBearing:
             return executeMeasureBearing(context: context, services: services)
-
-        // MARK: - Navigation Actions
         case .navigate:
             return executeNavigate(context: context, services: services)
-
         case .addWaypoint:
             return executeAddWaypoint(context: context, services: services)
-
         case .createRoute:
             return executeCreateRoute(context: context, services: services)
-
-        // MARK: - Utility Actions
+        case .openDrawingTools:
+            return executeOpenDrawingTools(context: context)
+        case .openDrawingsList:
+            return executeOpenDrawingsList(context: context)
+        case .drawLine:
+            return executeDrawLine(context: context)
+        case .drawCircle:
+            return executeDrawCircle(context: context)
+        case .drawPolygon:
+            return executeDrawPolygon(context: context)
+        case .editDrawing:
+            return executeEditDrawing(context: context, services: services)
+        case .deleteDrawing:
+            return executeDeleteDrawing(context: context, services: services)
         case .copyCoordinates:
             return executeCopyCoordinates(context: context)
-
         case .setRangeRings:
             return executeSetRangeRings(context: context, services: services)
-
         case .centerMap:
             return executeCenterMap(context: context)
-
         case .quickChat:
             return executeQuickChat(context: context)
-
         case .emergency:
             return executeEmergency(context: context)
-
         case .getInfo:
             return executeGetInfo(context: context)
-
         case .custom(let identifier):
             return executeCustomAction(identifier: identifier, context: context, services: services)
         }
@@ -99,18 +89,13 @@ class RadialMenuActionExecutor {
         context: RadialMenuContext,
         services: RadialMenuServices
     ) -> Bool {
-        guard let pointDropperService = services.pointDropperService else {
-            print("PointDropperService not available")
-            return false
-        }
+        guard let pointDropperService = services.pointDropperService else { return false }
 
-        // Quick drop marker at the long-press location
         let marker = pointDropperService.quickDrop(
             at: context.mapCoordinate,
             broadcast: false
         )
 
-        // Update affiliation if needed (quickDrop uses currentAffiliation)
         if marker.affiliation != affiliation {
             var updatedMarker = marker
             updatedMarker.affiliation = affiliation
@@ -119,16 +104,10 @@ class RadialMenuActionExecutor {
             pointDropperService.updateMarker(updatedMarker)
         }
 
-        print("Dropped \(affiliation.displayName) marker at: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
-
-        // Notify via NotificationCenter for UI updates
         NotificationCenter.default.post(
             name: .radialMenuMarkerDropped,
             object: nil,
-            userInfo: [
-                "marker": marker,
-                "affiliation": affiliation
-            ]
+            userInfo: ["marker": marker, "affiliation": affiliation]
         )
 
         return true
@@ -137,24 +116,18 @@ class RadialMenuActionExecutor {
     // MARK: - Marker Management Implementation
 
     private static func executeEditMarker(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let marker = context.pressedMarker else {
-            print("No marker to edit")
-            return false
-        }
+        guard let marker = context.pressedMarker else { return false }
 
-        // Post notification to show edit UI
         NotificationCenter.default.post(
             name: .radialMenuEditMarker,
             object: nil,
             userInfo: ["marker": marker]
         )
 
-        print("Edit marker: \(marker.name)")
         return true
     }
 
     private static func executeDeleteMarker(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        // Check if we're deleting a drawing
         if context.contextType == .drawing,
            let drawingId = context.pressedDrawingId,
            let drawingType = context.pressedDrawingType,
@@ -164,43 +137,32 @@ class RadialMenuActionExecutor {
             case .marker:
                 if let marker = drawingStore.markers.first(where: { $0.id == drawingId }) {
                     drawingStore.deleteMarker(marker)
-                    print("Deleted drawing marker: \(marker.name)")
                 }
             case .line:
                 if let line = drawingStore.lines.first(where: { $0.id == drawingId }) {
                     drawingStore.deleteLine(line)
-                    print("Deleted line: \(line.name)")
                 }
             case .circle:
                 if let circle = drawingStore.circles.first(where: { $0.id == drawingId }) {
                     drawingStore.deleteCircle(circle)
-                    print("Deleted circle: \(circle.name)")
                 }
             case .polygon:
                 if let polygon = drawingStore.polygons.first(where: { $0.id == drawingId }) {
                     drawingStore.deletePolygon(polygon)
-                    print("Deleted polygon: \(polygon.name)")
                 }
             }
 
             NotificationCenter.default.post(
                 name: .radialMenuDrawingDeleted,
                 object: nil,
-                userInfo: [
-                    "drawingId": drawingId,
-                    "drawingType": drawingType
-                ]
+                userInfo: ["drawingId": drawingId, "drawingType": drawingType]
             )
 
             return true
         }
 
-        // Check if we're deleting a point marker (from PointDropperService)
         guard let marker = context.pressedMarker,
-              let pointDropperService = services.pointDropperService else {
-            print("Cannot delete marker - missing marker or service")
-            return false
-        }
+              let pointDropperService = services.pointDropperService else { return false }
 
         pointDropperService.deleteMarker(marker)
 
@@ -210,41 +172,26 @@ class RadialMenuActionExecutor {
             userInfo: ["marker": marker]
         )
 
-        print("Deleted marker: \(marker.name)")
         return true
     }
 
     private static func executeShareMarker(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let marker = context.pressedMarker else {
-            print("No marker to share")
-            return false
-        }
+        guard let marker = context.pressedMarker else { return false }
 
-        // Generate share content
         let shareText = generateShareText(for: marker)
-
-        // Copy to clipboard as immediate action
         UIPasteboard.general.string = shareText
 
-        // Post notification for share sheet
         NotificationCenter.default.post(
             name: .radialMenuShareMarker,
             object: nil,
-            userInfo: [
-                "marker": marker,
-                "shareText": shareText
-            ]
+            userInfo: ["marker": marker, "shareText": shareText]
         )
 
-        print("Share marker: \(marker.name)")
         return true
     }
 
     private static func executeNavigateToMarker(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let navigationService = services.navigationService else {
-            print("NavigationService not available")
-            return false
-        }
+        guard let navigationService = services.navigationService else { return false }
 
         let coordinate: CLLocationCoordinate2D
         let name: String
@@ -260,12 +207,7 @@ class RadialMenuActionExecutor {
             name = "Selected Location"
         }
 
-        // Create temporary waypoint for navigation
-        let tempWaypoint = Waypoint(
-            name: name,
-            coordinate: coordinate
-        )
-
+        let tempWaypoint = Waypoint(name: name, coordinate: coordinate)
         navigationService.startNavigation(to: tempWaypoint)
 
         NotificationCenter.default.post(
@@ -274,15 +216,11 @@ class RadialMenuActionExecutor {
             userInfo: ["waypoint": tempWaypoint]
         )
 
-        print("Navigate to: \(name)")
         return true
     }
 
     private static func executeMarkerInfo(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let marker = context.pressedMarker else {
-            print("No marker for info")
-            return false
-        }
+        guard let marker = context.pressedMarker else { return false }
 
         NotificationCenter.default.post(
             name: .radialMenuShowMarkerInfo,
@@ -290,83 +228,53 @@ class RadialMenuActionExecutor {
             userInfo: ["marker": marker]
         )
 
-        print("Show info for marker: \(marker.name)")
         return true
     }
 
     // MARK: - Measurement Implementation
 
     private static func executeMeasure(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        // Post notification to show CompactMeasurementOverlay and start measurement
-        // MapViewController will handle showing the UI and starting the measurement
         NotificationCenter.default.post(
             name: .radialMenuMeasurementStarted,
             object: nil,
-            userInfo: [
-                "type": MeasurementType.distance,
-                "coordinate": context.mapCoordinate
-            ]
+            userInfo: ["type": MeasurementType.distance, "coordinate": context.mapCoordinate]
         )
-
-        print("Started distance measurement at: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
         return true
     }
 
     private static func executeMeasureDistance(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        // Post notification to show CompactMeasurementOverlay and start measurement
         NotificationCenter.default.post(
             name: .radialMenuMeasurementStarted,
             object: nil,
-            userInfo: [
-                "type": MeasurementType.distance,
-                "coordinate": context.mapCoordinate
-            ]
+            userInfo: ["type": MeasurementType.distance, "coordinate": context.mapCoordinate]
         )
-
         return true
     }
 
     private static func executeMeasureArea(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        // Post notification to show CompactMeasurementOverlay and start measurement
         NotificationCenter.default.post(
             name: .radialMenuMeasurementStarted,
             object: nil,
-            userInfo: [
-                "type": MeasurementType.area,
-                "coordinate": context.mapCoordinate
-            ]
+            userInfo: ["type": MeasurementType.area, "coordinate": context.mapCoordinate]
         )
-
         return true
     }
 
     private static func executeMeasureBearing(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        // Post notification to show CompactMeasurementOverlay and start measurement
         NotificationCenter.default.post(
             name: .radialMenuMeasurementStarted,
             object: nil,
-            userInfo: [
-                "type": MeasurementType.bearing,
-                "coordinate": context.mapCoordinate
-            ]
+            userInfo: ["type": MeasurementType.bearing, "coordinate": context.mapCoordinate]
         )
-
         return true
     }
 
     // MARK: - Navigation Implementation
 
     private static func executeNavigate(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let navigationService = services.navigationService else {
-            print("NavigationService not available")
-            return false
-        }
+        guard let navigationService = services.navigationService else { return false }
 
-        let waypoint = Waypoint(
-            name: "Nav Target",
-            coordinate: context.mapCoordinate
-        )
-
+        let waypoint = Waypoint(name: "Nav Target", coordinate: context.mapCoordinate)
         navigationService.startNavigation(to: waypoint)
 
         NotificationCenter.default.post(
@@ -375,15 +283,11 @@ class RadialMenuActionExecutor {
             userInfo: ["coordinate": context.mapCoordinate]
         )
 
-        print("Navigate to: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
         return true
     }
 
     private static func executeAddWaypoint(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let waypointManager = services.waypointManager else {
-            print("WaypointManager not available")
-            return false
-        }
+        guard let waypointManager = services.waypointManager else { return false }
 
         let waypoint = waypointManager.createWaypoint(
             name: generateWaypointName(),
@@ -396,7 +300,6 @@ class RadialMenuActionExecutor {
             userInfo: ["waypoint": waypoint]
         )
 
-        print("Added waypoint at: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
         return true
     }
 
@@ -406,8 +309,99 @@ class RadialMenuActionExecutor {
             object: nil,
             userInfo: ["startCoordinate": context.mapCoordinate]
         )
+        return true
+    }
 
-        print("Create route from: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
+    // MARK: - Drawing Implementation
+
+    private static func executeOpenDrawingTools(context: RadialMenuContext) -> Bool {
+        NotificationCenter.default.post(
+            name: .radialMenuOpenDrawingTools,
+            object: nil,
+            userInfo: ["coordinate": context.mapCoordinate]
+        )
+        return true
+    }
+
+    private static func executeOpenDrawingsList(context: RadialMenuContext) -> Bool {
+        NotificationCenter.default.post(
+            name: .radialMenuOpenDrawingsList,
+            object: nil,
+            userInfo: [:]
+        )
+        return true
+    }
+
+    private static func executeDrawLine(context: RadialMenuContext) -> Bool {
+        NotificationCenter.default.post(
+            name: .radialMenuDrawLine,
+            object: nil,
+            userInfo: ["startCoordinate": context.mapCoordinate]
+        )
+        return true
+    }
+
+    private static func executeDrawCircle(context: RadialMenuContext) -> Bool {
+        NotificationCenter.default.post(
+            name: .radialMenuDrawCircle,
+            object: nil,
+            userInfo: ["centerCoordinate": context.mapCoordinate]
+        )
+        return true
+    }
+
+    private static func executeDrawPolygon(context: RadialMenuContext) -> Bool {
+        NotificationCenter.default.post(
+            name: .radialMenuDrawPolygon,
+            object: nil,
+            userInfo: ["startCoordinate": context.mapCoordinate]
+        )
+        return true
+    }
+
+    private static func executeEditDrawing(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
+        guard let drawingId = context.pressedDrawingId,
+              let drawingType = context.pressedDrawingType else { return false }
+
+        NotificationCenter.default.post(
+            name: .radialMenuEditDrawing,
+            object: nil,
+            userInfo: ["drawingId": drawingId, "drawingType": drawingType]
+        )
+
+        return true
+    }
+
+    private static func executeDeleteDrawing(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
+        guard let drawingId = context.pressedDrawingId,
+              let drawingType = context.pressedDrawingType,
+              let drawingStore = services.drawingStore else { return false }
+
+        switch drawingType {
+        case .marker:
+            if let marker = drawingStore.markers.first(where: { $0.id == drawingId }) {
+                drawingStore.deleteMarker(marker)
+            }
+        case .line:
+            if let line = drawingStore.lines.first(where: { $0.id == drawingId }) {
+                drawingStore.deleteLine(line)
+            }
+        case .circle:
+            if let circle = drawingStore.circles.first(where: { $0.id == drawingId }) {
+                drawingStore.deleteCircle(circle)
+            }
+        case .polygon:
+            if let polygon = drawingStore.polygons.first(where: { $0.id == drawingId }) {
+                drawingStore.deletePolygon(polygon)
+            }
+        }
+
+        NotificationCenter.default.post(
+            name: .radialMenuDrawingDeleted,
+            object: nil,
+            userInfo: ["drawingId": drawingId, "drawingType": drawingType]
+        )
+
         return true
     }
 
@@ -425,15 +419,11 @@ class RadialMenuActionExecutor {
             userInfo: ["coordinate": coordinate, "formattedString": coordString]
         )
 
-        print("Copied coordinates: \(coordString)")
         return true
     }
 
     private static func executeSetRangeRings(context: RadialMenuContext, services: RadialMenuServices) -> Bool {
-        guard let measurementManager = services.measurementManager else {
-            print("MeasurementManager not available")
-            return false
-        }
+        guard let measurementManager = services.measurementManager else { return false }
 
         measurementManager.startMeasurement(type: .rangeRing)
         measurementManager.handleMapTap(at: context.mapCoordinate)
@@ -444,7 +434,6 @@ class RadialMenuActionExecutor {
             userInfo: ["center": context.mapCoordinate]
         )
 
-        print("Set range rings at: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
         return true
     }
 
@@ -454,8 +443,6 @@ class RadialMenuActionExecutor {
             object: nil,
             userInfo: ["coordinate": context.mapCoordinate]
         )
-
-        print("Center map on: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
         return true
     }
 
@@ -465,8 +452,6 @@ class RadialMenuActionExecutor {
             object: nil,
             userInfo: ["context": context]
         )
-
-        print("Quick chat initiated")
         return true
     }
 
@@ -476,8 +461,6 @@ class RadialMenuActionExecutor {
             object: nil,
             userInfo: ["coordinate": context.mapCoordinate]
         )
-
-        print("EMERGENCY action triggered at: \(context.mapCoordinate.latitude), \(context.mapCoordinate.longitude)")
         return true
     }
 
@@ -487,8 +470,6 @@ class RadialMenuActionExecutor {
             object: nil,
             userInfo: ["context": context]
         )
-
-        print("Get info for context: \(context.contextType)")
         return true
     }
 
@@ -500,13 +481,8 @@ class RadialMenuActionExecutor {
         NotificationCenter.default.post(
             name: .radialMenuCustomAction,
             object: nil,
-            userInfo: [
-                "identifier": identifier,
-                "context": context
-            ]
+            userInfo: ["identifier": identifier, "context": context]
         )
-
-        print("Custom action: \(identifier)")
         return true
     }
 
@@ -537,8 +513,7 @@ class RadialMenuActionExecutor {
     private static func generateWaypointName() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "HHmm"
-        let timeStr = dateFormatter.string(from: Date())
-        return "WP-\(timeStr)"
+        return "WP-\(dateFormatter.string(from: Date()))"
     }
 
     private static func formatCoordinate(_ coord: CLLocationCoordinate2D) -> String {
@@ -582,4 +557,11 @@ extension Notification.Name {
     static let radialMenuEmergency = Notification.Name("radialMenuEmergency")
     static let radialMenuGetInfo = Notification.Name("radialMenuGetInfo")
     static let radialMenuCustomAction = Notification.Name("radialMenuCustomAction")
+    // Drawing notifications
+    static let radialMenuOpenDrawingTools = Notification.Name("radialMenuOpenDrawingTools")
+    static let radialMenuOpenDrawingsList = Notification.Name("radialMenuOpenDrawingsList")
+    static let radialMenuDrawLine = Notification.Name("radialMenuDrawLine")
+    static let radialMenuDrawCircle = Notification.Name("radialMenuDrawCircle")
+    static let radialMenuDrawPolygon = Notification.Name("radialMenuDrawPolygon")
+    static let radialMenuEditDrawing = Notification.Name("radialMenuEditDrawing")
 }

@@ -4,29 +4,33 @@ import CoreLocation
 
 // MARK: - Scale Bar View
 // ATAK-style map scale indicator that adjusts based on zoom level
+// Uses computed properties for instant reactivity during map movement
 
 struct ScaleBarView: View {
     let region: MKCoordinateRegion
     let isVisible: Bool
 
-    @State private var scaleWidth: CGFloat = 100
-    @State private var scaleText: String = "1 km"
     @State private var isExpanded: Bool = false
+
+    // Computed scale values for instant reactivity
+    private var scaleInfo: (width: CGFloat, text: String) {
+        calculateScaleInfo()
+    }
 
     var body: some View {
         if isVisible {
             VStack {
                 Spacer()
                 HStack {
-                    Spacer()
                     if isExpanded {
                         expandedScaleBar
                     } else {
                         collapsedScaleBar
                     }
+                    Spacer()
                 }
-                .padding(.trailing, 16)
-                .padding(.bottom, 80)
+                .padding(.leading, 16)
+                .padding(.bottom, 225)
             }
         }
     }
@@ -37,9 +41,10 @@ struct ScaleBarView: View {
                 .font(.system(size: 10))
                 .foregroundColor(.white)
 
-            Text(scaleText)
+            Text(scaleInfo.text)
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                 .foregroundColor(.white)
+                .animation(.none, value: scaleInfo.text)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
@@ -47,20 +52,9 @@ struct ScaleBarView: View {
         .cornerRadius(6)
         .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.3)) {
+            withAnimation(.easeInOut(duration: 0.2)) {
                 isExpanded = true
             }
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        }
-        .onAppear {
-            updateScale()
-        }
-        .onChange(of: region.span.latitudeDelta) { _ in
-            updateScale()
-        }
-        .onChange(of: region.span.longitudeDelta) { _ in
-            updateScale()
         }
     }
 
@@ -68,77 +62,58 @@ struct ScaleBarView: View {
         VStack(alignment: .trailing, spacing: 4) {
             // Scale bar graphic
             HStack(spacing: 0) {
-                // Left segment (white)
                 Rectangle()
                     .fill(Color.white)
-                    .frame(width: scaleWidth / 2, height: 4)
+                    .frame(width: scaleInfo.width / 2, height: 4)
 
-                // Right segment (black)
                 Rectangle()
                     .fill(Color.black)
-                    .frame(width: scaleWidth / 2, height: 4)
+                    .frame(width: scaleInfo.width / 2, height: 4)
             }
             .overlay(
                 HStack(spacing: 0) {
-                    // Left tick
                     Rectangle()
                         .fill(Color.white)
                         .frame(width: 2, height: 12)
-
                     Spacer()
-
-                    // Middle tick
                     Rectangle()
                         .fill(Color.white)
                         .frame(width: 2, height: 12)
-
                     Spacer()
-
-                    // Right tick
                     Rectangle()
                         .fill(Color.white)
                         .frame(width: 2, height: 12)
                 }
-                .frame(width: scaleWidth)
+                .frame(width: scaleInfo.width)
             )
 
-            // Scale text
-            Text(scaleText)
+            Text(scaleInfo.text)
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundColor(.white)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
                 .background(Color.black.opacity(0.7))
                 .cornerRadius(4)
+                .animation(.none, value: scaleInfo.text)
         }
         .padding(8)
         .background(Color.black.opacity(0.5))
         .cornerRadius(8)
         .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.3)) {
+            withAnimation(.easeInOut(duration: 0.2)) {
                 isExpanded = false
             }
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        }
-        .onAppear {
-            updateScale()
-        }
-        .onChange(of: region.span.latitudeDelta) { _ in
-            updateScale()
-        }
-        .onChange(of: region.span.longitudeDelta) { _ in
-            updateScale()
         }
     }
 
-    private func updateScale() {
-        // Calculate the actual distance represented by the region
+    // MARK: - Scale Calculation (Computed - No State)
+
+    private func calculateScaleInfo() -> (width: CGFloat, text: String) {
         let center = region.center
         let span = region.span
 
-        // Create two points at the center latitude, separated by longitude span
+        // Calculate distance across the visible region
         let point1 = CLLocation(
             latitude: center.latitude,
             longitude: center.longitude - span.longitudeDelta / 2
@@ -148,112 +123,79 @@ struct ScaleBarView: View {
             longitude: center.longitude + span.longitudeDelta / 2
         )
 
-        // Calculate distance in meters
         let distanceMeters = point1.distance(from: point2)
 
-        // Determine appropriate scale
+        // Get nice rounded scale value
         let (distance, unit) = calculateScale(from: distanceMeters)
 
-        // Update scale bar width (proportional to screen width, max 120px)
+        // Calculate proportional width
         let maxWidth: CGFloat = 120
         let minWidth: CGFloat = 60
+        let niceNum = getNiceNumber(distanceMeters)
+        let width = min(maxWidth, max(minWidth, maxWidth * CGFloat(distance) / CGFloat(niceNum)))
 
-        // Adjust width based on "nice" scale values
-        scaleWidth = min(maxWidth, max(minWidth, maxWidth * CGFloat(distance) / CGFloat(getNiceNumber(distanceMeters))))
+        let text = "\(formatDistance(distance)) \(unit)"
 
-        scaleText = "\(formatDistance(distance)) \(unit)"
+        return (width, text)
     }
 
     private func calculateScale(from meters: Double) -> (Double, String) {
-        // Determine the most appropriate scale based on distance
-
-        if meters >= 1000000 {
-            // Thousands of kilometers
+        if meters >= 1000 {
             let km = meters / 1000
-            let nice = getNiceNumber(km)
-            return (nice, "km")
-        } else if meters >= 1000 {
-            // Kilometers
-            let km = meters / 1000
-            let nice = getNiceNumber(km)
-            return (nice, "km")
+            return (getNiceNumber(km), "km")
         } else {
-            // Meters
-            let nice = getNiceNumber(meters)
-            return (nice, "m")
+            return (getNiceNumber(meters), "m")
         }
     }
 
     private func getNiceNumber(_ value: Double) -> Double {
-        // Round to "nice" numbers for scale display
+        guard value > 0 else { return 1 }
         let magnitude = pow(10, floor(log10(value)))
+        let normalized = value / magnitude
 
-        let normalizedValue = value / magnitude
+        let nice: Double
+        if normalized <= 1 { nice = 1 }
+        else if normalized <= 2 { nice = 2 }
+        else if normalized <= 5 { nice = 5 }
+        else { nice = 10 }
 
-        let niceValue: Double
-        if normalizedValue <= 1 {
-            niceValue = 1
-        } else if normalizedValue <= 2 {
-            niceValue = 2
-        } else if normalizedValue <= 5 {
-            niceValue = 5
-        } else {
-            niceValue = 10
-        }
-
-        return niceValue * magnitude
+        return nice * magnitude
     }
 
     private func formatDistance(_ distance: Double) -> String {
-        if distance >= 1000 {
-            return String(format: "%.0f", distance)
-        } else if distance >= 100 {
-            return String(format: "%.0f", distance)
-        } else if distance >= 10 {
+        if distance >= 100 {
             return String(format: "%.0f", distance)
         } else if distance >= 1 {
-            return String(format: "%.1f", distance)
+            return String(format: "%.0f", distance)
         } else {
-            return String(format: "%.2f", distance)
+            return String(format: "%.1f", distance)
         }
     }
 }
 
 // MARK: - Grid Overlay View
-// ATAK-style MGRS grid overlay for tactical map reference
 
 struct GridOverlayView: View {
     let region: MKCoordinateRegion
     let isVisible: Bool
 
     var body: some View {
-        #if DEBUG
-        let _ = print("🎨 [GridOverlayView] isVisible: \(isVisible)")
-        #endif
-
         if isVisible {
             GeometryReader { geometry in
                 Canvas { context, size in
-                    #if DEBUG
-                    print("🎨 [GridOverlayView] Drawing grid canvas")
-                    #endif
                     drawGrid(context: context, size: size, geometry: geometry)
                 }
             }
-            .allowsHitTesting(false) // Allow touches to pass through
+            .allowsHitTesting(false)
         } else {
-            #if DEBUG
-            let _ = print("🎨 [GridOverlayView] Grid hidden")
-            #endif
             EmptyView()
         }
     }
 
     private func drawGrid(context: GraphicsContext, size: CGSize, geometry: GeometryProxy) {
         let gridColor = Color(hex: "#FFFC00").opacity(0.3)
-        let gridSpacing: CGFloat = 50 // pixels
+        let gridSpacing: CGFloat = 50
 
-        // Draw vertical lines
         var x: CGFloat = 0
         while x <= size.width {
             let path = Path { p in
@@ -264,7 +206,6 @@ struct GridOverlayView: View {
             x += gridSpacing
         }
 
-        // Draw horizontal lines
         var y: CGFloat = 0
         while y <= size.height {
             let path = Path { p in
@@ -275,27 +216,19 @@ struct GridOverlayView: View {
             y += gridSpacing
         }
 
-        // Draw grid labels (simplified - real MGRS would show actual grid squares)
         drawGridLabels(context: context, size: size, spacing: gridSpacing)
     }
 
     private func drawGridLabels(context: GraphicsContext, size: CGSize, spacing: CGFloat) {
         let labelColor = Color(hex: "#FFFC00").opacity(0.5)
-
-        // Calculate MGRS grid zone
         let zone = Int((region.center.longitude + 180) / 6) + 1
         let latBand = getLatitudeBand(region.center.latitude)
-
-        // Draw grid zone designation in corners
         let label = "\(zone)\(latBand)"
 
-        let context = context
         context.drawLayer { ctx in
-            // Top-left corner
             let text = Text(label)
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                 .foregroundColor(labelColor)
-
             ctx.draw(text, at: CGPoint(x: 20, y: 20))
         }
     }
@@ -303,61 +236,7 @@ struct GridOverlayView: View {
     private func getLatitudeBand(_ latitude: Double) -> String {
         let bands = ["C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X"]
         let index = Int((latitude + 80) / 8)
-        if index < 0 || index >= bands.count {
-            return "X"
-        }
+        if index < 0 || index >= bands.count { return "X" }
         return bands[index]
-    }
-}
-
-// MARK: - Preview
-
-struct ScaleBarView_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack {
-            Color.gray.ignoresSafeArea()
-
-            VStack(spacing: 40) {
-                // Close zoom
-                ScaleBarView(
-                    region: MKCoordinateRegion(
-                        center: CLLocationCoordinate2D(latitude: 38.8977, longitude: -77.0365),
-                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                    ),
-                    isVisible: true
-                )
-
-                // Medium zoom
-                ScaleBarView(
-                    region: MKCoordinateRegion(
-                        center: CLLocationCoordinate2D(latitude: 38.8977, longitude: -77.0365),
-                        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-                    ),
-                    isVisible: true
-                )
-
-                // Far zoom
-                ScaleBarView(
-                    region: MKCoordinateRegion(
-                        center: CLLocationCoordinate2D(latitude: 38.8977, longitude: -77.0365),
-                        span: MKCoordinateSpan(latitudeDelta: 1.0, longitudeDelta: 1.0)
-                    ),
-                    isVisible: true
-                )
-            }
-        }
-
-        // Grid overlay preview
-        ZStack {
-            Color.black.ignoresSafeArea()
-
-            GridOverlayView(
-                region: MKCoordinateRegion(
-                    center: CLLocationCoordinate2D(latitude: 38.8977, longitude: -77.0365),
-                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-                ),
-                isVisible: true
-            )
-        }
     }
 }

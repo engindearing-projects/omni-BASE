@@ -64,6 +64,15 @@ enum RadialMenuAction: Equatable {
     case addWaypoint
     case createRoute
 
+    // Drawing Actions
+    case openDrawingTools
+    case openDrawingsList
+    case drawLine
+    case drawCircle
+    case drawPolygon
+    case editDrawing
+    case deleteDrawing
+
     // Utility Actions
     case copyCoordinates
     case setRangeRings
@@ -103,6 +112,20 @@ enum RadialMenuAction: Equatable {
             return "addWaypoint"
         case .createRoute:
             return "createRoute"
+        case .openDrawingTools:
+            return "openDrawingTools"
+        case .openDrawingsList:
+            return "openDrawingsList"
+        case .drawLine:
+            return "drawLine"
+        case .drawCircle:
+            return "drawCircle"
+        case .drawPolygon:
+            return "drawPolygon"
+        case .editDrawing:
+            return "editDrawing"
+        case .deleteDrawing:
+            return "deleteDrawing"
         case .copyCoordinates:
             return "copyCoordinates"
         case .setRangeRings:

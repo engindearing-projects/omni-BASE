@@ -15,7 +15,7 @@ enum RadialMenuPresets {
     // MARK: - Map Context Menu
 
     /// Menu for map interactions (long-press on empty map area)
-    /// Actions: Mark Hostile, Mark Friendly, Measure Distance, Navigate Here, Add Waypoint
+    /// Actions: Mark Hostile, Mark Friendly, Draw, Drawings, Measure, Waypoint
     static var mapContextMenu: RadialMenuConfiguration {
         RadialMenuConfiguration(
             items: [
@@ -32,16 +32,22 @@ enum RadialMenuPresets {
                     action: .dropMarker(.friendly)
                 ),
                 RadialMenuItem(
+                    icon: "pencil.tip.crop.circle",
+                    label: "Draw",
+                    color: .purple,
+                    action: .openDrawingTools
+                ),
+                RadialMenuItem(
+                    icon: "list.bullet.rectangle",
+                    label: "Drawings",
+                    color: .indigo,
+                    action: .openDrawingsList
+                ),
+                RadialMenuItem(
                     icon: "ruler",
                     label: "Measure",
                     color: Color(hex: "#FFFC00"),
                     action: .measure
-                ),
-                RadialMenuItem(
-                    icon: "location.fill",
-                    label: "Navigate",
-                    color: .green,
-                    action: .navigate
                 ),
                 RadialMenuItem(
                     icon: "mappin.and.ellipse",
@@ -50,8 +56,8 @@ enum RadialMenuPresets {
                     action: .addWaypoint
                 )
             ],
-            radius: 100,
-            itemSize: 50,
+            radius: 110,
+            itemSize: 48,
             hapticFeedback: true,
             showLabels: true
         )
@@ -494,6 +500,20 @@ struct RadialMenuPresetsPreviewWrapper: View {
             return "Get Info"
         case .emergency:
             return "Emergency"
+        case .openDrawingTools:
+            return "Drawing Tools"
+        case .openDrawingsList:
+            return "Drawings List"
+        case .drawLine:
+            return "Draw Line"
+        case .drawCircle:
+            return "Draw Circle"
+        case .drawPolygon:
+            return "Draw Polygon"
+        case .editDrawing:
+            return "Edit Drawing"
+        case .deleteDrawing:
+            return "Delete Drawing"
         case .custom:
             return "Custom Action"
         }

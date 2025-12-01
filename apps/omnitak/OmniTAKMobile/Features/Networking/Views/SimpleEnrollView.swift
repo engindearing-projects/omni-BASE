@@ -131,26 +131,35 @@ struct SimpleEnrollView: View {
         return false
     }
 
-    // MARK: - Header Section
+    // MARK: - Header Section (ATAK-style)
 
     private var headerSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
+            // Green lock icon (ATAK Quick Connect style)
             ZStack {
                 Circle()
-                    .fill(Color(hex: "#FFFC00").opacity(0.15))
+                    .fill(Color(hex: "#00FF00").opacity(0.15))
                     .frame(width: 80, height: 80)
 
                 Image(systemName: "lock.shield.fill")
                     .font(.system(size: 36, weight: .medium))
-                    .foregroundColor(Color(hex: "#FFFC00"))
+                    .foregroundColor(Color(hex: "#00FF00"))
             }
 
-            Text("Connect to TAK Server")
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(.white)
+            // Cyan title with underline separator (ATAK dialog style)
+            VStack(spacing: 8) {
+                Text("TAK Server Quick Connect")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Color(hex: "#00BCD4"))
 
-            Text("Enter your server credentials to get started")
-                .font(.system(size: 15))
+                Rectangle()
+                    .fill(Color(hex: "#00BCD4"))
+                    .frame(height: 2)
+                    .frame(maxWidth: 200)
+            }
+
+            Text("Enter your server credentials to enroll and connect")
+                .font(.system(size: 14))
                 .foregroundColor(Color(hex: "#CCCCCC"))
                 .multilineTextAlignment(.center)
         }
@@ -161,11 +170,11 @@ struct SimpleEnrollView: View {
 
     private var formSection: some View {
         VStack(spacing: 16) {
-            // Server Host
+            // Server Address (ATAK-style with cyan labels)
             VStack(alignment: .leading, spacing: 8) {
-                Text("Server")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color(hex: "#CCCCCC"))
+                Text("Address")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color(hex: "#00BCD4"))
 
                 TextField("public.opentakserver.io", text: $serverHost)
                     .textFieldStyle(TAKTextFieldStyle())
@@ -174,11 +183,11 @@ struct SimpleEnrollView: View {
                     .keyboardType(.URL)
             }
 
-            // Username
+            // Username (ATAK-style)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Username")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color(hex: "#CCCCCC"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color(hex: "#00BCD4"))
 
                 TextField("Enter username", text: $username)
                     .textFieldStyle(TAKTextFieldStyle())
@@ -186,11 +195,11 @@ struct SimpleEnrollView: View {
                     .disableAutocorrection(true)
             }
 
-            // Password
+            // Password (ATAK-style)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Password")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color(hex: "#CCCCCC"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color(hex: "#00BCD4"))
 
                 HStack(spacing: 0) {
                     if showPassword {
@@ -203,7 +212,7 @@ struct SimpleEnrollView: View {
 
                     Button(action: { showPassword.toggle() }) {
                         Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
-                            .foregroundColor(Color(hex: "#666666"))
+                            .foregroundColor(Color(hex: "#00BCD4"))
                             .frame(width: 44, height: 44)
                     }
                 }
@@ -212,75 +221,133 @@ struct SimpleEnrollView: View {
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(white: 0.25), lineWidth: 1)
+                        .stroke(Color(hex: "#00BCD4").opacity(0.3), lineWidth: 1)
                 )
+            }
+
+            // Show Password checkbox (ATAK-style)
+            HStack(spacing: 8) {
+                Button(action: { showPassword.toggle() }) {
+                    Image(systemName: showPassword ? "checkmark.square.fill" : "square")
+                        .font(.system(size: 18))
+                        .foregroundColor(showPassword ? Color(hex: "#00BCD4") : Color(hex: "#666666"))
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Text("Show Password")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(hex: "#CCCCCC"))
+
+                Spacer()
             }
         }
     }
 
-    // MARK: - Connect Button
+    // MARK: - Connect Button (ATAK-style with cyan/green)
 
     private var connectButton: some View {
-        Button(action: startEnrollment) {
-            HStack(spacing: 10) {
-                if enrollmentState.isInProgress {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
-                        .scaleEffect(0.8)
-                } else {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .font(.system(size: 20))
-                }
-
-                Text(enrollmentState.isInProgress ? "Connecting..." : "Connect to Server")
-                    .font(.system(size: 18, weight: .semibold))
+        HStack(spacing: 12) {
+            // Cancel button (ATAK-style)
+            Button(action: { /* Cancel action */ }) {
+                Text("Cancel")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color(hex: "#555555"))
+                    .cornerRadius(8)
             }
-            .foregroundColor(.black)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(isFormValid ? Color(hex: "#FFFC00") : Color(hex: "#666666"))
-            .cornerRadius(12)
+
+            // OK button (ATAK-style)
+            Button(action: startEnrollment) {
+                HStack(spacing: 8) {
+                    if enrollmentState.isInProgress {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.8)
+                    }
+
+                    Text(enrollmentState.isInProgress ? "Connecting..." : "OK")
+                        .font(.system(size: 16, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(isFormValid ? Color(hex: "#00BCD4") : Color(hex: "#555555"))
+                .cornerRadius(8)
+            }
+            .disabled(!isFormValid || enrollmentState.isInProgress)
         }
-        .disabled(!isFormValid || enrollmentState.isInProgress)
     }
 
     private var isFormValid: Bool {
         !serverHost.isEmpty && !username.isEmpty && !password.isEmpty
     }
 
-    // MARK: - Advanced Section
+    // MARK: - Advanced Section (ATAK-style)
 
     private var advancedSection: some View {
         VStack(spacing: 12) {
             Button(action: { withAnimation(.spring(response: 0.3)) { showAdvanced.toggle() } }) {
                 HStack {
                     Image(systemName: "gearshape.fill")
-                        .foregroundColor(Color(hex: "#666666"))
+                        .foregroundColor(Color(hex: "#00BCD4"))
 
                     Text("Advanced Options")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Color(hex: "#CCCCCC"))
+                        .foregroundColor(Color(hex: "#00BCD4"))
 
                     Spacer()
 
                     Image(systemName: showAdvanced ? "chevron.up" : "chevron.down")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "#666666"))
+                        .foregroundColor(Color(hex: "#00BCD4"))
                 }
                 .padding(16)
                 .background(Color(white: 0.08))
                 .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color(hex: "#00BCD4").opacity(0.3), lineWidth: 1)
+                )
             }
             .buttonStyle(PlainButtonStyle())
 
             if showAdvanced {
                 VStack(spacing: 16) {
-                    HStack(spacing: 12) {
-                        // Streaming Port
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Streaming Port")
-                                .font(.system(size: 12, weight: .medium))
+                    // Streaming Protocol (ATAK-style radio buttons - simplified as dropdown)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Streaming Protocol")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "#00BCD4"))
+
+                        HStack(spacing: 8) {
+                            Text("TCP")
+                                .font(.system(size: 12))
                                 .foregroundColor(Color(hex: "#999999"))
+                            Text("/")
+                                .foregroundColor(Color(hex: "#666666"))
+                            Text("SSL")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Color(hex: "#00BCD4"))
+                            Text("/")
+                                .foregroundColor(Color(hex: "#666666"))
+                            Text("QUIC")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(hex: "#999999"))
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(white: 0.08))
+                        .cornerRadius(8)
+                    }
+
+                    HStack(spacing: 12) {
+                        // Server Port
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Server Port")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#00BCD4"))
 
                             TextField("8089", text: $streamingPort)
                                 .textFieldStyle(TAKTextFieldStyle())
@@ -290,8 +357,8 @@ struct SimpleEnrollView: View {
                         // Enrollment Port
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Enrollment Port")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(hex: "#999999"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#00BCD4"))
 
                             TextField("8446", text: $enrollmentPort)
                                 .textFieldStyle(TAKTextFieldStyle())
@@ -299,23 +366,47 @@ struct SimpleEnrollView: View {
                         }
                     }
 
-                    Toggle(isOn: $allowLegacyTLS) {
-                        HStack {
-                            Image(systemName: "exclamationmark.shield.fill")
-                                .foregroundColor(allowLegacyTLS ? Color(hex: "#FF6B6B") : Color(hex: "#666666"))
+                    // Checkboxes (ATAK-style with cyan)
+                    VStack(spacing: 12) {
+                        // Use Authentication checkbox
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.square.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(hex: "#00BCD4"))
 
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Allow Legacy TLS")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
+                            Text("Use Authentication")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white)
 
-                                Text("For old servers (less secure)")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(Color(hex: "#999999"))
-                            }
+                            Spacer()
+                        }
+
+                        // Enroll for Client Certificate checkbox
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.square.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(hex: "#00BCD4"))
+
+                            Text("Enroll for Client Certificate")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white)
+
+                            Spacer()
+                        }
+
+                        // Use default SSL/TLS Certificates checkbox
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.square.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(hex: "#00BCD4"))
+
+                            Text("Use default SSL/TLS Certificates")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white)
+
+                            Spacer()
                         }
                     }
-                    .tint(Color(hex: "#FF6B6B"))
                 }
                 .padding(16)
                 .background(Color(white: 0.08))

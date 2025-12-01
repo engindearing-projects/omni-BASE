@@ -17,49 +17,141 @@ class ChatXMLParser {
             return nil
         }
 
-        // Extract message UID
-        guard extractAttribute("uid", from: xml) != nil else {
-            print("Failed to extract UID from GeoChat message")
+        // DEBUG: Log raw chat XML for diagnosis
+        #if DEBUG
+        print("🔍 [CHAT DEBUG] ========== RAW CHAT XML ==========")
+        print(xml)
+        print("🔍 [CHAT DEBUG] ========== END RAW XML ==========")
+        #endif
+
+        // Extract message UID - this is the unique message identifier
+        guard let eventUid = extractAttribute("uid", from: xml) else {
+            print("❌ [CHAT DEBUG] Failed to extract UID from GeoChat message")
             return nil
         }
+        #if DEBUG
+        print("✅ [CHAT DEBUG] Event UID: \(eventUid)")
+        #endif
+
+        // Use event UID as the message ID (it's unique per message)
+        // Format is typically: GeoChat.SENDER_UID.MESSAGE_ID
+        let messageId = eventUid
 
         // Extract chat details from __chat element
-        guard let chatId = extractChatAttribute("id", from: xml) else {
-            print("Failed to extract chat ID")
-            return nil
+        // Try multiple formats: __chat, _chat, chat
+        var senderCallsign = extractChatAttribute("senderCallsign", from: xml)
+        var chatroom = extractChatAttribute("chatroom", from: xml)
+
+        // Also check the id attribute for chatroom (ATAK puts chatroom name here)
+        if chatroom == nil {
+            chatroom = extractChatAttribute("id", from: xml)
         }
 
-        guard let senderCallsign = extractChatAttribute("senderCallsign", from: xml) else {
-            print("Failed to extract sender callsign")
-            return nil
+        // Try alternate chat element formats if __chat didn't work
+        if senderCallsign == nil {
+            #if DEBUG
+            print("⚠️ [CHAT DEBUG] __chat parsing failed, trying alternate formats...")
+            print("⚠️ [CHAT DEBUG] Has __chat element: \(xml.contains("<__chat"))")
+            print("⚠️ [CHAT DEBUG] Has _chat element: \(xml.contains("<_chat"))")
+            print("⚠️ [CHAT DEBUG] Has chat element: \(xml.contains("<chat "))")
+            #endif
+
+            // Try _chat element (single underscore)
+            if let altSender = extractAltChatAttribute("senderCallsign", elementName: "_chat", from: xml) {
+                senderCallsign = altSender
+            }
+            if let altChatroom = extractAltChatAttribute("chatroom", elementName: "_chat", from: xml) {
+                chatroom = altChatroom
+            }
+            if chatroom == nil {
+                chatroom = extractAltChatAttribute("id", elementName: "_chat", from: xml)
+            }
         }
 
-        let chatroom = extractChatAttribute("chatroom", from: xml)
+        #if DEBUG
+        print("✅ [CHAT DEBUG] Message ID: \(messageId)")
+        print("✅ [CHAT DEBUG] Chatroom: \(chatroom ?? "nil")")
+        #endif
+
+        guard let senderCallsign = senderCallsign else {
+            print("❌ [CHAT DEBUG] Failed to extract sender callsign")
+            // Try to get callsign from link element as fallback
+            if let linkCallsign = extractLinkAttribute("parent_callsign", from: xml) {
+                #if DEBUG
+                print("🔄 [CHAT DEBUG] Using link parent_callsign as fallback: \(linkCallsign)")
+                #endif
+            }
+            return nil
+        }
+        #if DEBUG
+        print("✅ [CHAT DEBUG] Sender callsign: \(senderCallsign)")
+        print("✅ [CHAT DEBUG] Chatroom: \(chatroom ?? "nil")")
+        #endif
 
         // Extract sender UID from chatgrp or link element
         var senderUid: String?
         if let uid0 = extractChatgrpAttribute("uid0", from: xml) {
             senderUid = uid0
+            #if DEBUG
+            print("✅ [CHAT DEBUG] Sender UID from chatgrp uid0: \(uid0)")
+            #endif
         } else if let linkUid = extractLinkAttribute("uid", from: xml) {
             senderUid = linkUid
+            #if DEBUG
+            print("✅ [CHAT DEBUG] Sender UID from link uid: \(linkUid)")
+            #endif
+        } else {
+            // Try to extract from event UID (GeoChat.SENDER_UID.MESSAGE_ID format)
+            if eventUid.hasPrefix("GeoChat.") {
+                let parts = eventUid.split(separator: ".")
+                if parts.count >= 2 {
+                    senderUid = String(parts[1])
+                    #if DEBUG
+                    print("🔄 [CHAT DEBUG] Extracted sender UID from event UID: \(senderUid ?? "nil")")
+                    #endif
+                }
+            }
         }
 
         guard let senderId = senderUid else {
-            print("Failed to extract sender UID")
+            print("❌ [CHAT DEBUG] Failed to extract sender UID - no chatgrp uid0 or link uid found")
+            #if DEBUG
+            print("⚠️ [CHAT DEBUG] Has chatgrp element: \(xml.contains("<chatgrp"))")
+            print("⚠️ [CHAT DEBUG] Has link element: \(xml.contains("<link "))")
+            #endif
             return nil
         }
 
         // Extract message text from remarks element
         guard let messageText = extractRemarksContent(from: xml) else {
-            print("Failed to extract message text")
+            print("❌ [CHAT DEBUG] Failed to extract message text - no remarks element")
+            #if DEBUG
+            print("⚠️ [CHAT DEBUG] Has remarks element: \(xml.contains("<remarks"))")
+            #endif
             return nil
         }
+        #if DEBUG
+        print("✅ [CHAT DEBUG] Message text: \(messageText)")
+        #endif
 
         // Extract timestamp
         let timestamp = extractTimestamp(from: xml) ?? Date()
 
         // Determine if this is a group message or direct message
-        let isGroupChat = chatroom == ChatRoom.allUsersTitle || chatroom == "All Chat Users"
+        // ATAK uses "All Chat Rooms" for group chat
+        let chatroomLower = chatroom?.lowercased() ?? ""
+        let isGroupChat = chatroom == ChatRoom.allUsersTitle ||
+                          chatroom == ChatRoom.atakChatroomName ||
+                          chatroom == "All Chat Users" ||
+                          chatroom == "All Chat Rooms" ||
+                          chatroomLower.contains("all chat") ||
+                          chatroomLower == "broadcast" ||
+                          chatroom == nil ||
+                          chatroom?.isEmpty == true
+
+        #if DEBUG
+        print("🔍 [CHAT DEBUG] Group chat detection: chatroom='\(chatroom ?? "nil")' -> isGroupChat=\(isGroupChat)")
+        #endif
 
         // Extract recipient info (for direct messages)
         var recipientCallsign: String?
@@ -82,10 +174,10 @@ class ChatXMLParser {
         }
 
         // Parse image attachment if present
-        let (attachmentType, imageAttachment) = parseFileshareElement(from: xml, messageId: chatId)
+        let (attachmentType, imageAttachment) = parseFileshareElement(from: xml, messageId: messageId)
 
         let message = ChatMessage(
-            id: chatId,
+            id: messageId,
             conversationId: conversationId,
             senderId: senderId,
             senderCallsign: senderCallsign,
@@ -186,8 +278,25 @@ class ChatXMLParser {
     }
 
     private static func extractChatAttribute(_ name: String, from xml: String) -> String? {
-        // Extract attributes from __chat element
-        guard let chatRange = xml.range(of: "<__chat[^>]+>", options: .regularExpression) else {
+        // Extract attributes from __chat element (handle both <__chat ...> and <__chat .../> formats)
+        // Try opening tag first
+        if let chatRange = xml.range(of: "<__chat[^>]+>", options: .regularExpression) {
+            let chatTag = String(xml[chatRange])
+            if let value = extractAttribute(name, from: chatTag) {
+                return value
+            }
+        }
+        // Try self-closing tag
+        if let chatRange = xml.range(of: "<__chat[^/]*/?>", options: .regularExpression) {
+            let chatTag = String(xml[chatRange])
+            return extractAttribute(name, from: chatTag)
+        }
+        return nil
+    }
+
+    private static func extractAltChatAttribute(_ name: String, elementName: String, from xml: String) -> String? {
+        // Extract attributes from alternate chat element formats (_chat, chat, etc.)
+        guard let chatRange = xml.range(of: "<\(elementName)[^>]+>", options: .regularExpression) else {
             return nil
         }
         let chatTag = String(xml[chatRange])
@@ -214,19 +323,34 @@ class ChatXMLParser {
 
     private static func extractRemarksContent(from xml: String) -> String? {
         // Extract content from <remarks>...</remarks>
-        guard let startRange = xml.range(of: "<remarks[^>]*>"),
+        guard let startRange = xml.range(of: "<remarks[^>]*>", options: .regularExpression),
               let endRange = xml.range(of: "</remarks>") else {
+            #if DEBUG
+            print("⚠️ [CHAT DEBUG] Remarks extraction failed - checking format...")
+            if let remarksSnippet = xml.range(of: "<remarks") {
+                let start = remarksSnippet.lowerBound
+                let end = xml.index(start, offsetBy: min(200, xml.distance(from: start, to: xml.endIndex)))
+                print("⚠️ [CHAT DEBUG] Remarks element snippet: \(xml[start..<end])")
+            }
+            #endif
             return nil
         }
 
-        let startIndex = xml.index(startRange.upperBound, offsetBy: 0)
+        let startIndex = startRange.upperBound
         let endIndex = endRange.lowerBound
 
         guard startIndex < endIndex else {
+            #if DEBUG
+            print("⚠️ [CHAT DEBUG] Remarks element is empty (startIndex >= endIndex)")
+            #endif
             return nil
         }
 
         let content = String(xml[startIndex..<endIndex])
+
+        #if DEBUG
+        print("✅ [CHAT DEBUG] Extracted remarks content: \(content)")
+        #endif
 
         // Decode XML entities
         return content
@@ -257,15 +381,34 @@ class ChatXMLParser {
     static func parseParticipantFromPresence(xml: String) -> ChatParticipant? {
         // Extract UID
         guard let uid = extractAttribute("uid", from: xml) else {
+            #if DEBUG
+            print("⚠️ [PRESENCE DEBUG] No UID found in presence message")
+            #endif
             return nil
         }
 
         // Extract callsign from contact element
-        guard let contactRange = xml.range(of: "<contact[^>]+/>", options: .regularExpression) else {
+        // Try self-closing tag first: <contact ... />
+        var contactTag: String?
+        if let contactRange = xml.range(of: "<contact[^>]+/>", options: .regularExpression) {
+            contactTag = String(xml[contactRange])
+        }
+        // Try opening tag: <contact ...>
+        if contactTag == nil, let contactRange = xml.range(of: "<contact[^>]+>", options: .regularExpression) {
+            contactTag = String(xml[contactRange])
+        }
+
+        guard let contactTag = contactTag else {
+            #if DEBUG
+            print("⚠️ [PRESENCE DEBUG] No <contact> element found for UID: \(uid)")
+            #endif
             return nil
         }
-        let contactTag = String(xml[contactRange])
+
         guard let callsign = extractAttribute("callsign", from: contactTag) else {
+            #if DEBUG
+            print("⚠️ [PRESENCE DEBUG] No callsign attribute in contact element for UID: \(uid)")
+            #endif
             return nil
         }
 
@@ -274,6 +417,10 @@ class ChatXMLParser {
 
         // Extract timestamp
         let lastSeen = extractTimestamp(from: xml) ?? Date()
+
+        #if DEBUG
+        print("✅ [PRESENCE DEBUG] Parsed participant: \(callsign) (UID: \(uid))")
+        #endif
 
         return ChatParticipant(
             id: uid,

@@ -32,45 +32,45 @@ class ChatXMLGenerator {
 
         // Determine chatroom and recipients
         let chatroom: String
-        let destinations: String
+        let martiElement: String
 
         if isGroupChat {
-            // Group chat - send to "All Chat Users"
-            chatroom = groupName ?? ChatRoom.allUsersTitle
-            destinations = """
-                <dest callsign="\(chatroom)"/>
-            """
+            // Group chat - use ATAK's expected chatroom name for interoperability
+            // No marti destination for broadcast - server routes to all
+            chatroom = ChatRoom.atakChatroomName
+            martiElement = ""
         } else if let recipientCallsign = message.recipientCallsign {
-            // Direct message
+            // Direct message - need marti destination for routing
             chatroom = recipientCallsign
-            destinations = """
-                <dest callsign="\(recipientCallsign)"/>
+            martiElement = """
+
+                    <marti>
+                        <dest callsign="\(recipientCallsign)"/>
+                    </marti>
             """
         } else {
-            // Default to All Chat Users
-            chatroom = ChatRoom.allUsersTitle
-            destinations = """
-                <dest callsign="\(chatroom)"/>
-            """
+            // Default to group chat
+            chatroom = ChatRoom.atakChatroomName
+            martiElement = ""
         }
 
         // Build fileshare element if image attachment present
         let fileshareElement = generateFileshareElement(for: message)
 
+        // For group chat, uid1 should be "All Chat Rooms" (the chatroom)
+        // For direct message, uid1 should be the recipient's UID
+        let chatgrpUid1 = isGroupChat ? chatroom : (message.recipientId ?? chatroom)
+
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>
-        <event version="2.0" uid="GeoChat.\(senderUid).\(messageId)" type="b-t-f" time="\(now)" start="\(now)" stale="\(stale)" how="h-g-i-g-o">
+        <event version="2.0" uid="GeoChat.\(senderUid).\(chatroom).\(messageId)" type="b-t-f" time="\(now)" start="\(now)" stale="\(stale)" how="h-g-i-g-o">
             <point lat="\(lat)" lon="\(lon)" hae="\(hae)" ce="\(ce)" le="\(le)"/>
             <detail>
-                <__chat id="\(messageId)" chatroom="\(chatroom)" senderCallsign="\(senderCallsign)" parent="RootContactGroup">
-                    <chatgrp uid0="\(senderUid)" uid1="\(chatroom)" id="\(chatroom)"/>
+                <__chat id="\(chatroom)" chatroom="\(chatroom)" senderCallsign="\(senderCallsign)" groupOwner="false">
+                    <chatgrp uid0="\(senderUid)" uid1="\(chatgrpUid1)" id="\(chatroom)"/>
                 </__chat>
-                <link uid="\(senderUid)" production_time="\(now)" type="a-f-G-E-S" parent_callsign="\(senderCallsign)" relation="p-p"/>
-                <remarks source="BAO.F.ATAK.\(senderUid)" to="\(chatroom)" time="\(now)">\(escapeXML(message.messageText))</remarks>\(fileshareElement)
-                <__serverdestination destinations="\(destinations)"/>
-                <marti>
-                    <dest callsign="\(chatroom)"/>
-                </marti>
+                <link uid="\(senderUid)" production_time="\(now)" type="a-f-G-U-C" parent_callsign="\(senderCallsign)" relation="p-p"/>
+                <remarks source="BAO.F.ATAK.\(senderUid)" to="\(chatroom)" time="\(now)">\(escapeXML(message.messageText))</remarks>\(fileshareElement)\(martiElement)
             </detail>
         </event>
         """

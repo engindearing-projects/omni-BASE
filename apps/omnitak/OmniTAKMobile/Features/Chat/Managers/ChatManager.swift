@@ -35,6 +35,13 @@ class ChatManager: ObservableObject {
         self.locationManager = locationManager
     }
 
+    func setTAKService(_ takService: TAKService) {
+        self.takService = takService
+        #if DEBUG
+        print("📡 ChatManager: TAKService set")
+        #endif
+    }
+
     private func loadData() {
         conversations = persistence.loadConversations()
         messages = persistence.loadMessages()
@@ -96,8 +103,17 @@ class ChatManager: ObservableObject {
             groupName: conversation.isGroupChat ? conversation.title : nil
         )
 
+        #if DEBUG
+        print("📤 [CHAT DEBUG] ========== OUTGOING CHAT XML ==========")
+        print(xml)
+        print("📤 [CHAT DEBUG] ========== END OUTGOING XML ==========")
+        #endif
+
         // Send via TAK service
         if let takService = takService {
+            #if DEBUG
+            print("📤 [CHAT DEBUG] TAKService available, attempting to send...")
+            #endif
             let success = takService.sendCoT(xml: xml)
             if success {
                 // Update message status to sent
@@ -105,17 +121,17 @@ class ChatManager: ObservableObject {
                     messages[index].status = .sent
                     saveMessages()
                 }
-                print("Sent chat message to \(conversation.displayTitle): \(text)")
+                print("✅ [CHAT DEBUG] Sent chat message to \(conversation.displayTitle): \(text)")
             } else {
                 // Update message status to failed
                 if let index = messages.firstIndex(where: { $0.id == message.id }) {
                     messages[index].status = .failed
                     saveMessages()
                 }
-                print("Failed to send chat message")
+                print("❌ [CHAT DEBUG] Failed to send chat message - sendCoT returned false")
             }
         } else {
-            print("TAKService not configured")
+            print("❌ [CHAT DEBUG] TAKService not configured - cannot send message")
         }
     }
 

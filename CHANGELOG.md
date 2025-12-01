@@ -5,6 +5,46 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2025-11-29
+
+### Added
+- **Full ATAK Chat Compatibility**: Complete GeoChat interoperability with official TAK clients
+  - Group chat works seamlessly with ATAK 5.5+ devices via "All Chat Rooms" channel
+  - Direct messaging between OmniTAK and ATAK users
+  - Tested with official TAK.gov servers and OpenTAKServer deployments
+  - Compatible with TAK protocol specifications for b-t-f (GeoChat) messages
+
+### Fixed
+- **Chat Message Parsing**: Fixed multiple issues preventing chat from working with ATAK clients
+  - Fixed remarks element extraction regex that was missing message content
+  - Fixed duplicate message detection using event UID instead of chatroom name
+  - Added TAKService auto-configuration for ChatManager dependency injection
+  - Removed malformed XML attributes that caused message rejection
+
+- **Chat Message Generation**: Fixed outgoing message format for ATAK compatibility
+  - Changed chatroom name from "All Chat Users" to "All Chat Rooms" to match ATAK standard
+  - Fixed event UID format to include chatroom identifier: `GeoChat.{senderUid}.{chatroom}.{messageId}`
+  - Removed `<marti>` element from group chat broadcasts (server handles routing)
+  - Updated `__chat id` attribute to use chatroom name for proper channel routing
+
+### Changed
+- **ChatXMLParser.swift**: Enhanced incoming message parsing
+  - Added comprehensive debug logging for troubleshooting
+  - Improved group chat detection to recognize both "All Chat Users" and "All Chat Rooms"
+  - Added fallback parsing for alternate chat element formats (_chat, chat)
+
+- **ChatXMLGenerator.swift**: Updated outgoing message format
+  - Uses `ChatRoom.atakChatroomName` constant for ATAK interoperability
+  - Generates proper TAK protocol-compliant GeoChat XML
+  - Improved chatgrp element with correct uid0/uid1 mappings
+
+### Technical Details
+- Added `ChatRoom.atakChatroomName = "All Chat Rooms"` constant for ATAK compatibility
+- ChatManager now auto-configures TAKService reference on connection
+- All chat messages use event UID as unique identifier instead of chatroom name
+- Group chat broadcasts exclude `<marti>` element (server handles routing to all clients)
+- Project version updated to MARKETING_VERSION 2.4.0
+
 ## [2.2.0] - 2025-11-27
 
 ### Added
@@ -257,6 +297,10 @@ This project uses [Semantic Versioning](https://semver.org/):
 - **Minor (0.X.0)**: New features, backward compatible
 - **Patch (0.0.X)**: Bug fixes
 
+[2.4.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v2.2.0...v2.4.0
+[2.2.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v2.1.1...v2.2.0
+[2.1.1]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.3.8...v2.0.0
 [1.3.8]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.3.7...v1.3.8
 [1.3.7]: https://github.com/engindearing-projects/omniTAK-mobile/compare/v1.3.0...v1.3.7

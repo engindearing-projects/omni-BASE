@@ -82,7 +82,15 @@ class PositionBroadcastService: ObservableObject {
     private init() {
         // Generate or load UID
         if let savedUID = UserDefaults.standard.string(forKey: "selfPositionUID") {
-            self.userUID = savedUID
+            // Migrate old ANDROID- prefix to IOS- for proper ATAK icon display
+            if savedUID.hasPrefix("ANDROID-") {
+                let newUID = "IOS-\(UUID().uuidString)"
+                self.userUID = newUID
+                UserDefaults.standard.set(newUID, forKey: "selfPositionUID")
+                print("📱 Migrated UID from ANDROID- to IOS- prefix: \(newUID)")
+            } else {
+                self.userUID = savedUID
+            }
         } else {
             // Use iOS-specific UID prefix for proper ATAK icon display
             let newUID = "IOS-\(UUID().uuidString)"
@@ -102,9 +110,13 @@ class PositionBroadcastService: ObservableObject {
         self.takService = takService
         self.locationManager = locationManager
 
+        print("📡 PositionBroadcastService.configure() called - isEnabled: \(isEnabled), hasTimer: \(broadcastTimer != nil)")
+
         // Auto-start if enabled
         if isEnabled && broadcastTimer == nil {
             startBroadcasting()
+        } else if !isEnabled {
+            print("⚠️ Position broadcasting is disabled - enable in Settings")
         }
     }
 
@@ -145,13 +157,25 @@ class PositionBroadcastService: ObservableObject {
     // MARK: - Position Broadcast
 
     func broadcastPosition() {
-        guard let takService = takService,
-              let location = locationManager?.location else {
+        guard let takService = takService else {
+            print("❌ broadcastPosition: TAKService is nil")
+            lastError = "TAKService not configured"
+            return
+        }
+
+        guard let location = locationManager?.location else {
+            print("❌ broadcastPosition: No location available (locationManager: \(locationManager != nil ? "exists" : "nil"))")
             lastError = "No location available"
             return
         }
 
         let cotXML = generateSelfSACoT(location: location)
+
+        #if DEBUG
+        print("📡 Sending PLI CoT for UID: \(userUID), callsign: \(userCallsign)")
+        print("📡 CoT XML:\n\(cotXML)")
+        #endif
+
         let success = takService.sendCoT(xml: cotXML)
 
         if success {

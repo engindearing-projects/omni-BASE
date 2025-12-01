@@ -10,6 +10,8 @@ struct DrawingPropertiesView: View {
 
     @State private var editedName: String = ""
     @State private var editedColor: DrawingColor = .red
+    @State private var editedRadius: Double = 100  // For circles
+    @State private var isCircle: Bool = false
     @State private var showDeleteConfirmation: Bool = false
 
     var body: some View {
@@ -55,6 +57,43 @@ struct DrawingPropertiesView: View {
                         }
                     }
                     .padding(.vertical, 8)
+
+                    // Radius (for circles only)
+                    if isCircle {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Radius")
+                                    .font(.system(size: 14))
+                                Spacer()
+                                Text(formatRadius(editedRadius))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Slider(
+                                value: $editedRadius,
+                                in: 10...10000,
+                                step: 10
+                            )
+                            .accentColor(.cyan)
+
+                            HStack {
+                                Button("100m") { editedRadius = 100 }
+                                    .buttonStyle(.bordered)
+                                    .font(.system(size: 11))
+                                Button("500m") { editedRadius = 500 }
+                                    .buttonStyle(.bordered)
+                                    .font(.system(size: 11))
+                                Button("1km") { editedRadius = 1000 }
+                                    .buttonStyle(.bordered)
+                                    .font(.system(size: 11))
+                                Button("5km") { editedRadius = 5000 }
+                                    .buttonStyle(.bordered)
+                                    .font(.system(size: 11))
+                            }
+                        }
+                        .padding(.vertical, 8)
+                    }
 
                     // Type and Created Date
                     if let info = getDrawingInfo() {
@@ -146,15 +185,20 @@ struct DrawingPropertiesView: View {
         if let marker = drawingStore.markers.first(where: { $0.id == drawingID }) {
             editedName = marker.label
             editedColor = marker.color
+            isCircle = false
         } else if let line = drawingStore.lines.first(where: { $0.id == drawingID }) {
             editedName = line.label
             editedColor = line.color
+            isCircle = false
         } else if let circle = drawingStore.circles.first(where: { $0.id == drawingID }) {
             editedName = circle.label
             editedColor = circle.color
+            editedRadius = circle.radius
+            isCircle = true
         } else if let polygon = drawingStore.polygons.first(where: { $0.id == drawingID }) {
             editedName = polygon.label
             editedColor = polygon.color
+            isCircle = false
         }
     }
 
@@ -170,6 +214,7 @@ struct DrawingPropertiesView: View {
         } else if var circle = drawingStore.circles.first(where: { $0.id == drawingID }) {
             circle.label = editedName
             circle.color = editedColor
+            circle.radius = editedRadius
             drawingStore.updateCircle(circle)
         } else if var polygon = drawingStore.polygons.first(where: { $0.id == drawingID }) {
             polygon.label = editedName
@@ -233,6 +278,14 @@ struct DrawingPropertiesView: View {
             return String(format: "%.0f m", distance)
         } else {
             return String(format: "%.2f km", distance / 1000)
+        }
+    }
+
+    private func formatRadius(_ radius: Double) -> String {
+        if radius < 1000 {
+            return String(format: "%.0f m", radius)
+        } else {
+            return String(format: "%.2f km", radius / 1000)
         }
     }
 }

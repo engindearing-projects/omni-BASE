@@ -1,4 +1,27 @@
 import SwiftUI
+import CoreLocation
+
+// MARK: - Coordinate Array Extension
+
+extension Array where Element == CLLocationCoordinate2D {
+    /// Calculate the center coordinate of an array of coordinates
+    func centerCoordinate() -> CLLocationCoordinate2D? {
+        guard !isEmpty else { return nil }
+
+        var sumLat: Double = 0
+        var sumLon: Double = 0
+
+        for coord in self {
+            sumLat += coord.latitude
+            sumLon += coord.longitude
+        }
+
+        return CLLocationCoordinate2D(
+            latitude: sumLat / Double(count),
+            longitude: sumLon / Double(count)
+        )
+    }
+}
 
 // MARK: - Drawing Tools Panel
 
@@ -250,6 +273,7 @@ struct DrawingToolButton: View {
 struct DrawingListPanel: View {
     @ObservedObject var drawingStore: DrawingStore
     @Binding var isVisible: Bool
+    var onZoomToDrawing: ((CLLocationCoordinate2D, Double?) -> Void)?
     @State private var selectedDrawingID: UUID?
     @State private var showingProperties: Bool = false
 
@@ -285,11 +309,15 @@ struct DrawingListPanel: View {
                             DrawingListItem(
                                 name: marker.label,
                                 icon: "mappin.circle.fill",
-                                color: marker.color.swiftUIColor
-                            ) {
-                                selectedDrawingID = marker.id
-                                showingProperties = true
-                            }
+                                color: marker.color.swiftUIColor,
+                                onTap: {
+                                    onZoomToDrawing?(marker.coordinate, nil)
+                                },
+                                onEdit: {
+                                    selectedDrawingID = marker.id
+                                    showingProperties = true
+                                }
+                            )
                         }
                     }
 
@@ -300,11 +328,18 @@ struct DrawingListPanel: View {
                             DrawingListItem(
                                 name: line.label,
                                 icon: "line.diagonal",
-                                color: line.color.swiftUIColor
-                            ) {
-                                selectedDrawingID = line.id
-                                showingProperties = true
-                            }
+                                color: line.color.swiftUIColor,
+                                onTap: {
+                                    // Zoom to center of line
+                                    if let center = line.coordinates.centerCoordinate() {
+                                        onZoomToDrawing?(center, nil)
+                                    }
+                                },
+                                onEdit: {
+                                    selectedDrawingID = line.id
+                                    showingProperties = true
+                                }
+                            )
                         }
                     }
 
@@ -315,11 +350,16 @@ struct DrawingListPanel: View {
                             DrawingListItem(
                                 name: circle.label,
                                 icon: "circle",
-                                color: circle.color.swiftUIColor
-                            ) {
-                                selectedDrawingID = circle.id
-                                showingProperties = true
-                            }
+                                color: circle.color.swiftUIColor,
+                                onTap: {
+                                    // Zoom to circle center with radius for proper zoom level
+                                    onZoomToDrawing?(circle.center, circle.radius)
+                                },
+                                onEdit: {
+                                    selectedDrawingID = circle.id
+                                    showingProperties = true
+                                }
+                            )
                         }
                     }
 
@@ -330,11 +370,18 @@ struct DrawingListPanel: View {
                             DrawingListItem(
                                 name: polygon.label,
                                 icon: "pentagon",
-                                color: polygon.color.swiftUIColor
-                            ) {
-                                selectedDrawingID = polygon.id
-                                showingProperties = true
-                            }
+                                color: polygon.color.swiftUIColor,
+                                onTap: {
+                                    // Zoom to center of polygon
+                                    if let center = polygon.coordinates.centerCoordinate() {
+                                        onZoomToDrawing?(center, nil)
+                                    }
+                                },
+                                onEdit: {
+                                    selectedDrawingID = polygon.id
+                                    showingProperties = true
+                                }
+                            )
                         }
                     }
 
@@ -374,6 +421,15 @@ struct DrawingListPanel: View {
         .background(Color.black.opacity(0.9))
         .cornerRadius(12)
         .shadow(radius: 10)
+        .sheet(isPresented: $showingProperties) {
+            if let drawingID = selectedDrawingID {
+                DrawingPropertiesView(
+                    drawingStore: drawingStore,
+                    drawingID: drawingID,
+                    isPresented: $showingProperties
+                )
+            }
+        }
     }
 }
 
@@ -404,31 +460,38 @@ struct DrawingListItem: View {
     let name: String
     let icon: String
     let color: Color
-    let action: () -> Void
+    var onTap: (() -> Void)?
+    var onEdit: (() -> Void)?
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(color)
-                    .frame(width: 24)
+        HStack(spacing: 10) {
+            // Main tap area - zooms to drawing
+            Button(action: { onTap?() }) {
+                HStack(spacing: 10) {
+                    Image(systemName: icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(color)
+                        .frame(width: 24)
 
-                Text(name)
-                    .font(.system(size: 12))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
+                    Text(name)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
 
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10))
-                    .foregroundColor(.white.opacity(0.3))
+                    Spacer()
+                }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(Color.white.opacity(0.05))
-            .cornerRadius(6)
+
+            // Edit button
+            Button(action: { onEdit?() }) {
+                Image(systemName: "pencil.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(.white.opacity(0.5))
+            }
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(6)
     }
 }

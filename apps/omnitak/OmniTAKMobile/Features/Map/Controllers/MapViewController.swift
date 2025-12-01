@@ -66,7 +66,7 @@ struct ATAKMapView: View {
     // Map overlay states
     @State private var showCompass = false  // Hidden by default for max map space
     @State private var showCoordinates = false  // Hidden by default for max map space
-    @State private var showScaleBar = false  // Hidden by default for max map space
+    @State private var showScaleBar = true  // ATAK-style: Enabled by default in bottom-left
     @State private var showGrid = false
 
     // New ATAK-style UI states
@@ -78,7 +78,7 @@ struct ATAKMapView: View {
     @State private var showOverlaySettings = false
     @State private var showBreadcrumbTrails = false
     @State private var showRBLines = false
-    @State private var showCallsignPanel = false  // Hidden by default for max map space
+    @State private var showCallsignPanel = true  // ATAK-style: Enabled by default in bottom-right
 
     init() {
         let store = DrawingStore()
@@ -287,7 +287,10 @@ struct ATAKMapView: View {
                 Spacer()
                 DrawingListPanel(
                     drawingStore: drawingStore,
-                    isVisible: $showDrawingList
+                    isVisible: $showDrawingList,
+                    onZoomToDrawing: { coordinate, radius in
+                        zoomToDrawing(coordinate: coordinate, radius: radius)
+                    }
                 )
                 .padding(.trailing, 8)
                 .padding(.vertical, isLandscape ? 80 : 120)
@@ -307,10 +310,6 @@ struct ATAKMapView: View {
             connectionStatus: takService.isConnected ? "CONNECTED" : "DISCONNECTED",
             onNavigate: { screen in
                 currentScreen = screen
-                #if DEBUG
-                print("🧭 Navigate to: \(screen)")
-                #endif
-
                 // Handle navigation
                 switch screen {
                 case "map":
@@ -399,6 +398,7 @@ struct ATAKMapView: View {
                         coordinates: formatCoordinates(location.coordinate),
                         altitude: formatAltitude(location.altitude),
                         speed: formatSpeed(location.speed),
+                        heading: formatHeading(locationManager.heading),
                         accuracy: "+/- \(Int(location.horizontalAccuracy))m"
                     )
                     .padding(.trailing, 16)
@@ -470,7 +470,7 @@ struct ATAKMapView: View {
             cursorModeOverlay
             // overlaySettingsButton - Removed per user request
             // overlaySettingsPanel - Removed per user request
-            mapCenterDisplay
+            // mapCenterDisplay - Removed per user request (coords available via radial menu)
         }
     }
 
@@ -580,72 +580,36 @@ struct ATAKMapView: View {
         }
     }
 
-    @ViewBuilder
-    private var mapCenterDisplay: some View {
-        VStack {
-            Spacer()
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("CENTER")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundColor(.gray)
-                    Text(mapStateManager.formattedCenterCoordinate)
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.white)
-
-                    Button(action: {
-                        mapStateManager.cycleCoordinateFormat()
-                    }) {
-                        Text(mapStateManager.coordinateFormat.shortName)
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(.cyan)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(Color.cyan.opacity(0.2))
-                            .cornerRadius(3)
-                    }
-                }
-                .padding(6)
-                .background(Color.black.opacity(0.8))
-                .cornerRadius(6)
-                .padding(.leading, 8)
-                .padding(.bottom, 75)
-                Spacer()
-            }
-        }
-        .zIndex(1011)
-    }
+    // mapCenterDisplay removed - coordinates available via radial menu and settings
 
     @ViewBuilder
     private var gpsFollowButton: some View {
         VStack {
             Spacer()
             HStack(alignment: .bottom, spacing: 8) {
-                // GPS Follow Button - Bottom Left
-                Button(action: centerOnUser) {
-                    VStack(spacing: 2) {
-                        Image(systemName: trackingMode == .follow ? "location.fill" : "location")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(trackingMode == .follow ? Color(hex: "#FFFC00") : .white)
+                // ATAK-style left-side control cluster
+                VStack(spacing: 8) {
+                    // GPS Lock/Center Button (crosshair icon)
+                    Button(action: centerOnUser) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.black.opacity(0.75))
+                                .frame(width: 44, height: 44)
 
-                        Text(trackingMode == .follow ? "Follow" : "GPS")
-                            .font(.system(size: 8, weight: .medium))
-                            .foregroundColor(trackingMode == .follow ? Color(hex: "#FFFC00") : .white)
+                            Circle()
+                                .stroke(trackingMode == .follow ? Color.cyan : Color.white.opacity(0.6), lineWidth: 2)
+                                .frame(width: 44, height: 44)
+
+                            Image(systemName: trackingMode == .follow ? "location.fill" : "location")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(trackingMode == .follow ? Color.cyan : .white)
+                        }
+                        .shadow(color: .black.opacity(0.4), radius: 4, x: 0, y: 2)
                     }
-                    .frame(width: 48, height: 48)
-                    .background(
-                        trackingMode == .follow ?
-                        Color(hex: "#FFFC00").opacity(0.25) :
-                        Color.black.opacity(0.7)
-                    )
-                    .cornerRadius(10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(trackingMode == .follow ? Color(hex: "#FFFC00") : Color.white.opacity(0.3), lineWidth: trackingMode == .follow ? 2 : 1)
-                    )
-                    .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 3)
+                    .buttonStyle(.plain)
+
+                    // Zoom controls moved to bottom toolbar to match ATAK
                 }
-                .buttonStyle(.plain)
 
                 // Coordinate display next to GPS button
                 if showCoordinates {
@@ -830,7 +794,7 @@ struct ATAKMapView: View {
                 case "meshtastic":
                     showMeshtastic = true
                 default:
-                    print("Unknown custom action: \(identifier)")
+                    break // Unknown custom action
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .radialMenuMeasurementStarted)) { notification in
@@ -848,6 +812,21 @@ struct ATAKMapView: View {
                             measurementManager.handleMapTap(at: coordinate)
                         }
                     }
+                }
+            }
+            // Drawing action observers from radial menu
+            .onReceive(NotificationCenter.default.publisher(for: .radialMenuOpenDrawingTools)) { _ in
+                withAnimation(.spring()) {
+                    showDrawingPanel = true
+                    showDrawingList = false
+                    showLayersPanel = false
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .radialMenuOpenDrawingsList)) { _ in
+                withAnimation(.spring()) {
+                    showDrawingList = true
+                    showDrawingPanel = false
+                    showLayersPanel = false
                 }
             }
     }
@@ -874,13 +853,11 @@ struct ATAKMapView: View {
         let callsign = generateCallsign(for: affiliation)
 
         // Use PointDropperService quickDrop
-        let marker = PointDropperService.shared.quickDrop(
+        _ = PointDropperService.shared.quickDrop(
             at: coordinate,
             name: callsign,
             broadcast: false
         )
-
-        print("Marker dropped at: \(coordinate.latitude), \(coordinate.longitude) - \(marker.name)")
 
         // Haptic feedback
         let generator = UINotificationFeedbackGenerator()
@@ -918,9 +895,6 @@ struct ATAKMapView: View {
                 certificateName: activeServer.certificateName,
                 certificatePassword: activeServer.certificatePassword
             )
-            #if DEBUG
-            print("🔌 Auto-connecting to: \(activeServer.displayName)")
-            #endif
         }
     }
 
@@ -940,9 +914,6 @@ struct ATAKMapView: View {
         if trackingMode == .follow {
             // Disable follow mode - allow free panning
             trackingMode = .none
-            #if DEBUG
-            print("🔓 GPS follow mode disabled - free pan enabled")
-            #endif
         } else {
             // Enable follow mode and center on user
             if let location = locationManager.location {
@@ -951,20 +922,12 @@ struct ATAKMapView: View {
                     mapRegion.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                 }
                 trackingMode = .follow
-                #if DEBUG
-                print("🎯 GPS follow mode enabled: \(location.coordinate.latitude), \(location.coordinate.longitude)")
-                #endif
-            } else {
-                print("❌ No location available")
             }
         }
     }
 
     private func sendSelfPosition() {
-        guard let location = locationManager.location else {
-            print("❌ Cannot send position - no location")
-            return
-        }
+        guard let location = locationManager.location else { return }
 
         // Send to all connected servers via federation
         if federation.getConnectedCount() > 0 {
@@ -992,32 +955,34 @@ struct ATAKMapView: View {
             )
 
             federation.broadcast(event: cotEvent)
-            #if DEBUG
-            print("📤 Broadcast position to \(federation.getConnectedCount()) server(s): \(location.coordinate.latitude), \(location.coordinate.longitude)")
-            #endif
-        } else {
-            #if DEBUG
-            print("⚠️ No servers connected - cannot broadcast position")
-            #endif
         }
     }
 
     private func zoomIn() {
-        // Zoom in by halving the span - no animation for instant response
         mapRegion.span.latitudeDelta = max(mapRegion.span.latitudeDelta / 2, 0.001)
         mapRegion.span.longitudeDelta = max(mapRegion.span.longitudeDelta / 2, 0.001)
-        #if DEBUG
-        print("🔍 Zoom in: \(mapRegion.span.latitudeDelta)")
-        #endif
     }
 
     private func zoomOut() {
-        // Zoom out by doubling the span - no animation for instant response
         mapRegion.span.latitudeDelta = min(mapRegion.span.latitudeDelta * 2, 180)
         mapRegion.span.longitudeDelta = min(mapRegion.span.longitudeDelta * 2, 180)
-        #if DEBUG
-        print("🔍 Zoom out: \(mapRegion.span.latitudeDelta)")
-        #endif
+    }
+
+    private func zoomToDrawing(coordinate: CLLocationCoordinate2D, radius: Double?) {
+        let span: MKCoordinateSpan
+        if let radius = radius {
+            let degrees = (radius * 3) / 111000
+            span = MKCoordinateSpan(
+                latitudeDelta: max(degrees, 0.005),
+                longitudeDelta: max(degrees, 0.005)
+            )
+        } else {
+            span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        }
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            mapRegion = MKCoordinateRegion(center: coordinate, span: span)
+        }
     }
 
     private func toggleLayer(_ layer: String) {
@@ -1031,78 +996,37 @@ struct ATAKMapView: View {
         // Toggle map layers
         withAnimation(.easeInOut(duration: 0.3)) {
             switch layer {
-            case "satellite":
-                mapType = .satellite
-                #if DEBUG
-                print("🗺️ Map type: Satellite")
-                #endif
-            case "hybrid":
-                mapType = .hybrid
-                #if DEBUG
-                print("🗺️ Map type: Hybrid")
-                #endif
-            case "standard":
-                mapType = .standard
-                #if DEBUG
-                print("🗺️ Map type: Standard")
-                #endif
-            default:
-                break
+            case "satellite": mapType = .satellite
+            case "hybrid": mapType = .hybrid
+            case "standard": mapType = .standard
+            default: break
             }
         }
     }
 
     private func toggleOverlay(_ overlay: String) {
-        // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        // Toggle overlay visibility
         switch overlay {
-        case "friendly":
-            showFriendly.toggle()
-            print("👥 Friendly units: \(showFriendly ? "ON" : "OFF")")
-        case "hostile":
-            showHostile.toggle()
-            #if DEBUG
-            print("⚠️ Hostile units: \(showHostile ? "ON" : "OFF")")
-            #endif
-        case "unknown":
-            showUnknown.toggle()
-            print("❓ Unknown units: \(showUnknown ? "ON" : "OFF")")
-        default:
-            break
+        case "friendly": showFriendly.toggle()
+        case "hostile": showHostile.toggle()
+        case "unknown": showUnknown.toggle()
+        default: break
         }
     }
 
     private func toggleMapOverlay(_ overlay: String) {
-        // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        // Toggle map overlay visibility
         withAnimation(.easeInOut(duration: 0.3)) {
             switch overlay {
-            case "compass":
-                showCompass.toggle()
-                #if DEBUG
-                print("🧭 Compass: \(showCompass ? "ON" : "OFF")")
-                #endif
-            case "coordinates":
-                showCoordinates.toggle()
-                #if DEBUG
-                print("📍 Coordinates: \(showCoordinates ? "ON" : "OFF")")
-                #endif
-            case "scale":
-                showScaleBar.toggle()
-                print("📏 Scale Bar: \(showScaleBar ? "ON" : "OFF")")
-            case "grid":
-                showGrid.toggle()
-                #if DEBUG
-                print("🗺️ Grid: \(showGrid ? "ON" : "OFF")")
-                #endif
-            default:
-                break
+            case "compass": showCompass.toggle()
+            case "coordinates": showCoordinates.toggle()
+            case "scale": showScaleBar.toggle()
+            case "grid": showGrid.toggle()
+            default: break
             }
         }
     }
@@ -1131,6 +1055,18 @@ struct ATAKMapView: View {
     private func formatSpeed(_ speed: CLLocationSpeed) -> String {
         let speedMPH = speed * 2.23694 // Convert m/s to MPH
         return String(format: "%.0f MPH", max(0, speedMPH))
+    }
+
+    private func formatHeading(_ heading: CLHeading?) -> String {
+        guard let heading = heading else {
+            // Fall back to course from location if heading not available
+            if locationManager.course >= 0 {
+                return String(format: "%.0f°M", locationManager.course)
+            }
+            return ""
+        }
+        // Use magnetic heading for ATAK compatibility
+        return String(format: "%.0f°M", heading.magneticHeading)
     }
 
     // MARK: - Multi-Server Helpers
@@ -1310,7 +1246,7 @@ struct ATAKBottomToolbar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Zoom Controls
+            // Zoom Controls only - Draw/Drawings accessible via radial menu long-press
             VStack(spacing: 4) {
                 MapToolButton(icon: "plus", label: "", compact: true) {
                     onZoomIn()
@@ -1322,19 +1258,7 @@ struct ATAKBottomToolbar: View {
 
             Spacer()
 
-            // Drawing Tools
-            MapToolButton(icon: "pencil.tip.crop.circle", label: "Draw") {
-                showDrawingPanel.toggle()
-                showLayersPanel = false
-                showDrawingList = false
-            }
-
-            // Drawing List
-            MapToolButton(icon: "list.bullet.rectangle", label: "Drawings") {
-                showDrawingList.toggle()
-                showLayersPanel = false
-                showDrawingPanel = false
-            }
+            // Draw and Drawings buttons removed - accessible via radial menu (long-press on map)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -1586,24 +1510,36 @@ extension View {
 // MARK: - Location Manager
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    static let shared = LocationManager()
+
     private let manager = CLLocationManager()
     @Published var location: CLLocation?
     @Published var accuracy: Double = 0
+    @Published var heading: CLHeading?
+    @Published var course: Double = 0
 
     override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestWhenInUseAuthorization()
+        manager.startUpdatingLocation()
+        manager.startUpdatingHeading()
     }
 
     func startUpdating() {
         manager.startUpdatingLocation()
+        manager.startUpdatingHeading()
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         location = locations.last
         accuracy = locations.last?.horizontalAccuracy ?? 0
+        course = locations.last?.course ?? 0
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        heading = newHeading
     }
 }
 
@@ -1665,7 +1601,6 @@ struct TacticalMapView: UIViewRepresentable {
         // Update map type
         if mapView.mapType != mapType {
             mapView.mapType = mapType
-            print("Map type updated to: \(mapTypeString(mapType))")
         }
 
         // Update region (only if not currently being manipulated by user)

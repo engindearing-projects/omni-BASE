@@ -213,6 +213,8 @@ enum ChatRoomType: String, Codable {
 struct ChatRoom {
     static let allUsersId = "All Chat Users"
     static let allUsersTitle = "All Chat Users"
+    // ATAK uses "All Chat Rooms" for the group chatroom - must match for interop
+    static let atakChatroomName = "All Chat Rooms"
     static let broadcastId = "BROADCAST"
     static let broadcastTitle = "All Users Broadcast"
 

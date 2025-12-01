@@ -205,7 +205,7 @@ struct CircleDrawing: DrawingObject {
     var color: DrawingColor
     let createdAt: Date
     let center: CLLocationCoordinate2D
-    let radius: CLLocationDistance
+    var radius: CLLocationDistance
 
     var coordinates: [CLLocationCoordinate2D] {
         [center]

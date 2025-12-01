@@ -293,35 +293,57 @@ struct GeofenceAlertNotification: View {
 }
 
 // MARK: - Callsign Display with Coordinates
+// ATAK-style bottom-right status widget
 
 struct CallsignDisplay: View {
     let callsign: String
     let coordinates: String // e.g., "11T MN 65089 83168"
     let altitude: String // e.g., "1,898 ft MSL"
     let speed: String // e.g., "0 MPH"
+    let heading: String? // e.g., "157°M"
     let accuracy: String // e.g., "+/- 5m"
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
+            // Callsign in green (ATAK style)
             Text("Callsign: \(callsign)")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: "#00FFFF"))
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.green)
 
+            // MGRS Coordinates
             Text(coordinates)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(hex: "#00FFFF"))
-
-            Text(altitude)
-                .font(.system(size: 11))
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundColor(.white)
 
-            Text("\(speed)     \(accuracy)")
-                .font(.system(size: 11))
-                .foregroundColor(.white)
+            // Altitude and Heading on same line
+            HStack(spacing: 16) {
+                Text(altitude)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white)
+
+                if let heading = heading, !heading.isEmpty {
+                    Text(heading)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
+
+            // Speed and Accuracy on same line
+            HStack(spacing: 16) {
+                Text(speed)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white)
+
+                Text(accuracy)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white)
+            }
         }
-        .padding(12)
-        .background(Color.black.opacity(0.7))
-        .cornerRadius(8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color.black.opacity(0.75))
+        .cornerRadius(6)
+        .shadow(color: .black.opacity(0.4), radius: 4, x: 0, y: 2)
     }
 }
 
@@ -364,6 +386,7 @@ struct ATAKLoadingScreen_Previews: PreviewProvider {
                         coordinates: "11T MN 65089 83168",
                         altitude: "1,898 ft MSL",
                         speed: "0 MPH",
+                        heading: "157°M",
                         accuracy: "+/- 5m"
                     )
                 }
