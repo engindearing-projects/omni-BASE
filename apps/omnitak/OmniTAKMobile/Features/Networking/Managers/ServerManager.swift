@@ -59,10 +59,109 @@ class ServerManager: ObservableObject {
     private let serversKey = "tak_servers"
     private let activeServerKey = "active_server_id"
 
+    private let bundledServerSetupKey = "bundled_server_setup_v2"
+
     init() {
         loadServers()
 
-        // No default servers - users must add their own
+        // Set up bundled server on first launch
+        setupBundledServerIfNeeded()
+    }
+
+    // MARK: - Bundled Server Setup
+
+    private func setupBundledServerIfNeeded() {
+        // Only run once per app version
+        guard !UserDefaults.standard.bool(forKey: bundledServerSetupKey) else { return }
+
+        // Import bundled certificates and add default server
+        Task {
+            await importBundledCertificates()
+            await MainActor.run {
+                addBundledServer()
+                UserDefaults.standard.set(true, forKey: bundledServerSetupKey)
+            }
+        }
+    }
+
+    private func importBundledCertificates() async {
+        // Import client certificate from bundle
+        if let clientCertURL = Bundle.main.url(forResource: "bundled-client", withExtension: "p12") {
+            do {
+                let data = try Data(contentsOf: clientCertURL)
+                try importP12ToKeychain(data: data, password: "atakatak", label: "bundled-client")
+                print("✅ Imported bundled client certificate")
+            } catch {
+                print("⚠️ Failed to import bundled client certificate: \(error)")
+            }
+        } else {
+            print("⚠️ bundled-client.p12 not found in app bundle")
+        }
+
+        // Import CA/truststore from bundle
+        if let caCertURL = Bundle.main.url(forResource: "bundled-ca", withExtension: "p12") {
+            do {
+                let data = try Data(contentsOf: caCertURL)
+                try importP12ToKeychain(data: data, password: "atakatak", label: "bundled-ca")
+                print("✅ Imported bundled CA certificate")
+            } catch {
+                print("⚠️ Failed to import bundled CA certificate: \(error)")
+            }
+        } else {
+            print("⚠️ bundled-ca.p12 not found in app bundle")
+        }
+    }
+
+    private func importP12ToKeychain(data: Data, password: String, label: String) throws {
+        let options: [String: Any] = [kSecImportExportPassphrase as String: password]
+        var items: CFArray?
+        let status = SecPKCS12Import(data as CFData, options as CFDictionary, &items)
+
+        guard status == errSecSuccess,
+              let itemsArray = items as? [[String: Any]],
+              let firstItem = itemsArray.first,
+              let identity = firstItem[kSecImportItemIdentity as String] else {
+            throw NSError(domain: "CertImport", code: Int(status), userInfo: [NSLocalizedDescriptionKey: "Failed to import P12"])
+        }
+
+        // Store identity in keychain
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassIdentity,
+            kSecValueRef as String: identity,
+            kSecAttrLabel as String: label
+        ]
+
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        if addStatus != errSecSuccess && addStatus != errSecDuplicateItem {
+            throw NSError(domain: "CertImport", code: Int(addStatus), userInfo: [NSLocalizedDescriptionKey: "Failed to add to keychain"])
+        }
+    }
+
+    private func addBundledServer() {
+        // Check if server already exists
+        let existingServer = servers.first { $0.host == "tak.engindearing.soy" && $0.port == 8089 }
+        guard existingServer == nil else {
+            print("ℹ️ Bundled server already exists")
+            return
+        }
+
+        let bundledServer = TAKServer(
+            name: "TAK Server",
+            host: "tak.engindearing.soy",
+            port: 8089,
+            protocolType: "ssl",
+            useTLS: true,
+            isDefault: true,
+            enabled: true,
+            certificateName: "bundled-client",
+            certificatePassword: "atakatak"
+        )
+
+        servers.insert(bundledServer, at: 0)
+        activeServer = bundledServer
+        saveServers()
+        saveActiveServer()
+        print("✅ Added bundled TAK server: \(bundledServer.displayName)")
     }
 
     // MARK: - Persistence
@@ -161,5 +260,67 @@ class ServerManager: ObservableObject {
 
     func getDefaultServer() -> TAKServer? {
         return servers.first { $0.isDefault } ?? servers.first
+    }
+
+    // MARK: - Multi-Server Support
+
+    /// Get all enabled servers
+    func getEnabledServers() -> [TAKServer] {
+        return servers.filter { $0.enabled }
+    }
+
+    /// Enable a specific server
+    func enableServer(_ server: TAKServer) {
+        if let index = servers.firstIndex(where: { $0.id == server.id }) {
+            servers[index].enabled = true
+            saveServers()
+            #if DEBUG
+            print("✅ Server \(server.name) enabled")
+            #endif
+        }
+    }
+
+    /// Disable a specific server
+    func disableServer(_ server: TAKServer) {
+        if let index = servers.firstIndex(where: { $0.id == server.id }) {
+            servers[index].enabled = false
+            saveServers()
+            #if DEBUG
+            print("❌ Server \(server.name) disabled")
+            #endif
+        }
+    }
+
+    /// Enable all servers
+    func enableAllServers() {
+        for index in servers.indices {
+            servers[index].enabled = true
+        }
+        saveServers()
+        #if DEBUG
+        print("✅ All servers enabled")
+        #endif
+    }
+
+    /// Disable all servers
+    func disableAllServers() {
+        for index in servers.indices {
+            servers[index].enabled = false
+        }
+        saveServers()
+        #if DEBUG
+        print("❌ All servers disabled")
+        #endif
+    }
+
+    /// Connect to all enabled servers
+    func connectToEnabledServers() {
+        let enabledServers = getEnabledServers()
+        for server in enabledServers {
+            TAKService.shared.connectToServer(server)
+        }
+        #if DEBUG
+        print("🔌 Connecting to \(enabledServers.count) enabled server(s)")
+        #endif
     }
 }

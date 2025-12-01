@@ -13,6 +13,8 @@ struct NetworkPreferencesView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var serverManager = ServerManager.shared
     @State private var showServers = false
+    @State private var displayConnectionWidget = true
+    @State private var monitorServerConnections = true
 
     var body: some View {
         NavigationView {
@@ -44,8 +46,8 @@ struct NetworkPreferencesView: View {
                             PreferenceRow(
                                 icon: "server.rack",
                                 iconColor: Color(hex: "#00BCD4"),
-                                title: "MANAGE SERVER CONNECTIONS",
-                                description: "Tap to configure TAK Server connections (\(serverManager.servers.count) server\(serverManager.servers.count == 1 ? "" : "s") configured)",
+                                title: "Manage Server Connections",
+                                description: "Configure TAK Server connections (\(serverManager.servers.count) server\(serverManager.servers.count == 1 ? "" : "s") configured)",
                                 showIndicator: serverManager.servers.count > 0,
                                 indicatorColor: Color(hex: "#00FF00"),
                                 onTap: { showServers = true }
@@ -53,25 +55,28 @@ struct NetworkPreferencesView: View {
 
                             Divider().background(Color(hex: "#222222"))
 
-                            // Network Connection Preferences
-                            PreferenceRow(
-                                icon: "wifi",
+                            // Display Connection Widget (ATAK toggle)
+                            PreferenceToggleRow(
+                                icon: "network",
                                 iconColor: Color(hex: "#00BCD4"),
-                                title: "Network Connection Preferences",
-                                description: "Adjust network connections",
-                                onTap: { /* TODO: Network connection prefs */ }
+                                title: "Display Connection Widget",
+                                description: "Show connectivity indicator on map",
+                                isOn: $displayConnectionWidget
                             )
 
                             Divider().background(Color(hex: "#222222"))
 
-                            // Datalink Preferences
-                            PreferenceRow(
-                                icon: "dot.radiowaves.left.and.right",
+                            // Monitor Server Connections (ATAK toggle)
+                            PreferenceToggleRow(
+                                icon: "antenna.radiowaves.left.and.right",
                                 iconColor: Color(hex: "#00BCD4"),
-                                title: "Datalink Preferences",
-                                description: "Adjust Datalink Messages Preferences",
-                                onTap: { /* TODO: Datalink prefs */ }
+                                title: "Monitor Server Connections",
+                                description: "Enable connection health monitoring",
+                                isOn: $monitorServerConnections
                             )
+
+                            // Note: Additional settings (TrustStore, Client Certs, Network, Datalink)
+                            // will be added here when implemented
                         }
                     }
                 }
@@ -91,7 +96,7 @@ struct NetworkPreferencesView: View {
                 }
 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button(action: { /* Home icon */ }) {
+                    Button(action: { dismiss() }) {
                         Image(systemName: "house.fill")
                             .foregroundColor(.white)
                     }
@@ -160,6 +165,48 @@ struct PreferenceRow: View {
             .background(Color.black)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Preference Toggle Row (ATAK Style)
+
+struct PreferenceToggleRow: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let description: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Icon
+            Image(systemName: icon)
+                .font(.system(size: 28))
+                .foregroundColor(iconColor)
+                .frame(width: 48, height: 48)
+
+            // Text content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(hex: "#AAAAAA"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+
+            // Toggle (ATAK-style with cyan accent)
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .tint(Color(hex: "#00BCD4"))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .background(Color.black)
     }
 }
 

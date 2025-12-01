@@ -212,31 +212,11 @@ struct ToolsHeader: View {
 
             Spacer()
 
-            // Edit, List, Settings buttons
-            HStack(spacing: 16) {
-                Button(action: {}) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                }
-
-                Button(action: {}) {
-                    Image(systemName: "list.bullet")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                }
-
-                Button(action: {}) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                }
-
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                }
+            // Close button
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
             }
         }
         .padding()

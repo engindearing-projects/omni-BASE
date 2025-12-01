@@ -184,10 +184,6 @@ struct SettingsView: View {
 
                 // Data Management
                 Section("DATA MANAGEMENT") {
-                    Button("Export All Data") {
-                        // TODO: Implement export functionality
-                    }
-
                     NavigationLink(destination: DataPackageImportView()) {
                         Text("Import Data Package")
                     }
@@ -218,11 +214,6 @@ struct SettingsView: View {
                 Section("DANGER ZONE") {
                     Button("Clear All Team Data") {
                         TeamService.shared.clearAllTeamData()
-                    }
-                    .foregroundColor(.red)
-
-                    Button("Reset App") {
-                        // Reset everything
                     }
                     .foregroundColor(.red)
                 }

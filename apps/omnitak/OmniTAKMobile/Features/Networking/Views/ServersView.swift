@@ -18,6 +18,7 @@ struct ServersView: View {
     @State private var showEnrollment = false
     @State private var showDataPackageImport = false
     @State private var serverToEdit: TAKServer? = nil
+    @State private var showActionsMenu = false
 
     var body: some View {
         NavigationView {
@@ -26,6 +27,9 @@ struct ServersView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
+                        // My Primary IP Address (ATAK-style)
+                        ipAddressHeader
+
                         // Server List
                         if !serverManager.servers.isEmpty {
                             serverList
@@ -40,9 +44,34 @@ struct ServersView: View {
                     .padding(16)
                 }
             }
-            .navigationTitle("Servers")
+            .navigationTitle("TAK Servers")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        Button(action: { showEnrollment = true }) {
+                            Label("Add", systemImage: "plus.circle")
+                        }
+
+                        Button(role: .destructive, action: removeAllServers) {
+                            Label("Remove All", systemImage: "trash")
+                        }
+
+                        Divider()
+
+                        Button(action: { showEnrollment = true }) {
+                            Label("Quick Connect", systemImage: "bolt.circle")
+                        }
+
+                        Button(action: { showDataPackageImport = true }) {
+                            Label("Data Package", systemImage: "doc.badge.plus")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundColor(.white)
+                    }
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
                         .foregroundColor(Color(hex: "#FFFC00"))
@@ -60,6 +89,33 @@ struct ServersView: View {
         }
     }
 
+    // MARK: - IP Address Header (ATAK-style)
+
+    private var ipAddressHeader: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "network")
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "#00BCD4"))
+
+            Text("My Primary IP Address:")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Color(hex: "#CCCCCC"))
+
+            Text(NetworkUtilities.getLocalIPAddress() ?? "Not Available")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Color(hex: "#00BCD4"))
+
+            Spacer()
+        }
+        .padding(12)
+        .background(Color(white: 0.08))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(hex: "#00BCD4").opacity(0.2), lineWidth: 1)
+        )
+    }
+
     // MARK: - Server List
 
     private var serverList: some View {
@@ -72,25 +128,28 @@ struct ServersView: View {
             ForEach(serverManager.servers) { server in
                 ServerRowSimple(
                     server: server,
-                    isActive: server.id == serverManager.activeServer?.id,
-                    isConnected: takService.isConnected && server.id == serverManager.activeServer?.id,
+                    isConnected: takService.isConnectedTo(serverId: server.id),
                     onToggleEnabled: {
+                        // Toggle enabled state
                         serverManager.toggleServerEnabled(server)
-                        // Disconnect if disabling connected server
-                        if takService.isConnected && server.id == serverManager.activeServer?.id && !server.enabled {
-                            takService.disconnect()
+
+                        // Get updated server state
+                        if let updatedServer = serverManager.servers.first(where: { $0.id == server.id }) {
+                            if updatedServer.enabled {
+                                // Connect to this server
+                                takService.connectToServer(updatedServer)
+                            } else {
+                                // Disconnect from this server
+                                takService.disconnectFromServer(serverId: server.id)
+                            }
                         }
-                    },
-                    onSelect: {
-                        serverManager.setActiveServer(server)
                     },
                     onEdit: {
                         serverToEdit = server
                     },
                     onDelete: {
-                        if takService.isConnected && server.id == serverManager.activeServer?.id {
-                            takService.disconnect()
-                        }
+                        // Disconnect if connected
+                        takService.disconnectFromServer(serverId: server.id)
                         serverManager.deleteServer(server)
                     }
                 )
@@ -130,6 +189,17 @@ struct ServersView: View {
                     .stroke(Color(hex: "#FFFC00").opacity(0.3), lineWidth: 1)
             )
         }
+    }
+
+    // MARK: - Actions
+
+    private func removeAllServers() {
+        // Disconnect from all servers
+        takService.disconnectAll()
+
+        // Remove all servers
+        serverManager.servers.removeAll()
+        serverManager.activeServer = nil
     }
 
     // MARK: - Import Data Package Button
@@ -172,10 +242,8 @@ struct ServersView: View {
 
 struct ServerRowSimple: View {
     let server: TAKServer
-    let isActive: Bool
     let isConnected: Bool
     let onToggleEnabled: () -> Void
-    let onSelect: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
 
@@ -183,84 +251,86 @@ struct ServerRowSimple: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Checkbox
+            // Checkbox (primary action) - tap to enable/disable
             Button(action: onToggleEnabled) {
                 Image(systemName: server.enabled ? "checkmark.square.fill" : "square")
                     .font(.system(size: 24))
-                    .foregroundColor(server.enabled ? Color(hex: "#00FF00") : Color(hex: "#555555"))
+                    .foregroundColor(checkboxColor)
             }
             .buttonStyle(PlainButtonStyle())
 
-            // Server info (tappable)
-            Button(action: onSelect) {
-                HStack(spacing: 10) {
-                    // Status dot
-                    Circle()
-                        .fill(statusColor)
-                        .frame(width: 10, height: 10)
+            // TAK Server Icon with Status Indicator
+            ZStack(alignment: .topTrailing) {
+                // TAK Icon
+                Image(systemName: "server.rack")
+                    .font(.system(size: 28))
+                    .foregroundColor(server.enabled ? Color(hex: "#00BCD4") : Color(hex: "#555555"))
+                    .frame(width: 44, height: 44)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(server.name)
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(server.enabled ? .white : Color(hex: "#666666"))
+                // Connection Status Dot
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 12, height: 12)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.black, lineWidth: 2)
+                    )
+                    .offset(x: 4, y: -4)
+            }
 
-                        HStack(spacing: 4) {
-                            Text("\(server.host):\(server.port)")
-                            if server.useTLS {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 10))
-                            }
-                        }
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#888888"))
-                    }
+            // Server info
+            VStack(alignment: .leading, spacing: 4) {
+                // Server Name (bold)
+                Text(server.name)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(server.enabled ? .white : Color(hex: "#666666"))
 
-                    Spacer()
+                // Address:Port:Protocol (ATAK format)
+                HStack(spacing: 4) {
+                    Text("\(server.host):\(server.port):\(server.protocolType.uppercased())")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(hex: "#999999"))
 
-                    // Status badge
-                    if isConnected {
-                        Text("CONNECTED")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(Color(hex: "#00FF00"))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(Color(hex: "#00FF00").opacity(0.15))
-                            .cornerRadius(4)
-                    } else if isActive && server.enabled {
-                        Text("ACTIVE")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(Color(hex: "#FFFC00"))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(Color(hex: "#FFFC00").opacity(0.15))
-                            .cornerRadius(4)
+                    if server.useTLS {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "#00BCD4"))
                     }
                 }
-            }
-            .buttonStyle(PlainButtonStyle())
 
-            // Edit
-            Button(action: onEdit) {
-                Image(systemName: "pencil")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#888888"))
+                // Connection status text
+                Text(connectionStatusText)
+                    .font(.system(size: 11))
+                    .foregroundColor(statusColor)
             }
-            .buttonStyle(PlainButtonStyle())
 
-            // Delete
-            Button(action: { showDeleteConfirm = true }) {
-                Image(systemName: "trash")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#666666"))
+            Spacer()
+
+            // Action Buttons
+            HStack(spacing: 16) {
+                // Edit (pencil icon)
+                Button(action: onEdit) {
+                    Image(systemName: "pencil.circle")
+                        .font(.system(size: 24))
+                        .foregroundColor(Color(hex: "#FFFC00"))
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                // Delete (red trash icon)
+                Button(action: { showDeleteConfirm = true }) {
+                    Image(systemName: "trash.circle")
+                        .font(.system(size: 24))
+                        .foregroundColor(Color(hex: "#FF6B6B"))
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
         }
         .padding(12)
-        .background(Color(white: isActive ? 0.1 : 0.06))
+        .background(Color(white: server.enabled ? 0.1 : 0.06))
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(isActive && server.enabled ? Color(hex: "#FFFC00").opacity(0.3) : Color.clear, lineWidth: 1)
+                .stroke(isConnected ? Color(hex: "#00FF00").opacity(0.4) : Color.clear, lineWidth: 1)
         )
         .opacity(server.enabled ? 1.0 : 0.6)
         .confirmationDialog("Delete Server?", isPresented: $showDeleteConfirm) {
@@ -269,13 +339,33 @@ struct ServerRowSimple: View {
         }
     }
 
+    private var checkboxColor: Color {
+        if isConnected {
+            return Color(hex: "#00FF00")  // Green when connected
+        } else if server.enabled {
+            return Color(hex: "#FFFC00")  // Yellow when enabled but connecting
+        } else {
+            return Color(hex: "#555555")  // Gray when disabled
+        }
+    }
+
     private var statusColor: Color {
         if isConnected {
-            return Color(hex: "#00FF00")
-        } else if isActive && server.enabled {
-            return Color(hex: "#FFFC00")
+            return Color(hex: "#00FF00")  // Green = connected
+        } else if server.enabled {
+            return Color(hex: "#FFFC00")  // Yellow = connecting/enabled
         } else {
-            return Color(hex: "#444444")
+            return Color(hex: "#444444")  // Gray = disabled
+        }
+    }
+
+    private var connectionStatusText: String {
+        if isConnected {
+            return "Connected"
+        } else if server.enabled {
+            return "Connecting..."
+        } else {
+            return "Disabled"
         }
     }
 }

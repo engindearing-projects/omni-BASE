@@ -92,37 +92,88 @@ class DirectTCPSender {
             sec_protocol_options_append_tls_ciphersuite(secOptions, tls_ciphersuite_t(rawValue: UInt16(TLS_RSA_WITH_AES_256_CBC_SHA))!)
             sec_protocol_options_append_tls_ciphersuite(secOptions, tls_ciphersuite_t(rawValue: UInt16(TLS_RSA_WITH_AES_128_CBC_SHA))!)
 
-            // Disable server certificate verification for self-signed certs
+            // Configure server certificate verification for self-signed/custom CA certs
             // TAK servers typically use self-signed certificates
+
+            // IMPORTANT: Disable peer authentication requirement to allow connection
+            // to TAK servers with custom/self-signed certificates
+            sec_protocol_options_set_peer_authentication_required(secOptions, false)
+
+            #if DEBUG
+            print("🔓 Disabled peer authentication requirement for TAK server compatibility")
+            #endif
+
+            // Set verify block that always accepts the server certificate
             sec_protocol_options_set_verify_block(secOptions, { (metadata, trust, complete) in
-                // Accept all server certificates (similar to verify_server: false in Rust)
                 #if DEBUG
-                print("🔓 Accepting server certificate (self-signed CA)")
+                print("🔓 TLS verify block called - accepting server certificate")
                 #endif
+                // Always accept the server certificate for TAK server compatibility
                 complete(true)
-            }, .main)
+            }, .global())
 
             // Note: TLS negotiation monitoring is macOS-only
             // On iOS, check connection logs for TLS details
 
             // Configure client certificate if provided
+            var clientIdentity: sec_identity_t? = nil
+
             if let certName = certificateName, !certName.isEmpty {
                 #if DEBUG
                 print("🔐 Configuring client certificate: \(certName)")
                 #endif
-                if let identity = loadClientCertificate(name: certName, password: certificatePassword ?? "atakatak") {
-                    sec_protocol_options_set_local_identity(secOptions, identity)
+                clientIdentity = loadClientCertificate(name: certName, password: certificatePassword ?? "atakatak")
+            }
+
+            // Fallback: Try loading bundled-client.p12 directly from bundle
+            if clientIdentity == nil {
+                #if DEBUG
+                print("🔐 Trying direct bundled certificate load...")
+                #endif
+                if let bundledURL = Bundle.main.url(forResource: "bundled-client", withExtension: "p12") {
                     #if DEBUG
-                    print("✅ Client certificate loaded successfully")
+                    print("📂 Found bundled-client.p12 at: \(bundledURL.path)")
                     #endif
+                    if let data = try? Data(contentsOf: bundledURL) {
+                        let options: [String: Any] = [kSecImportExportPassphrase as String: "atakatak"]
+                        var items: CFArray?
+                        let status = SecPKCS12Import(data as CFData, options as CFDictionary, &items)
+                        if status == errSecSuccess,
+                           let itemsArray = items as? [[String: Any]],
+                           let firstItem = itemsArray.first,
+                           let secIdentity = firstItem[kSecImportItemIdentity as String] {
+                            clientIdentity = sec_identity_create(secIdentity as! SecIdentity)
+                            #if DEBUG
+                            print("✅ Directly loaded bundled client certificate")
+                            #endif
+                        } else {
+                            print("❌ Failed to import bundled P12: status=\(status)")
+                        }
+                    }
                 } else {
-                    #if DEBUG
-                    print("⚠️ Failed to load client certificate, continuing without it")
-                    #endif
+                    print("❌ bundled-client.p12 not found in app bundle")
                 }
+            }
+
+            if let identity = clientIdentity {
+                // Set the local identity for the TLS connection
+                sec_protocol_options_set_local_identity(secOptions, identity)
+
+                // CRITICAL: Set challenge block to respond when server requests client certificate
+                // This is required for mTLS - the server asks for our certificate during handshake
+                sec_protocol_options_set_challenge_block(secOptions, { (metadata, completionHandler) in
+                    #if DEBUG
+                    print("🔐 TLS challenge received - providing client certificate")
+                    #endif
+                    completionHandler(identity)
+                }, .main)
+
+                #if DEBUG
+                print("✅ Client certificate configured with challenge block")
+                #endif
             } else {
                 #if DEBUG
-                print("🔒 Using TLS without client certificate")
+                print("⚠️ No client certificate available - mTLS will fail")
                 #endif
             }
 
@@ -687,12 +738,21 @@ struct CoTDetail {
     let platform: String?
 }
 
+// MARK: - Server Connection State
+
+struct ServerConnectionState {
+    let serverId: UUID
+    let serverName: String
+    var isConnected: Bool
+    var sender: DirectTCPSender
+}
+
 class TAKService: ObservableObject {
     // Shared singleton for global access
     static let shared = TAKService()
 
     @Published var connectionStatus = "Disconnected"
-    @Published var isConnected = false
+    @Published var isConnected = false  // True if ANY server is connected
     @Published var connectionState: ConnectionStateSnapshot = .disconnected
     @Published var lastError = ""
     @Published var messagesReceived: Int = 0
@@ -702,12 +762,17 @@ class TAKService: ObservableObject {
     @Published var enhancedMarkers: [String: EnhancedCoTMarker] = [:]  // UID -> Marker map
     @Published var bytesReceived: Int = 0
 
-    // Connection tracking
+    // Multi-server connection tracking
+    @Published var connectedServerIds: Set<UUID> = []
+    private var serverConnections: [UUID: ServerConnectionState] = [:]
+    private let connectionsLock = NSLock()
+
+    // Legacy single-server tracking (for backward compatibility)
     private var currentServerName: String = ""
     private var currentProtocolType: String = ""
 
     private var connectionHandle: UInt64 = 0
-    private var directTCP: DirectTCPSender?  // Direct TCP sender (bypasses incomplete Rust FFI)
+    private var directTCP: DirectTCPSender?  // Legacy single connection (will be deprecated)
     var onCoTReceived: ((CoTEvent) -> Void)?
     var onMarkerUpdated: ((EnhancedCoTMarker) -> Void)?
     var onChatMessageReceived: ((ChatMessage) -> Void)?
@@ -726,13 +791,13 @@ class TAKService: ObservableObject {
             print("❌ Failed to initialize omnitak library")
         }
 
-        // Initialize direct TCP sender
+        // Initialize legacy direct TCP sender
         directTCP = DirectTCPSender()
 
         // Configure the event handler
         eventHandler.configure(takService: self, chatManager: ChatManager.shared)
 
-        // Setup receive handler
+        // Setup receive handler for legacy connection
         setupReceiveHandler()
     }
 
@@ -744,23 +809,178 @@ class TAKService: ObservableObject {
         directTCP?.onConnectionStateChanged = { [weak self] connected in
             DispatchQueue.main.async {
                 guard let self = self else { return }
-                if !connected && self.isConnected {
-                    self.isConnected = false
-                    self.connectionStatus = "Disconnected"
-                    self.connectionState = .disconnected
+                self.updateOverallConnectionState()
+            }
+        }
+    }
+
+    // MARK: - Multi-Server Connection Methods
+
+    /// Check if connected to a specific server
+    func isConnectedTo(serverId: UUID) -> Bool {
+        connectionsLock.lock()
+        defer { connectionsLock.unlock() }
+        return serverConnections[serverId]?.isConnected ?? false
+    }
+
+    /// Connect to a specific server
+    func connectToServer(_ server: TAKServer) {
+        #if DEBUG
+        print("🔌 TAKService.connectToServer() - \(server.name) (\(server.host):\(server.port))")
+        #endif
+
+        connectionsLock.lock()
+
+        // Check if already connected
+        if let existing = serverConnections[server.id], existing.isConnected {
+            connectionsLock.unlock()
+            #if DEBUG
+            print("ℹ️ Already connected to \(server.name)")
+            #endif
+            return
+        }
+
+        // Create new sender for this server
+        let sender = DirectTCPSender()
+        var connectionState = ServerConnectionState(
+            serverId: server.id,
+            serverName: server.name,
+            isConnected: false,
+            sender: sender
+        )
+        serverConnections[server.id] = connectionState
+        connectionsLock.unlock()
+
+        // Setup handlers for this server's connection
+        sender.onMessageReceived = { [weak self] xml in
+            self?.handleReceivedMessage(xml)
+        }
+
+        sender.onConnectionStateChanged = { [weak self] connected in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.connectionsLock.lock()
+                if var state = self.serverConnections[server.id] {
+                    state.isConnected = connected
+                    self.serverConnections[server.id] = state
+                }
+                self.connectionsLock.unlock()
+                self.updateOverallConnectionState()
+
+                if connected {
                     #if DEBUG
-                    print("🔌 TAKService: Connection lost")
+                    print("✅ Connected to \(server.name)")
                     #endif
-                } else if connected && !self.isConnected {
-                    self.isConnected = true
-                    self.connectionStatus = "Connected"
-                    self.connectionState = .connected(serverName: self.currentServerName, protocolType: self.currentProtocolType)
+                } else {
                     #if DEBUG
-                    print("🔌 TAKService: Connection restored")
+                    print("🔌 Disconnected from \(server.name)")
                     #endif
                 }
             }
         }
+
+        // Connect
+        sender.connect(
+            host: server.host,
+            port: server.port,
+            protocolType: server.protocolType,
+            useTLS: server.useTLS,
+            certificateName: server.certificateName,
+            certificatePassword: server.certificatePassword,
+            allowLegacyTLS: server.allowLegacyTLS
+        ) { [weak self] success in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.connectionsLock.lock()
+                if var state = self.serverConnections[server.id] {
+                    state.isConnected = success
+                    self.serverConnections[server.id] = state
+                }
+                self.connectionsLock.unlock()
+                self.updateOverallConnectionState()
+
+                if success {
+                    // Configure ChatManager and PositionBroadcastService if this is the first connection
+                    if self.connectedServerIds.count == 1 {
+                        ChatManager.shared.setTAKService(self)
+                        PositionBroadcastService.shared.configure(takService: self, locationManager: LocationManager.shared)
+                    }
+                    #if DEBUG
+                    print("✅ Successfully connected to \(server.name)")
+                    #endif
+                } else {
+                    self.lastError = "Failed to connect to \(server.name)"
+                    #if DEBUG
+                    print("❌ Failed to connect to \(server.name)")
+                    #endif
+                }
+            }
+        }
+    }
+
+    /// Disconnect from a specific server
+    func disconnectFromServer(serverId: UUID) {
+        connectionsLock.lock()
+        guard let state = serverConnections[serverId] else {
+            connectionsLock.unlock()
+            return
+        }
+
+        #if DEBUG
+        print("🔌 Disconnecting from \(state.serverName)")
+        #endif
+
+        state.sender.disconnect()
+        serverConnections.removeValue(forKey: serverId)
+        connectionsLock.unlock()
+
+        updateOverallConnectionState()
+    }
+
+    /// Update the overall connection state based on all server connections
+    private func updateOverallConnectionState() {
+        connectionsLock.lock()
+        let connectedIds = Set(serverConnections.filter { $0.value.isConnected }.keys)
+        let anyConnected = !connectedIds.isEmpty
+        let serverNames = serverConnections.filter { $0.value.isConnected }.map { $0.value.serverName }
+        connectionsLock.unlock()
+
+        DispatchQueue.main.async {
+            self.connectedServerIds = connectedIds
+            self.isConnected = anyConnected
+
+            if anyConnected {
+                let count = connectedIds.count
+                if count == 1 {
+                    self.connectionStatus = "Connected to \(serverNames.first ?? "server")"
+                } else {
+                    self.connectionStatus = "Connected to \(count) servers"
+                }
+                self.connectionState = .connected(serverName: serverNames.joined(separator: ", "), protocolType: "Multi")
+            } else {
+                self.connectionStatus = "Disconnected"
+                self.connectionState = .disconnected
+            }
+
+            // Update aggregated bytes received
+            self.updateAggregatedStats()
+        }
+    }
+
+    /// Update aggregated statistics from all connections
+    private func updateAggregatedStats() {
+        connectionsLock.lock()
+        var totalBytes = 0
+        for state in serverConnections.values {
+            totalBytes += state.sender.bytesReceived
+        }
+        // Include legacy connection if active
+        if let legacyBytes = directTCP?.bytesReceived {
+            totalBytes += legacyBytes
+        }
+        connectionsLock.unlock()
+
+        bytesReceived = totalBytes
     }
 
     private func handleReceivedMessage(_ xml: String) {
@@ -818,6 +1038,19 @@ class TAKService: ObservableObject {
                     print("✅ DirectTCP Connected to TAK server: \(host):\(port)")
                     #endif
 
+                    // Configure ChatManager with this TAKService so chat can send messages
+                    // Note: locationManager is optional - messages will work but without location data
+                    ChatManager.shared.setTAKService(self)
+                    #if DEBUG
+                    print("✅ ChatManager configured with TAKService")
+                    #endif
+
+                    // Configure PositionBroadcastService for PLI (Position Location Information)
+                    PositionBroadcastService.shared.configure(takService: self, locationManager: LocationManager.shared)
+                    #if DEBUG
+                    print("✅ PositionBroadcastService configured with TAKService")
+                    #endif
+
                     // Also initialize Rust FFI (for potential future use)
                     var protocolCode: Int32
                     switch protocolType.lowercased() {
@@ -861,7 +1094,15 @@ class TAKService: ObservableObject {
     }
 
     func disconnect() {
-        // Disconnect DirectTCP
+        // Disconnect all multi-server connections
+        connectionsLock.lock()
+        for state in serverConnections.values {
+            state.sender.disconnect()
+        }
+        serverConnections.removeAll()
+        connectionsLock.unlock()
+
+        // Disconnect legacy DirectTCP
         directTCP?.disconnect()
 
         // Also disconnect Rust FFI
@@ -871,36 +1112,60 @@ class TAKService: ObservableObject {
             connectionHandle = 0
         }
 
+        connectedServerIds.removeAll()
         isConnected = false
         connectionStatus = "Disconnected"
         connectionState = .disconnected
         #if DEBUG
-        print("🔌 Disconnected from TAK server")
+        print("🔌 Disconnected from all TAK servers")
         #endif
     }
 
+    /// Disconnect all servers (alias for disconnect)
+    func disconnectAll() {
+        disconnect()
+    }
+
     func sendCoT(xml: String) -> Bool {
-        guard isConnected, let directTCP = directTCP else {
-            print("❌ Not connected")
-            return false
-        }
+        // Send to all connected servers
+        connectionsLock.lock()
+        let connectedSenders = serverConnections.values.filter { $0.isConnected }.map { $0.sender }
+        connectionsLock.unlock()
 
-        // Use DirectTCPSender for actual sending
-        if directTCP.send(xml: xml) {
-            messagesSent += 1
-            #if DEBUG
-            print("📤 Sent CoT message via DirectTCP")
-            #endif
-
-            // Also send via Rust FFI for testing (even though it's a stub)
-            if connectionHandle > 0 {
-                let xmlCStr = xml.cString(using: .utf8)!
-                _ = omnitak_send_cot(connectionHandle, xmlCStr)
+        guard !connectedSenders.isEmpty else {
+            // Fallback to legacy connection
+            guard let directTCP = directTCP, directTCP.isConnected else {
+                print("❌ Not connected to any server")
+                return false
             }
 
+            if directTCP.send(xml: xml) {
+                messagesSent += 1
+                #if DEBUG
+                print("📤 Sent CoT message via legacy connection")
+                #endif
+                return true
+            } else {
+                print("❌ Failed to send CoT message")
+                return false
+            }
+        }
+
+        var sentCount = 0
+        for sender in connectedSenders {
+            if sender.send(xml: xml) {
+                sentCount += 1
+            }
+        }
+
+        if sentCount > 0 {
+            messagesSent += 1
+            #if DEBUG
+            print("📤 Sent CoT message to \(sentCount) server(s)")
+            #endif
             return true
         } else {
-            print("❌ Failed to send CoT message")
+            print("❌ Failed to send CoT message to any server")
             return false
         }
     }
@@ -1105,13 +1370,30 @@ class TAKService: ObservableObject {
 
     // MARK: - Receive Statistics
 
-    /// Get current receive buffer size
+    /// Get current receive buffer size (aggregated from all connections)
     func getReceiveBufferSize() -> Int {
-        return directTCP?.getReceiveBufferSize() ?? 0
+        connectionsLock.lock()
+        var totalSize = 0
+        for state in serverConnections.values {
+            totalSize += state.sender.getReceiveBufferSize()
+        }
+        connectionsLock.unlock()
+
+        // Include legacy connection
+        if let legacySize = directTCP?.getReceiveBufferSize() {
+            totalSize += legacySize
+        }
+        return totalSize
     }
 
-    /// Clear the receive buffer
+    /// Clear the receive buffer on all connections
     func clearReceiveBuffer() {
+        connectionsLock.lock()
+        for state in serverConnections.values {
+            state.sender.clearReceiveBuffer()
+        }
+        connectionsLock.unlock()
+
         directTCP?.clearReceiveBuffer()
     }
 
@@ -1130,6 +1412,14 @@ class TAKService: ObservableObject {
         messagesReceived = 0
         messagesSent = 0
         bytesReceived = 0
+
+        // Reset stats on all connections
+        connectionsLock.lock()
+        for state in serverConnections.values {
+            state.sender.resetStatistics()
+        }
+        connectionsLock.unlock()
+
         directTCP?.resetStatistics()
         eventHandler.resetStatistics()
     }
@@ -1166,15 +1456,24 @@ private func cotCallback(
 
     // Check if this is a GeoChat message (b-t-f type)
     if message.contains("type=\"b-t-f\"") {
+        #if DEBUG
+        print("📨 [CHAT DEBUG] Received b-t-f message, attempting to parse...")
+        #endif
         if let chatMessage = ChatXMLParser.parseGeoChatMessage(xml: message) {
             DispatchQueue.main.async {
                 service.messagesReceived += 1
                 service.lastMessage = message
                 service.onChatMessageReceived?(chatMessage)
                 #if DEBUG
-                print("💬 Received chat message from \(chatMessage.senderCallsign): \(chatMessage.messageText)")
+                print("💬 [CHAT DEBUG] Successfully parsed chat message from \(chatMessage.senderCallsign): \(chatMessage.messageText)")
                 #endif
             }
+        } else {
+            #if DEBUG
+            print("❌ [CHAT DEBUG] FAILED to parse b-t-f message! Raw XML:")
+            print(message)
+            print("❌ [CHAT DEBUG] END FAILED MESSAGE")
+            #endif
         }
     } else if message.contains("type=\"b-m-p-w\"") || message.contains("<usericon") {
         // Check if this is a waypoint marker (b-m-p-w) or has waypoint metadata
