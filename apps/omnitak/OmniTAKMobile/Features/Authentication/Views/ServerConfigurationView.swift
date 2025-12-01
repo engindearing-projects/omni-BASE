@@ -549,7 +549,7 @@ struct ServerRowView: View {
                     }
                 }
 
-                Text("\(server.host):\(server.port)")
+                Text("\(server.host):\(String(server.port))")
                     .font(.caption)
                     .foregroundColor(.secondary)
 

@@ -287,7 +287,7 @@ struct ServerRowSimple: View {
 
                 // Address:Port:Protocol (ATAK format)
                 HStack(spacing: 4) {
-                    Text("\(server.host):\(server.port):\(server.protocolType.uppercased())")
+                    Text("\(server.host):\(String(server.port)):\(server.protocolType.uppercased())")
                         .font(.system(size: 13))
                         .foregroundColor(Color(hex: "#999999"))
 
