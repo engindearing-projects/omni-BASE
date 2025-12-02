@@ -48,6 +48,9 @@ struct ATAKMapView: View {
     @State private var showAbout = false
     @State private var showPositionBroadcast = false
     @State private var showElevationProfile = false
+
+    // User settings
+    @AppStorage("userCallsign") private var userCallsign = "ALPHA-1"
     @State private var showLineOfSight = false
     @State private var showEchelonHierarchy = false
     @State private var showMissionSync = false
@@ -306,7 +309,7 @@ struct ATAKMapView: View {
             isOpen: $showNavigationDrawer,
             currentScreen: $currentScreen,
             userName: "Operator",
-            userCallsign: "ALPHA-1",
+            userCallsign: userCallsign,
             connectionStatus: takService.isConnected ? "CONNECTED" : "DISCONNECTED",
             onNavigate: { screen in
                 currentScreen = screen
@@ -394,7 +397,7 @@ struct ATAKMapView: View {
                 HStack {
                     Spacer()
                     CallsignDisplay(
-                        callsign: "MURK",
+                        callsign: userCallsign,
                         coordinates: formatCoordinates(location.coordinate),
                         altitude: formatAltitude(location.altitude),
                         speed: formatSpeed(location.speed),
@@ -416,7 +419,7 @@ struct ATAKMapView: View {
                 GeofenceAlertNotification(
                     geofenceName: "Circle 1",
                     action: "Entered",
-                    callsign: "MURK",
+                    callsign: userCallsign,
                     isPresented: $showGeofenceAlert
                 )
                 .padding(.top, 60)
