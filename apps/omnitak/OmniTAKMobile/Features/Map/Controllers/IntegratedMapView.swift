@@ -163,8 +163,8 @@ struct IntegratedMapView: UIViewRepresentable {
             context.coordinator.removeMGRSOverlay(from: mapView)
         }
 
-        // Drawing overlays (z-order 10-30)
-        let savedOverlays = drawingStore.getAllOverlays()
+        // Drawing overlays (z-order 10-30) - use cached overlays to prevent flickering
+        let savedOverlays = context.coordinator.getCachedDrawingOverlays()
         for overlay in savedOverlays {
             allOverlays.append((overlay, 20))
         }
@@ -232,8 +232,50 @@ struct IntegratedMapView: UIViewRepresentable {
         var isUserInteracting = false
         private var mgrsOverlay: MGRSGridOverlay?
 
+        // Cached drawing overlays to prevent flickering
+        private var cachedDrawingOverlays: [MKOverlay] = []
+        private var lastDrawingHash: Int = 0
+
         init(_ parent: IntegratedMapView) {
             self.parent = parent
+        }
+
+        // MARK: - Drawing Overlay Cache
+
+        func getCachedDrawingOverlays() -> [MKOverlay] {
+            let currentHash = computeDrawingHash()
+            if currentHash != lastDrawingHash {
+                // Drawings changed, regenerate overlays
+                cachedDrawingOverlays = parent.drawingStore.getAllOverlays()
+                lastDrawingHash = currentHash
+            }
+            return cachedDrawingOverlays
+        }
+
+        private func computeDrawingHash() -> Int {
+            var hasher = Hasher()
+            hasher.combine(parent.drawingStore.circles.count)
+            hasher.combine(parent.drawingStore.lines.count)
+            hasher.combine(parent.drawingStore.polygons.count)
+            hasher.combine(parent.drawingStore.markers.count)
+            // Include IDs to detect updates
+            for circle in parent.drawingStore.circles {
+                hasher.combine(circle.id)
+                hasher.combine(circle.radius)
+            }
+            for line in parent.drawingStore.lines {
+                hasher.combine(line.id)
+                hasher.combine(line.coordinates.count)
+            }
+            for polygon in parent.drawingStore.polygons {
+                hasher.combine(polygon.id)
+                hasher.combine(polygon.coordinates.count)
+            }
+            return hasher.finalize()
+        }
+
+        func invalidateDrawingCache() {
+            lastDrawingHash = 0
         }
 
         // MARK: - MGRS Overlay Management
