@@ -2,17 +2,15 @@
 //  MeshtasticConnectionView.swift
 //  OmniTAK Mobile
 //
-//  Beautiful UI for Meshtastic device connection and management
+//  Meshtastic device connection and mesh network view
 //
 
 import SwiftUI
-import MapKit
 
 struct MeshtasticConnectionView: View {
     @StateObject private var manager = MeshtasticManager()
     @State private var showingDevicePicker = false
     @State private var showingMeshTopology = false
-    @State private var showingSignalChart = false
 
     var body: some View {
         NavigationView {
@@ -22,17 +20,13 @@ struct MeshtasticConnectionView: View {
                     connectionStatusCard
 
                     if manager.isConnected {
-                        // Signal Quality Card
-                        signalQualityCard
-
-                        // Mesh Network Stats
-                        meshStatsCard
-
-                        // Quick Actions
-                        quickActionsSection
+                        // Device Info Card
+                        deviceInfoCard
 
                         // Mesh Nodes List
-                        meshNodesSection
+                        if !manager.meshNodes.isEmpty {
+                            meshNodesSection
+                        }
                     } else {
                         // No Connection - Show Setup
                         setupGuideCard
@@ -40,27 +34,23 @@ struct MeshtasticConnectionView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Meshtastic Mesh")
+            .navigationTitle("Meshtastic")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: { showingMeshTopology = true }) {
-                            Label("Mesh Topology", systemImage: "circle.hexagongrid")
-                        }
+                    if manager.isConnected {
+                        Menu {
+                            Button(action: { showingMeshTopology = true }) {
+                                Label("View Nodes", systemImage: "circle.hexagongrid")
+                            }
 
-                        Button(action: { showingSignalChart = true }) {
-                            Label("Signal History", systemImage: "waveform.path.ecg")
-                        }
+                            Divider()
 
-                        Divider()
-
-                        if manager.isConnected {
                             Button(role: .destructive, action: { manager.disconnect() }) {
                                 Label("Disconnect", systemImage: "xmark.circle")
                             }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
@@ -70,14 +60,6 @@ struct MeshtasticConnectionView: View {
             .sheet(isPresented: $showingMeshTopology) {
                 MeshTopologyView(manager: manager)
             }
-            .sheet(isPresented: $showingSignalChart) {
-                if #available(iOS 16.0, *) {
-                    SignalHistoryView(manager: manager)
-                } else {
-                    Text("Signal History requires iOS 16.0 or later")
-                        .padding()
-                }
-            }
         }
     }
 
@@ -86,16 +68,16 @@ struct MeshtasticConnectionView: View {
     private var connectionStatusCard: some View {
         VStack(spacing: 16) {
             HStack {
-                Image(systemName: manager.isConnected ? "antenna.radiowaves.left.and.right.circle.fill" : "antenna.radiowaves.left.and.right.slash")
+                Image(systemName: statusIcon)
                     .font(.system(size: 40))
-                    .foregroundColor(manager.isConnected ? .green : .gray)
+                    .foregroundColor(statusColor)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(manager.connectionStatus)
+                    Text(statusTitle)
                         .font(.headline)
 
-                    if let device = manager.connectedDevice {
-                        Text(device.connectionType.displayName)
+                    if manager.isConnected, let device = manager.connectedDevice {
+                        Text("\(device.devicePath):\(device.nodeId ?? "4403")")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -103,7 +85,7 @@ struct MeshtasticConnectionView: View {
 
                 Spacer()
 
-                if !manager.isConnected {
+                if !manager.isConnected && manager.connectionState == "Disconnected" {
                     Button(action: { showingDevicePicker = true }) {
                         Text("Connect")
                             .font(.headline)
@@ -123,6 +105,12 @@ struct MeshtasticConnectionView: View {
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.orange)
+                    Spacer()
+                    Button("Dismiss") {
+                        manager.lastError = nil
+                    }
+                    .font(.caption)
+                    .foregroundColor(.blue)
                 }
                 .padding()
                 .background(Color.orange.opacity(0.1))
@@ -135,131 +123,96 @@ struct MeshtasticConnectionView: View {
         .shadow(radius: 2)
     }
 
-    // MARK: - Signal Quality Card
+    private var statusIcon: String {
+        switch manager.connectionState {
+        case "Connected":
+            return "antenna.radiowaves.left.and.right.circle.fill"
+        case "Connecting":
+            return "antenna.radiowaves.left.and.right"
+        default:
+            return "antenna.radiowaves.left.and.right.slash"
+        }
+    }
 
-    private var signalQualityCard: some View {
+    private var statusColor: Color {
+        switch manager.connectionState {
+        case "Connected":
+            return .green
+        case "Connecting":
+            return .orange
+        default:
+            return .gray
+        }
+    }
+
+    private var statusTitle: String {
+        switch manager.connectionState {
+        case "Connected":
+            return "Connected"
+        case "Connecting":
+            return "Connecting..."
+        default:
+            return "Not Connected"
+        }
+    }
+
+    // MARK: - Device Info Card
+
+    private var deviceInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Signal Quality", systemImage: manager.signalQuality.iconName)
+                Label("Device Info", systemImage: "info.circle")
                     .font(.headline)
 
                 Spacer()
-
-                Text(manager.signalQuality.displayText)
-                    .font(.subheadline)
-                    .foregroundColor(Color(manager.signalQuality.color))
             }
 
-            if let device = manager.connectedDevice,
-               let rssi = device.signalStrength {
+            Divider()
+
+            if manager.myNodeNum > 0 {
                 HStack {
-                    Text("RSSI: \(rssi) dBm")
-                        .font(.caption)
+                    Text("Node ID")
                         .foregroundColor(.secondary)
-
                     Spacer()
-
-                    if let snr = device.snr {
-                        Text("SNR: \(String(format: "%.1f", snr)) dB")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Text("!\(String(format: "%08x", manager.myNodeNum))")
+                        .font(.system(.body, design: .monospaced))
                 }
-
-                // Signal strength bar
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(height: 8)
-                            .cornerRadius(4)
-
-                        Rectangle()
-                            .fill(Color(manager.signalQuality.color))
-                            .frame(width: geometry.size.width * signalStrengthPercentage(rssi: rssi), height: 8)
-                            .cornerRadius(4)
-                    }
-                }
-                .frame(height: 8)
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(radius: 2)
-    }
-
-    // MARK: - Mesh Stats Card
-
-    private var meshStatsCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Mesh Network", systemImage: "network")
-                    .font(.headline)
-
-                Spacer()
-
-                Circle()
-                    .fill(Color(manager.networkHealth.color))
-                    .frame(width: 12, height: 12)
-
-                Text(manager.networkHealth.displayText)
-                    .font(.caption)
-                    .foregroundColor(Color(manager.networkHealth.color))
             }
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                StatItem(title: "Connected Nodes", value: "\(manager.networkStats.connectedNodes)/\(manager.networkStats.totalNodes)", icon: "circle.hexagongrid.fill")
-
-                StatItem(title: "Avg Hops", value: String(format: "%.1f", manager.networkStats.averageHops), icon: "arrow.triangle.branch")
-
-                StatItem(title: "Success Rate", value: String(format: "%.0f%%", manager.networkStats.packetSuccessRate * 100), icon: "checkmark.circle.fill")
-
-                StatItem(title: "Utilization", value: String(format: "%.0f%%", manager.networkStats.networkUtilization * 100), icon: "chart.bar.fill")
-            }
-
-            Button(action: { showingMeshTopology = true }) {
+            if !manager.firmwareVersion.isEmpty {
                 HStack {
-                    Image(systemName: "map")
-                    Text("View Mesh Topology")
+                    Text("Firmware")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(manager.firmwareVersion)
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
+            }
+
+            HStack {
+                Text("Mesh Nodes")
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("\(manager.meshNodes.count)")
+                    .fontWeight(.semibold)
+            }
+
+            if !manager.meshNodes.isEmpty {
+                Button(action: { showingMeshTopology = true }) {
+                    HStack {
+                        Image(systemName: "circle.hexagongrid")
+                        Text("View All Nodes")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
+                }
             }
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(radius: 2)
-    }
-
-    // MARK: - Quick Actions
-
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Actions")
-                .font(.headline)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                MeshtasticQuickActionButton(title: "Send PLI", icon: "location.fill") {
-                    // Send position update
-                }
-
-                MeshtasticQuickActionButton(title: "Send Chat", icon: "message.fill") {
-                    // Open chat
-                }
-
-                MeshtasticQuickActionButton(title: "Signal Chart", icon: "waveform.path.ecg") {
-                    showingSignalChart = true
-                }
-
-                MeshtasticQuickActionButton(title: "Settings", icon: "gearshape.fill") {
-                    // Open settings
-                }
-            }
-        }
     }
 
     // MARK: - Mesh Nodes Section
@@ -272,13 +225,25 @@ struct MeshtasticConnectionView: View {
 
                 Spacer()
 
-                Text("\(manager.meshNodes.count) nodes")
+                Text("\(manager.meshNodes.count)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.1))
+                    .foregroundColor(.blue)
+                    .cornerRadius(8)
             }
 
-            ForEach(manager.meshNodes) { node in
+            ForEach(manager.meshNodes.prefix(5)) { node in
                 MeshNodeRow(node: node)
+            }
+
+            if manager.meshNodes.count > 5 {
+                Button(action: { showingMeshTopology = true }) {
+                    Text("View all \(manager.meshNodes.count) nodes...")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
             }
         }
     }
@@ -295,22 +260,22 @@ struct MeshtasticConnectionView: View {
                 .font(.title2)
                 .bold()
 
-            Text("Connect your Meshtastic device to enable long-range, off-grid TAK communications over LoRa mesh networks.")
+            Text("Connect to a Meshtastic device to enable long-range, off-grid TAK communications over LoRa mesh networks.")
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
-                SetupStep(number: 1, text: "Connect Meshtastic device via USB, Bluetooth, or TCP/IP")
-                SetupStep(number: 2, text: "Select your device from the list")
-                SetupStep(number: 3, text: "Start sharing TAK data through the mesh")
+                SetupStep(number: 1, text: "Enable TCP/WiFi on your Meshtastic device")
+                SetupStep(number: 2, text: "Connect your phone to the same WiFi network")
+                SetupStep(number: 3, text: "Enter the device IP (e.g. 192.168.1.100:4403)")
             }
             .padding()
 
             Button(action: { showingDevicePicker = true }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                    Text("Connect Meshtastic Device")
+                    Text("Connect to Device")
                 }
                 .font(.headline)
                 .foregroundColor(.white)
@@ -325,65 +290,9 @@ struct MeshtasticConnectionView: View {
         .cornerRadius(12)
         .shadow(radius: 2)
     }
-
-    // MARK: - Helper Functions
-
-    private func signalStrengthPercentage(rssi: Int) -> CGFloat {
-        // Convert RSSI (-100 to -40) to percentage (0 to 1)
-        let normalized = max(0, min(100, rssi + 100))
-        return CGFloat(normalized) / 60.0
-    }
 }
 
 // MARK: - Supporting Views
-
-private struct StatItem: View {
-    let title: String
-    let value: String
-    let icon: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            Text(value)
-                .font(.title3)
-                .bold()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color.blue.opacity(0.05))
-        .cornerRadius(8)
-    }
-}
-
-private struct MeshtasticQuickActionButton: View {
-    let title: String
-    let icon: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.title2)
-                Text(title)
-                    .font(.caption)
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-        }
-    }
-}
 
 struct MeshNodeRow: View {
     let node: MeshNode
@@ -395,6 +304,13 @@ struct MeshNodeRow: View {
                     .font(.headline)
 
                 HStack(spacing: 12) {
+                    Text(node.shortName)
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(4)
+
                     if let hopDistance = node.hopDistance {
                         Label("\(hopDistance) hops", systemImage: "arrow.triangle.branch")
                             .font(.caption)
@@ -411,16 +327,6 @@ struct MeshNodeRow: View {
 
             Spacer()
 
-            if let battery = node.batteryLevel {
-                HStack(spacing: 4) {
-                    Image(systemName: batteryIcon(level: battery))
-                        .foregroundColor(batteryColor(level: battery))
-                    Text("\(battery)%")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-
             Text(timeAgo(from: node.lastHeard))
                 .font(.caption2)
                 .foregroundColor(.secondary)
@@ -428,19 +334,6 @@ struct MeshNodeRow: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(8)
-    }
-
-    private func batteryIcon(level: Int) -> String {
-        if level > 75 { return "battery.100" }
-        if level > 50 { return "battery.75" }
-        if level > 25 { return "battery.50" }
-        return "battery.25"
-    }
-
-    private func batteryColor(level: Int) -> Color {
-        if level > 50 { return .green }
-        if level > 25 { return .orange }
-        return .red
     }
 
     private func timeAgo(from date: Date) -> String {

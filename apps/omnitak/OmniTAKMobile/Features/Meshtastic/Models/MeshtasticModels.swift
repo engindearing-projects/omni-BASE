@@ -10,9 +10,9 @@ import CoreLocation
 
 // MARK: - Device Models
 
-public enum MeshtasticConnectionType: String, Codable, CaseIterable {
-    case serial = "Serial/USB"
-    case bluetooth = "Bluetooth LE"
+/// Connection type for Meshtastic devices
+/// Note: Only TCP is supported on iOS - serial/bluetooth require native USB or CoreBluetooth
+public enum MeshtasticConnectionType: String, Codable {
     case tcp = "TCP/IP"
 
     public var displayName: String {
@@ -20,11 +20,7 @@ public enum MeshtasticConnectionType: String, Codable, CaseIterable {
     }
 
     public var iconName: String {
-        switch self {
-        case .serial: return "cable.connector"
-        case .bluetooth: return "antenna.radiowaves.left.and.right"
-        case .tcp: return "network"
-        }
+        return "wifi"
     }
 }
 
@@ -68,27 +64,6 @@ public struct MeshtasticDevice: Identifiable, Codable {
     }
 }
 
-public struct MeshtasticConfig: Codable {
-    public var connectionType: MeshtasticConnectionType
-    public var devicePath: String
-    public var port: Int?
-    public var nodeId: String?
-    public var deviceName: String
-
-    public init(
-        connectionType: MeshtasticConnectionType,
-        devicePath: String,
-        port: Int? = nil,
-        nodeId: String? = nil,
-        deviceName: String
-    ) {
-        self.connectionType = connectionType
-        self.devicePath = devicePath
-        self.port = port
-        self.nodeId = nodeId
-        self.deviceName = deviceName
-    }
-}
 
 // MARK: - Mesh Network Models
 
@@ -139,83 +114,3 @@ public struct MeshPosition: Codable {
     }
 }
 
-public struct MeshNetworkStats: Codable {
-    public var connectedNodes: Int
-    public var totalNodes: Int
-    public var averageHops: Double
-    public var packetSuccessRate: Double
-    public var networkUtilization: Double
-    public var lastUpdate: Date
-
-    public init(
-        connectedNodes: Int = 0,
-        totalNodes: Int = 0,
-        averageHops: Double = 0.0,
-        packetSuccessRate: Double = 0.0,
-        networkUtilization: Double = 0.0,
-        lastUpdate: Date = Date()
-    ) {
-        self.connectedNodes = connectedNodes
-        self.totalNodes = totalNodes
-        self.averageHops = averageHops
-        self.packetSuccessRate = packetSuccessRate
-        self.networkUtilization = networkUtilization
-        self.lastUpdate = lastUpdate
-    }
-}
-
-// MARK: - Signal Quality
-
-public enum SignalQuality: String, Hashable {
-    case excellent = "Excellent"
-    case good = "Good"
-    case fair = "Fair"
-    case poor = "Poor"
-    case none = "No Signal"
-
-    public static func from(rssi: Int?) -> SignalQuality {
-        guard let rssi = rssi else { return .none }
-
-        switch rssi {
-        case -50...0: return .excellent
-        case -70..<(-50): return .good
-        case -85..<(-70): return .fair
-        case -100..<(-85): return .poor
-        default: return .none
-        }
-    }
-
-    public var color: String {
-        switch self {
-        case .excellent: return "green"
-        case .good: return "blue"
-        case .fair: return "orange"
-        case .poor: return "red"
-        case .none: return "gray"
-        }
-    }
-
-    public var iconName: String {
-        switch self {
-        case .excellent: return "antenna.radiowaves.left.and.right"
-        case .good: return "wifi"
-        case .fair: return "wifi.slash"
-        case .poor: return "exclamationmark.triangle"
-        case .none: return "antenna.radiowaves.left.and.right.slash"
-        }
-    }
-
-    public var displayText: String {
-        return self.rawValue
-    }
-}
-
-// MARK: - Native Bridge Protocol
-
-/// Protocol for bridging to native Meshtastic implementation
-public protocol OmniTAKNativeBridge {
-    func connectMeshtastic(config: MeshtasticConfig) -> UInt64
-    func disconnect(connectionId: Int)
-    func sendCot(connectionId: Int, cotXml: String) -> Int
-    func receiveCot(connectionId: Int) -> String?
-}
