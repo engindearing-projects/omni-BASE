@@ -5,6 +5,18 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2] - 2025-12-01
+
+### Fixed
+- **Drawing Edit UI**: Fixed edit dialog not appearing when tapping edit button
+  - Changed sheet presentation from `sheet(isPresented:)` to `sheet(item:)` pattern
+  - Edit dialog now reliably appears for markers, lines, circles, and polygons
+
+### Changed
+- **Map UI Cleanup**: Removed redundant GPS status indicator from top right
+  - GPS lock button at bottom left already provides location status
+  - Cleaner map interface with less visual clutter
+
 ## [2.5.1] - 2025-12-01
 
 ### Fixed
