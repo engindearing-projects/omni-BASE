@@ -270,12 +270,16 @@ struct DrawingToolButton: View {
 
 // MARK: - Drawing List Panel
 
+// Wrapper struct to make UUID identifiable for sheet(item:)
+struct DrawingIDWrapper: Identifiable {
+    let id: UUID
+}
+
 struct DrawingListPanel: View {
     @ObservedObject var drawingStore: DrawingStore
     @Binding var isVisible: Bool
     var onZoomToDrawing: ((CLLocationCoordinate2D, Double?) -> Void)?
-    @State private var selectedDrawingID: UUID?
-    @State private var showingProperties: Bool = false
+    @State private var selectedDrawing: DrawingIDWrapper?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -314,8 +318,7 @@ struct DrawingListPanel: View {
                                     onZoomToDrawing?(marker.coordinate, nil)
                                 },
                                 onEdit: {
-                                    selectedDrawingID = marker.id
-                                    showingProperties = true
+                                    selectedDrawing = DrawingIDWrapper(id: marker.id)
                                 }
                             )
                         }
@@ -336,8 +339,7 @@ struct DrawingListPanel: View {
                                     }
                                 },
                                 onEdit: {
-                                    selectedDrawingID = line.id
-                                    showingProperties = true
+                                    selectedDrawing = DrawingIDWrapper(id: line.id)
                                 }
                             )
                         }
@@ -356,8 +358,7 @@ struct DrawingListPanel: View {
                                     onZoomToDrawing?(circle.center, circle.radius)
                                 },
                                 onEdit: {
-                                    selectedDrawingID = circle.id
-                                    showingProperties = true
+                                    selectedDrawing = DrawingIDWrapper(id: circle.id)
                                 }
                             )
                         }
@@ -378,8 +379,7 @@ struct DrawingListPanel: View {
                                     }
                                 },
                                 onEdit: {
-                                    selectedDrawingID = polygon.id
-                                    showingProperties = true
+                                    selectedDrawing = DrawingIDWrapper(id: polygon.id)
                                 }
                             )
                         }
@@ -421,14 +421,15 @@ struct DrawingListPanel: View {
         .background(Color.black.opacity(0.9))
         .cornerRadius(12)
         .shadow(radius: 10)
-        .sheet(isPresented: $showingProperties) {
-            if let drawingID = selectedDrawingID {
-                DrawingPropertiesView(
-                    drawingStore: drawingStore,
-                    drawingID: drawingID,
-                    isPresented: $showingProperties
+        .sheet(item: $selectedDrawing) { wrapper in
+            DrawingPropertiesView(
+                drawingStore: drawingStore,
+                drawingID: wrapper.id,
+                isPresented: Binding(
+                    get: { selectedDrawing != nil },
+                    set: { if !$0 { selectedDrawing = nil } }
                 )
-            }
+            )
         }
     }
 }

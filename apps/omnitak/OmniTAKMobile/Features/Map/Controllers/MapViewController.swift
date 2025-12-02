@@ -365,28 +365,10 @@ struct ATAKMapView: View {
     @ViewBuilder
     private var statusIndicators: some View {
         Group {
-            gpsStatusIndicator
+            // GPS status indicator removed - GPS lock button at bottom left serves this purpose
             callsignDisplay
             geofenceAlert
         }
-    }
-
-    @ViewBuilder
-    private var gpsStatusIndicator: some View {
-        VStack {
-            HStack {
-                Spacer()
-                GPSStatusIndicator(
-                    accuracy: locationManager.accuracy,
-                    isAvailable: locationManager.location != nil,
-                    showError: false
-                )
-                .padding([.trailing], 12)
-                .padding([.top], 60)
-            }
-            Spacer()
-        }
-        .zIndex(1002)
     }
 
     @ViewBuilder
