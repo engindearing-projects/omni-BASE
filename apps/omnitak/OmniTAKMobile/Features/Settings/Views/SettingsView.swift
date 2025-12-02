@@ -42,6 +42,11 @@ struct SettingsView: View {
                         TextField("Callsign", text: $userCallsign)
                             .multilineTextAlignment(.trailing)
                             .foregroundColor(.blue)
+                            .onChange(of: userCallsign) { newValue in
+                                // Sync callsign to all services that send CoT
+                                PositionBroadcastService.shared.userCallsign = newValue
+                                ChatManager.shared.currentUserCallsign = newValue
+                            }
                     }
 
                     HStack {
