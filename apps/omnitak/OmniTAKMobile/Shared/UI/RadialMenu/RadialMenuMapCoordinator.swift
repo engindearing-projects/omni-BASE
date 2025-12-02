@@ -153,7 +153,13 @@ class RadialMenuMapCoordinator: ObservableObject {
         // Trigger haptic feedback
         RadialMenuHaptic.itemSelect.trigger()
 
-        // Dismiss menu first
+        // For delete actions, clear context immediately to prevent stale references
+        let isDeleteAction = action.identifier == "delete"
+        if isDeleteAction {
+            currentContext = nil
+        }
+
+        // Dismiss menu
         dismissMenu()
 
         // Execute the action
