@@ -5,6 +5,17 @@ All notable changes to OmniTAK Mobile will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2025-12-01
+
+### Fixed
+- **Callsign Consistency**: All UI elements now use the callsign from Settings
+  - Map callsign display, navigation drawer, and geofence alerts sync with settings
+  - CoT messages (position broadcasts, chat) update immediately when callsign changes
+  - No app restart required for callsign changes to take effect
+
+- **Radial Menu Layers**: Restored Layers button that was accidentally removed
+  - All 7 radial menu options now functional: Drop Point, Measure, Draw, Drawings, Layers, R&B Line, Route Here
+
 ## [2.5.0] - 2025-12-01
 
 ### Added
