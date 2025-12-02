@@ -45,6 +45,12 @@ extension RadialMenuConfiguration {
                 action: .openDrawingsList
             ),
             RadialMenuItem(
+                icon: "square.3.layers.3d",
+                label: "Layers",
+                color: Color(hex: "#FFFF00"),
+                action: .custom("show_layers")
+            ),
+            RadialMenuItem(
                 icon: "line.diagonal",
                 label: "R&B Line",
                 color: .purple,
