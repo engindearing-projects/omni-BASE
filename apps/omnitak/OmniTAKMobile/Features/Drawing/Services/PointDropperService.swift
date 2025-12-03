@@ -131,6 +131,12 @@ class PointDropperService: ObservableObject {
 
     /// Delete a marker
     func deleteMarker(_ marker: PointMarker) {
+        // Clear selected marker if it's the one being deleted
+        if selectedMarker?.id == marker.id {
+            selectedMarker = nil
+            dropperState = .idle
+        }
+
         markers.removeAll { $0.id == marker.id }
         recentMarkers.removeAll { $0.id == marker.id }
         saveMarkers()
@@ -150,6 +156,10 @@ class PointDropperService: ObservableObject {
 
     /// Delete all markers
     func deleteAllMarkers() {
+        // Clear selected marker
+        selectedMarker = nil
+        dropperState = .idle
+
         markers.removeAll()
         recentMarkers.removeAll()
         saveMarkers()
@@ -160,6 +170,12 @@ class PointDropperService: ObservableObject {
 
     /// Delete markers by affiliation
     func deleteMarkers(affiliation: MarkerAffiliation) {
+        // Clear selected marker if it matches the affiliation being deleted
+        if let selected = selectedMarker, selected.affiliation == affiliation {
+            selectedMarker = nil
+            dropperState = .idle
+        }
+
         let count = markers.filter { $0.affiliation == affiliation }.count
         markers.removeAll { $0.affiliation == affiliation }
         recentMarkers.removeAll { $0.affiliation == affiliation }
