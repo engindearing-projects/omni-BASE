@@ -8,32 +8,27 @@ export default function AppShowcase() {
     {
       image: '/screenshots/01_screenshot.png',
       title: 'Real-Time Tactical Map',
-      description: 'See your team on a professional satellite map with range rings and MGRS coordinates',
+      description: 'Professional satellite imagery with range rings and MGRS grid coordinates',
     },
     {
       image: '/screenshots/02_screenshot.png',
       title: 'Drop Markers Instantly',
-      description: 'Place tactical markers with a single tap. Share locations with your entire team.',
+      description: 'Place color-coded tactical markers with a single tap',
     },
     {
       image: '/screenshots/03_screenshot.png',
       title: 'Multi-Layer Visualization',
-      description: 'Switch between satellite, hybrid, and standard views. Filter units by affiliation.',
+      description: 'Switch map layers and filter units by affiliation',
     },
     {
       image: '/screenshots/08_screenshot.png',
       title: 'Professional Drawing Tools',
-      description: 'Create polygons, routes, and markers. Full tactical annotation capabilities.',
+      description: 'Create polygons, routes, and markers for tactical annotation',
     },
     {
       image: '/screenshots/09_screenshot.png',
       title: 'Plan Routes & Waypoints',
-      description: 'Draw multi-point routes for mission planning. Share with connected operators.',
-    },
-    {
-      image: '/screenshots/10_screenshot.png',
-      title: 'Define Areas of Interest',
-      description: 'Create polygon boundaries for zones, sectors, and areas of operation.',
+      description: 'Draw multi-point routes for mission planning and coordination',
     },
   ];
 
