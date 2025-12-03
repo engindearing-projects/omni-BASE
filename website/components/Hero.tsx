@@ -157,6 +157,40 @@ export default function Hero() {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Screenshot showcase */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.8 }}
+          className="mt-20 flex justify-center gap-4 md:gap-8 overflow-hidden"
+        >
+          {[
+            { src: '/screenshots/tools-menu.jpg', alt: 'OmniTAK Tools Menu' },
+            { src: '/screenshots/map-tactical-overlay.jpg', alt: 'OmniTAK Tactical Map' },
+            { src: '/screenshots/server-connections.jpg', alt: 'OmniTAK Server Connections' },
+          ].map((screenshot, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 + i * 0.15, duration: 0.6 }}
+              whileHover={{ scale: 1.05, y: -10 }}
+              className={`relative rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-800 ${
+                i === 1 ? 'w-48 md:w-64 z-10' : 'w-40 md:w-52 opacity-80 hidden sm:block'
+              }`}
+            >
+              <Image
+                src={screenshot.src}
+                alt={screenshot.alt}
+                width={330}
+                height={717}
+                className="w-full h-auto"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
