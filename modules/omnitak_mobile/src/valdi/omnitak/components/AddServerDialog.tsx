@@ -245,7 +245,7 @@ export class AddServerDialog extends Component<
             <label
               value="Use username/password to enroll"
               font={systemFont(11)}
-              color="#4CAF50"
+              color="#4ADE80"
               marginTop={2}
             />
           </view>
@@ -280,7 +280,7 @@ export class AddServerDialog extends Component<
             <label
               value="From file or PKCS#12 bundle"
               font={systemFont(11)}
-              color="#4CAF50"
+              color="#4ADE80"
               marginTop={2}
             />
           </view>
@@ -301,11 +301,11 @@ export class AddServerDialog extends Component<
         {/* Selected certificate display */}
         {selectedCertId && (
           <view style={styles.selectedCertBox}>
-            <label value="✓" font={systemBoldFont(16)} color="#4CAF50" marginRight={8} />
+            <label value="✓" font={systemBoldFont(16)} color="#4ADE80" marginRight={8} />
             <label
               value={`Certificate configured: ${selectedCertId}`}
               font={systemFont(12)}
-              color="#4CAF50"
+              color="#4ADE80"
             />
           </view>
         )}
@@ -500,7 +500,7 @@ const styles = {
     padding: 12,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#4ADE80',
     marginTop: 8,
   }),
 

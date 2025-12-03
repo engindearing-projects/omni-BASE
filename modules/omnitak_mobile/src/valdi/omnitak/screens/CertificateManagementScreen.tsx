@@ -182,7 +182,7 @@ export class CertificateManagementScreen extends Component<
             <label
               value={`Used by: ${cert.associatedServers.join(', ')}`}
               font={systemFont(11)}
-              color="#4CAF50"
+              color="#4ADE80"
               marginTop={4}
             />
           </view>
@@ -293,7 +293,7 @@ export class CertificateManagementScreen extends Component<
   private getStatusColor(status: string): string {
     switch (status) {
       case 'valid':
-        return '#4CAF50';
+        return '#4ADE80';
       case 'expiring_soon':
         return '#FFA500';
       case 'expired':
@@ -396,7 +396,7 @@ const styles = {
     padding: 12,
     borderRadius: 4,
     borderLeftWidth: 3,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#4ADE80',
     marginBottom: 16,
   }),
 

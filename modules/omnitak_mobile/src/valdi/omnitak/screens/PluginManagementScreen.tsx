@@ -165,7 +165,7 @@ export class PluginManagementScreen extends Component<
               <label
                 value="ACTIVE"
                 font={systemBoldFont(10)}
-                color="#4CAF50"
+                color="#4ADE80"
               />
             </view>
           )}
@@ -234,7 +234,7 @@ export class PluginManagementScreen extends Component<
                 <label
                   value="Enable"
                   font={systemBoldFont(12)}
-                  color="#4CAF50"
+                  color="#4ADE80"
                 />
               </view>
             )}
@@ -411,7 +411,7 @@ const styles = {
     backgroundColor: 'rgba(76, 175, 80, 0.2)',
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#4ADE80',
   }),
 
   pluginMeta: new Style<View>({

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- OmniTAK Brand Colors -->
-    <color name="omnitak_primary">#1B5E20</color>          <!-- Dark Green - Military -->
-    <color name="omnitak_primary_dark">#0D3818</color>     <!-- Darker Green -->
-    <color name="omnitak_accent">#4CAF50</color>           <!-- Bright Green Accent -->
+    <!-- OmniTAK Brand Colors - Neon Green Theme -->
+    <color name="omnitak_primary">#16A34A</color>          <!-- Deep Green - Primary -->
+    <color name="omnitak_primary_dark">#0A1628</color>     <!-- Dark Navy Background -->
+    <color name="omnitak_accent">#4ADE80</color>           <!-- Neon Green Accent (matches logo) -->
 
     <!-- Background Colors -->
-    <color name="splash_bg">#0D3818</color>                <!-- Launch screen background -->
-    <color name="background_primary">#121212</color>       <!-- Dark background -->
-    <color name="background_secondary">#1E1E1E</color>     <!-- Lighter dark background -->
+    <color name="splash_bg">#0A1628</color>                <!-- Launch screen - dark navy -->
+    <color name="background_primary">#0A1628</color>       <!-- Dark navy background -->
+    <color name="background_secondary">#162033</color>     <!-- Lighter navy background -->
 
     <!-- Map Colors -->
     <color name="map_overlay">#80000000</color>            <!-- Semi-transparent black -->
@@ -22,7 +22,7 @@
     <color name="text_secondary">#B0B0B0</color>
 
     <!-- Status Colors -->
-    <color name="status_connected">#4CAF50</color>
+    <color name="status_connected">#4ADE80</color>
     <color name="status_connecting">#FFC107</color>
     <color name="status_disconnected">#F44336</color>
 </resources>

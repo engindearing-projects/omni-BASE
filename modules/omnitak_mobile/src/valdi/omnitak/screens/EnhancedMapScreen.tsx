@@ -147,7 +147,7 @@ export class EnhancedMapScreen extends Component<
             <label
               value={isConnected ? 'CONN' : 'DISC'}
               font={systemBoldFont(9)}
-              color={isConnected ? '#4CAF50' : '#FF5252'}
+              color={isConnected ? '#4ADE80' : '#FF5252'}
               marginLeft={6}
             />
           </view>
@@ -656,7 +656,7 @@ const styles = {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#4ADE80',
     // Pulsing animation effect
   }),
 

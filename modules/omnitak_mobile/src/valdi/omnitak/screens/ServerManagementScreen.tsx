@@ -192,7 +192,7 @@ export class ServerManagementScreen extends Component<
             <label
               value="Connect"
               font={systemBoldFont(12)}
-              color="#4CAF50"
+              color="#4ADE80"
             />
           </view>
         )}
@@ -314,7 +314,7 @@ export class ServerManagementScreen extends Component<
   private getStatusColor(status: string): string {
     switch (status) {
       case 'connected':
-        return '#4CAF50';
+        return '#4ADE80';
       case 'connecting':
         return '#FFA500';
       case 'error':

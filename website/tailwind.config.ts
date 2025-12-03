@@ -10,24 +10,25 @@ const config: Config = {
     extend: {
       colors: {
         omni: {
-          // Professional defense tech color palette
+          // Neon Green Theme - matches logo
           navy: "#0A1628",           // Deep navy primary
           'navy-light': "#162033",   // Lighter navy
           slate: "#1E293B",          // Slate background
           'slate-light': "#334155",  // Lighter slate
           steel: "#475569",          // Steel grey
-          accent: "#3B82F6",         // Professional blue accent
-          'accent-light': "#60A5FA", // Lighter accent
-          teal: "#14B8A6",           // Teal for highlights
-          'teal-dark': "#0D9488",    // Darker teal
-          olive: "#84CC16",          // Tactical green
-          'olive-muted': "#65A30D",  // Muted olive
+          accent: "#4ADE80",         // Neon green accent (matches logo)
+          'accent-light': "#86EFAC", // Lighter green
+          'accent-dark': "#22C55E",  // Darker green
+          green: "#4ADE80",          // Primary neon green
+          'green-light': "#86EFAC",  // Light green
+          'green-dark': "#16A34A",   // Deep green
+          'green-glow': "#4ADE80",   // Glow effect green
           white: "#F8FAFC",          // Clean white
           grey: "#94A3B8",           // Neutral grey
           'grey-light': "#CBD5E1",   // Light grey
           'grey-dark': "#64748B",    // Dark grey
           border: "#1E293B",         // Border color
-          glow: "#3B82F6",           // Glow color
+          glow: "#4ADE80",           // Glow color (green)
         },
       },
       fontFamily: {
