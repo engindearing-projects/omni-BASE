@@ -1,35 +1,63 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import GlassCard from './GlassCard';
 
 export default function TechStack() {
   const technologies = [
-    { name: 'SwiftUI', desc: 'Modern iOS UI', color: 'text-orange-500' },
-    { name: 'Rust', desc: 'Core library', color: 'text-orange-600' },
-    { name: 'TypeScript', desc: 'Android logic', color: 'text-blue-500' },
-    { name: 'Kotlin', desc: 'Native Android', color: 'text-purple-500' },
-    { name: 'MapKit', desc: 'iOS mapping', color: 'text-green-500' },
-    { name: 'MapLibre', desc: 'Android maps', color: 'text-cyan-500' },
-    { name: 'Bazel', desc: 'Build system', color: 'text-green-600' },
-    { name: 'Meshtastic', desc: 'Mesh networking', color: 'text-pink-500' },
+    { name: 'SwiftUI', desc: 'Modern iOS UI' },
+    { name: 'Rust', desc: 'Core library' },
+    { name: 'Kotlin', desc: 'Android native' },
+    { name: 'MapKit', desc: 'iOS mapping' },
+    { name: 'MapLibre', desc: 'Android maps' },
+    { name: 'Meshtastic', desc: 'Mesh networking' },
+    { name: 'Bazel', desc: 'Build system' },
+    { name: 'TypeScript', desc: 'Android logic' },
+  ];
+
+  const protocols = [
+    'CoT XML',
+    'TLS 1.2/1.3',
+    'TCP/UDP',
+    'WebSocket',
+    'KML/KMZ',
+    'MGRS',
   ];
 
   return (
-    <section className="relative py-32 px-4">
-      <div className="max-w-7xl mx-auto">
+    <section id="tech" className="relative py-24 md:py-32 bg-omni-navy-light/30">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Section header */}
         <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6">
-            <span className="text-gradient">Cutting-Edge</span>
-            <br />
-            <span className="text-white">Technology</span>
-          </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Built with modern tools for maximum performance and reliability
-          </p>
+          <motion.span
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="tag mb-4 inline-block"
+          >
+            Technology Stack
+          </motion.span>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-5xl font-bold mb-6 text-omni-white"
+          >
+            Built with Modern Tools
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-omni-grey max-w-2xl mx-auto"
+          >
+            Performance-optimized architecture for maximum reliability in the field
+          </motion.p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {/* Technologies grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
           {technologies.map((tech, i) => (
             <motion.div
               key={i}
@@ -37,40 +65,40 @@ export default function TechStack() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
+              className="card card-hover p-5 text-center group"
             >
-              <GlassCard hover={true} glow="olive">
-                <div className="text-center">
-                  <div className={`text-3xl font-bold ${tech.color} mb-2`}>{tech.name}</div>
-                  <div className="text-sm text-gray-400">{tech.desc}</div>
-                </div>
-              </GlassCard>
+              <div className="font-semibold text-omni-white group-hover:text-omni-accent transition-colors text-lg">
+                {tech.name}
+              </div>
+              <div className="text-xs text-omni-grey-dark mt-1">{tech.desc}</div>
             </motion.div>
           ))}
         </div>
 
+        {/* Open Standards section */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 text-center"
+          className="card p-8"
         >
-          <GlassCard hover={false}>
-            <div className="py-8">
-              <h3 className="text-2xl font-bold mb-4 text-white">Open Standards</h3>
-              <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                Full compliance with TAK CoT XML protocol, TLS 1.2/1.3 security standards,
-                and support for industry-standard formats like KML/KMZ.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm font-mono">
-                <span className="px-4 py-2 glass-dark rounded-full text-omni-teal">CoT XML</span>
-                <span className="px-4 py-2 glass-dark rounded-full text-omni-teal">TLS 1.2/1.3</span>
-                <span className="px-4 py-2 glass-dark rounded-full text-omni-teal">TCP/UDP</span>
-                <span className="px-4 py-2 glass-dark rounded-full text-omni-teal">WebSocket</span>
-                <span className="px-4 py-2 glass-dark rounded-full text-omni-teal">KML/KMZ</span>
-                <span className="px-4 py-2 glass-dark rounded-full text-omni-teal">MGRS</span>
-              </div>
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-omni-white mb-4">Open Standards Compliance</h3>
+            <p className="text-omni-grey mb-6 max-w-2xl mx-auto">
+              Full compliance with TAK CoT XML protocol, TLS 1.2/1.3 security standards,
+              and support for industry-standard formats.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {protocols.map((protocol, i) => (
+                <span
+                  key={i}
+                  className="px-4 py-2 rounded-lg bg-omni-slate-light/50 text-omni-accent text-sm font-mono border border-omni-border"
+                >
+                  {protocol}
+                </span>
+              ))}
             </div>
-          </GlassCard>
+          </div>
         </motion.div>
       </div>
     </section>
