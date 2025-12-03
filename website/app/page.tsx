@@ -1,6 +1,7 @@
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
 import Capabilities from '@/components/Capabilities';
+import AppShowcase from '@/components/AppShowcase';
 import Features from '@/components/Features';
 import Deployments from '@/components/Deployments';
 import TechStack from '@/components/TechStack';
@@ -18,6 +19,7 @@ export default function Home() {
       <div className="relative z-10">
         <Hero />
         <Capabilities />
+        <AppShowcase />
         <Features />
         <Deployments />
         <TechStack />

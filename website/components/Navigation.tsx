@@ -18,8 +18,8 @@ export default function Navigation() {
 
   const navItems = [
     { name: 'Capabilities', href: '#capabilities' },
+    { name: 'Screenshots', href: '#showcase' },
     { name: 'Features', href: '#features' },
-    { name: 'Deployments', href: '#deployments' },
     { name: 'Technology', href: '#tech' },
     { name: 'Download', href: '#download' },
   ];
