@@ -228,7 +228,7 @@ const styles = {
     width: 50,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#4ADE80',
     padding: 2,
     justifyContent: 'center',
     alignItems: 'flex-end',

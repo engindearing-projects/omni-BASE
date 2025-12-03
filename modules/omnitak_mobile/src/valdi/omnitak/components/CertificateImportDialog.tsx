@@ -162,11 +162,11 @@ export class CertificateImportDialog extends Component<
           {/* Success message */}
           {success && (
             <view style={styles.successBox}>
-              <label value="✓" font={systemBoldFont(18)} color="#4CAF50" marginRight={8} />
+              <label value="✓" font={systemBoldFont(18)} color="#4ADE80" marginRight={8} />
               <label
                 value="Certificate imported successfully!"
                 font={systemFont(12)}
-                color="#4CAF50"
+                color="#4ADE80"
               />
             </view>
           )}
@@ -309,7 +309,7 @@ export class CertificateImportDialog extends Component<
             <label
               value={file.filename || 'Selected file'}
               font={systemFont(14)}
-              color="#4CAF50"
+              color="#4ADE80"
             />
             <label
               value="Tap to change"
@@ -319,7 +319,7 @@ export class CertificateImportDialog extends Component<
             />
           </view>
           <view style={styles.checkMark}>
-            <label value="✓" font={systemBoldFont(16)} color="#4CAF50" />
+            <label value="✓" font={systemBoldFont(16)} color="#4ADE80" />
           </view>
         </view>
       ) : (
@@ -466,7 +466,7 @@ const styles = {
     padding: 12,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#4ADE80',
   }),
 
   fileInfo: new Style<View>({
@@ -510,7 +510,7 @@ const styles = {
     padding: 12,
     borderRadius: 4,
     borderLeftWidth: 3,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#4ADE80',
     marginTop: 16,
   }),
 

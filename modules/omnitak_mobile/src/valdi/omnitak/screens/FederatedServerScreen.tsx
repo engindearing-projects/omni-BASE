@@ -137,7 +137,7 @@ export class FederatedServerScreen extends Component<
           <label
             value="Connect All"
             font={systemBoldFont(12)}
-            color="#4CAF50"
+            color="#4ADE80"
             marginLeft={6}
           />
         </view>
@@ -221,7 +221,7 @@ export class FederatedServerScreen extends Component<
           <label
             value={server.status === 'connected' ? 'Disconnect' : 'Connect'}
             font={systemBoldFont(12)}
-            color={server.status === 'connected' ? '#FF5252' : '#4CAF50'}
+            color={server.status === 'connected' ? '#FF5252' : '#4ADE80'}
           />
         </view>
       </view>
@@ -268,7 +268,7 @@ export class FederatedServerScreen extends Component<
                 <label
                   value={server.policy.blueTeamOnly ? '✓' : '○'}
                   font={systemBoldFont(12)}
-                  color={server.policy.blueTeamOnly ? '#4CAF50' : '#666666'}
+                  color={server.policy.blueTeamOnly ? '#4ADE80' : '#666666'}
                 />
               </view>
               <label
@@ -294,7 +294,7 @@ export class FederatedServerScreen extends Component<
                 <label
                   value={server.policy.autoShare ? '✓' : '○'}
                   font={systemBoldFont(12)}
-                  color={server.policy.autoShare ? '#4CAF50' : '#666666'}
+                  color={server.policy.autoShare ? '#4ADE80' : '#666666'}
                 />
               </view>
               <label
@@ -581,7 +581,7 @@ const styles = {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#4ADE80',
   }),
 
   ledConnecting: new Style<View>({
@@ -654,7 +654,7 @@ const styles = {
     borderRadius: 12,
     backgroundColor: 'rgba(76, 175, 80, 0.2)',
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#4ADE80',
     alignItems: 'center',
     justifyContent: 'center',
   }),

@@ -86,7 +86,7 @@ export class CertificateEnrollmentDialog extends Component<
             <label
               value={serverUrl}
               font={systemFont(14)}
-              color="#4CAF50"
+              color="#4ADE80"
             />
           </view>
 
@@ -163,11 +163,11 @@ export class CertificateEnrollmentDialog extends Component<
           {/* Success message */}
           {success && (
             <view style={styles.successBox}>
-              <label value="✓" font={systemBoldFont(18)} color="#4CAF50" marginRight={8} />
+              <label value="✓" font={systemBoldFont(18)} color="#4ADE80" marginRight={8} />
               <label
                 value="Certificate enrolled successfully!"
                 font={systemFont(12)}
-                color="#4CAF50"
+                color="#4ADE80"
               />
             </view>
           )}
@@ -296,7 +296,7 @@ const styles = {
     padding: 12,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#4ADE80',
     marginBottom: 8,
   }),
 
@@ -361,7 +361,7 @@ const styles = {
     padding: 12,
     borderRadius: 4,
     borderLeftWidth: 3,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#4ADE80',
     marginTop: 16,
   }),
 
