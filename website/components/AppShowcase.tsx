@@ -6,29 +6,19 @@ import Image from 'next/image';
 export default function AppShowcase() {
   const screenshots = [
     {
-      image: '/screenshots/01_screenshot.png',
+      image: '/screenshots/map-tactical-overlay.jpg',
       title: 'Real-Time Tactical Map',
-      description: 'Professional satellite imagery with range rings and MGRS grid coordinates',
+      description: 'Professional satellite imagery with polygon overlays and MGRS coordinates',
     },
     {
-      image: '/screenshots/02_screenshot.png',
-      title: 'Drop Markers Instantly',
-      description: 'Place color-coded tactical markers with a single tap',
+      image: '/screenshots/tools-menu.jpg',
+      title: 'Comprehensive Tools',
+      description: '23+ tactical tools including Teams, Chat, CASEVAC, Meshtastic, and more',
     },
     {
-      image: '/screenshots/03_screenshot.png',
-      title: 'Multi-Layer Visualization',
-      description: 'Switch map layers and filter units by affiliation',
-    },
-    {
-      image: '/screenshots/08_screenshot.png',
-      title: 'Professional Drawing Tools',
-      description: 'Create polygons, routes, and markers for tactical annotation',
-    },
-    {
-      image: '/screenshots/09_screenshot.png',
-      title: 'Plan Routes & Waypoints',
-      description: 'Draw multi-point routes for mission planning and coordination',
+      image: '/screenshots/server-connections.jpg',
+      title: 'Multi-Server Connectivity',
+      description: 'Connect to multiple TAK servers with SSL/TLS and data package import',
     },
   ];
 
