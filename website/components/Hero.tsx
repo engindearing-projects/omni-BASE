@@ -6,92 +6,121 @@ import AnimatedText from './AnimatedText';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
-      {/* Animated gradient orbs */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-omni-olive/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-omni-teal/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background pattern */}
+      <div className="absolute inset-0 hero-pattern" />
+      <div className="absolute inset-0 grid-bg opacity-50" />
 
-      <div className="relative z-10 max-w-7xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
-          className="mb-8"
-        >
-          <motion.div
-            animate={{
-              boxShadow: [
-                '0 0 20px rgba(107,124,90,0.3)',
-                '0 0 60px rgba(95,171,165,0.5)',
-                '0 0 20px rgba(107,124,90,0.3)',
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="inline-block px-6 py-3 rounded-full glass mb-6"
-          >
-            <span className="text-omni-teal font-mono text-sm">ATAK-COMPATIBLE · TACTICAL · MISSION-READY</span>
-          </motion.div>
-        </motion.div>
+      {/* Subtle gradient orbs */}
+      <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-omni-accent/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-omni-teal/5 rounded-full blur-3xl" />
 
-        <AnimatedText delay={0.2}>
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
-            <span className="text-gradient">OmniTAK</span>
-            <br />
-            <span className="text-white">Mobile</span>
-          </h1>
-        </AnimatedText>
-
-        <AnimatedText delay={0.4}>
-          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Professional tactical awareness for mobile platforms. Real-time team coordination,
-            off-grid communication, and mission-critical situational awareness.
-          </p>
-        </AnimatedText>
-
+      <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
+        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          transition={{ duration: 0.6 }}
+          className="mb-8"
         >
-          <motion.a
-            href="#download"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gradient-to-r from-omni-olive to-omni-teal text-white font-bold rounded-full hover:shadow-2xl transition-all duration-300 glow-olive"
-          >
-            Download Now
-          </motion.a>
-          <motion.a
-            href="#features"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 glass rounded-full font-bold hover:glow-teal transition-all duration-300"
-          >
-            Explore Features
-          </motion.a>
+          <span className="tag">
+            Situational Awareness Platform
+          </span>
         </motion.div>
 
-        {/* Floating stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
+        {/* Main headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight"
+        >
+          <span className="text-gradient">OmniTAK</span>
+          <span className="text-omni-white"> Mobile</span>
+        </motion.h1>
+
+        {/* Subheadline */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-xl md:text-2xl text-omni-grey mb-6 max-w-3xl mx-auto leading-relaxed"
+        >
+          Real-time tactical awareness and team coordination for iOS and Android.
+          Full TAK compatibility with secure, mission-ready capabilities.
+        </motion.p>
+
+        {/* Key value props */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-wrap justify-center gap-6 mb-12 text-sm text-omni-grey-dark"
+        >
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-omni-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>ATAK Compatible</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-omni-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Off-Grid Mesh Networking</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-omni-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Enterprise Security</span>
+          </div>
+        </motion.div>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
+        >
+          <a
+            href="#download"
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            Download Now
+          </a>
+          <a
+            href="#capabilities"
+            className="btn-secondary inline-flex items-center gap-2"
+          >
+            Explore Capabilities
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
         >
           {[
-            { label: 'ATAK Compatible', value: '100%' },
-            { label: 'Off-Grid Ready', value: 'Mesh' },
-            { label: 'Platforms', value: 'iOS + Android' },
+            { value: 'iOS & Android', label: 'Cross-Platform' },
+            { value: '100%', label: 'TAK Compatible' },
+            { value: 'Mesh', label: 'Off-Grid Ready' },
+            { value: 'Open Source', label: 'MIT Licensed' },
           ].map((stat, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ scale: 1.05 }}
-              className="glass rounded-xl p-6 hover:glow-olive transition-all duration-300"
-            >
-              <div className="text-4xl font-bold text-gradient mb-2">{stat.value}</div>
-              <div className="text-omni-grey-light text-sm font-mono">{stat.label}</div>
-            </motion.div>
+            <div key={i} className="stat-card">
+              <div className="text-xl md:text-2xl font-bold text-omni-accent mb-1">{stat.value}</div>
+              <div className="text-sm text-omni-grey-dark">{stat.label}</div>
+            </div>
           ))}
         </motion.div>
 
@@ -132,17 +161,21 @@ export default function Hero() {
 
       {/* Scroll indicator */}
       <motion.div
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-        className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.6 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
       >
-        <div className="w-6 h-10 border-2 border-omni-teal rounded-full flex justify-center">
-          <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-1.5 h-1.5 bg-omni-teal rounded-full mt-2"
-          />
-        </div>
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="flex flex-col items-center gap-2 text-omni-grey-dark"
+        >
+          <span className="text-xs uppercase tracking-wider">Scroll</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </motion.div>
       </motion.div>
     </section>
   );

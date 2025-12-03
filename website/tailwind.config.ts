@@ -10,19 +10,24 @@ const config: Config = {
     extend: {
       colors: {
         omni: {
-          // ATAK-inspired military color palette
-          olive: "#6B7C5A",        // Primary accent - military olive
-          'olive-dark': "#4A5C3A", // Darker olive
-          teal: "#5FABA5",         // Secondary accent - muted teal
-          'teal-dark': "#4A9B9B",  // Darker teal
-          black: "#0D0D0D",        // Deep black for contrast
-          charcoal: "#1A1A1A",     // Primary dark background
-          slate: "#2A2A2A",        // Secondary background
-          'slate-light': "#3A3A3A",// Lighter slate for cards
-          grey: "#4A4A4A",         // Medium grey
-          'grey-light': "#6A6A6A", // Light grey for text
-          'grey-border': "#333333",// Border grey
-          light: "#D0D0D0",        // Light text
+          // Professional defense tech color palette
+          navy: "#0A1628",           // Deep navy primary
+          'navy-light': "#162033",   // Lighter navy
+          slate: "#1E293B",          // Slate background
+          'slate-light': "#334155",  // Lighter slate
+          steel: "#475569",          // Steel grey
+          accent: "#3B82F6",         // Professional blue accent
+          'accent-light': "#60A5FA", // Lighter accent
+          teal: "#14B8A6",           // Teal for highlights
+          'teal-dark': "#0D9488",    // Darker teal
+          olive: "#84CC16",          // Tactical green
+          'olive-muted': "#65A30D",  // Muted olive
+          white: "#F8FAFC",          // Clean white
+          grey: "#94A3B8",           // Neutral grey
+          'grey-light': "#CBD5E1",   // Light grey
+          'grey-dark': "#64748B",    // Dark grey
+          border: "#1E293B",         // Border color
+          glow: "#3B82F6",           // Glow color
         },
       },
       fontFamily: {
@@ -31,41 +36,38 @@ const config: Config = {
       },
       animation: {
         "float": "float 6s ease-in-out infinite",
-        "glow": "glow 2s ease-in-out infinite alternate",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "slide-up": "slide-up 0.5s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
-        "shimmer": "shimmer 2s linear infinite",
-        "gradient-x": "gradient-x 3s ease infinite",
+        "gradient-x": "gradient-x 15s ease infinite",
+        "border-glow": "border-glow 3s ease-in-out infinite",
       },
       keyframes: {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-20px)" },
-        },
-        glow: {
-          "0%": { boxShadow: "0 0 5px rgba(107, 124, 90, 0.5)" },
-          "100%": { boxShadow: "0 0 20px rgba(107, 124, 90, 0.8)" },
+          "50%": { transform: "translateY(-10px)" },
         },
         "slide-up": {
-          "0%": { transform: "translateY(100px)", opacity: "0" },
+          "0%": { transform: "translateY(20px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
-        shimmer: {
-          "0%": { backgroundPosition: "-1000px 0" },
-          "100%": { backgroundPosition: "1000px 0" },
-        },
         "gradient-x": {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
+        },
+        "border-glow": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "1" },
         },
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "hero-pattern": "linear-gradient(to bottom, rgba(10, 22, 40, 0.8), rgba(10, 22, 40, 0.95))",
       },
     },
   },
