@@ -1,27 +1,26 @@
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
+import Capabilities from '@/components/Capabilities';
 import Features from '@/components/Features';
-import UseCases from '@/components/UseCases';
+import Deployments from '@/components/Deployments';
 import TechStack from '@/components/TechStack';
-import Changelog from '@/components/Changelog';
 import Download from '@/components/Download';
 import Footer from '@/components/Footer';
-import FloatingParticles from '@/components/FloatingParticles';
-import GridBackground from '@/components/GridBackground';
 
 export default function Home() {
   return (
-    <main className="relative">
-      <GridBackground />
-      <FloatingParticles />
+    <main className="relative bg-omni-navy min-h-screen">
+      {/* Subtle background grid */}
+      <div className="fixed inset-0 grid-bg pointer-events-none" />
+
       <Navigation />
 
       <div className="relative z-10">
         <Hero />
+        <Capabilities />
         <Features />
-        <UseCases />
+        <Deployments />
         <TechStack />
-        <Changelog />
         <Download />
         <Footer />
       </div>
