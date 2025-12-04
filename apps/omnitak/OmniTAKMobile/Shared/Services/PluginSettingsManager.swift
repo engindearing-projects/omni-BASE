@@ -30,7 +30,7 @@ enum PluginID: String, CaseIterable {
     case digitalPointer = "digitalpointer"
     case turnByTurn = "turnbyturn"
     case arcgis = "arcgis"
-    case flightRadar = "flightradar"
+    case adsb = "adsb"
 
     var displayName: String {
         switch self {
@@ -54,7 +54,7 @@ enum PluginID: String, CaseIterable {
         case .digitalPointer: return "Digital Pointer"
         case .turnByTurn: return "Navigation"
         case .arcgis: return "ArcGIS"
-        case .flightRadar: return "Flight Radar"
+        case .adsb: return "ADS-B"
         }
     }
 
@@ -80,7 +80,7 @@ enum PluginID: String, CaseIterable {
         case .digitalPointer: return "hand.point.up.left.fill"
         case .turnByTurn: return "location.north.line.fill"
         case .arcgis: return "globe.americas.fill"
-        case .flightRadar: return "airplane.circle.fill"
+        case .adsb: return "airplane.circle.fill"
         }
     }
 
@@ -106,7 +106,7 @@ enum PluginID: String, CaseIterable {
         case .digitalPointer: return "Share cursor position with team"
         case .turnByTurn: return "Turn-by-turn voice navigation"
         case .arcgis: return "ArcGIS Portal content"
-        case .flightRadar: return "ADS-B aircraft traffic overlay"
+        case .adsb: return "ADS-B aircraft traffic overlay"
         }
     }
 }

@@ -2,7 +2,7 @@
 //  ADSBTrafficView.swift
 //  OmniTAKMobile
 //
-//  Configuration and status view for ADS-B flight tracking
+//  Configuration and status view for multi-provider ADS-B flight tracking
 //
 
 import SwiftUI
@@ -10,13 +10,13 @@ import CoreLocation
 
 struct ADSBTrafficView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.openURL) var openURL
     @ObservedObject var trafficService = ADSBTrafficService.shared
     @State private var zipCodeInput = ""
     @State private var isLookingUpZip = false
     @State private var zipLookupError: String?
-    @State private var showAPISettings = false
-    @State private var apiUsername = ""
-    @State private var apiPassword = ""
+    @State private var showProviderConfig = false
+    @State private var selectedProviderForConfig: ADSBProvider?
 
     var body: some View {
         NavigationView {
@@ -29,14 +29,14 @@ struct ADSBTrafficView: View {
                         masterToggleCard
 
                         if trafficService.settings.isEnabled {
+                            // Provider Selection Card
+                            providerSelectionCard
+
                             // Location Settings Card
                             locationCard
 
                             // Display Settings Card
                             displaySettingsCard
-
-                            // API Settings Card
-                            apiSettingsCard
 
                             // Status Card
                             statusCard
@@ -50,7 +50,7 @@ struct ADSBTrafficView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Flight Radar")
+            .navigationTitle("ADS-B Traffic")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -59,6 +59,9 @@ struct ADSBTrafficView: View {
                     }
                     .foregroundColor(Color(hex: "#FFFC00"))
                 }
+            }
+            .sheet(item: $selectedProviderForConfig) { provider in
+                ProviderConfigSheet(provider: provider, trafficService: trafficService)
             }
         }
     }
@@ -97,13 +100,56 @@ struct ADSBTrafficView: View {
 
             if trafficService.settings.isEnabled {
                 HStack {
-                    Image(systemName: "info.circle")
-                        .foregroundColor(.blue)
-                    Text("Data from OpenSky Network")
+                    Image(systemName: trafficService.currentProvider.icon)
+                        .foregroundColor(trafficService.currentProvider.color)
+                    Text("Data from \(trafficService.currentProvider.displayName)")
                         .font(.system(size: 12))
                         .foregroundColor(.gray)
                     Spacer()
                 }
+            }
+        }
+        .padding()
+        .background(Color(white: 0.12))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Provider Selection Card
+
+    private var providerSelectionCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("DATA SOURCE")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.gray)
+                Spacer()
+
+                // Current provider indicator
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(trafficService.settings.activeProvider.color)
+                        .frame(width: 8, height: 8)
+                    Text(trafficService.settings.activeProvider.displayName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(trafficService.settings.activeProvider.color)
+                }
+            }
+
+            // Provider list
+            ForEach(ADSBProvider.allCases) { provider in
+                ProviderRow(
+                    provider: provider,
+                    isActive: trafficService.settings.activeProvider == provider,
+                    config: trafficService.settings.providers.first(where: { $0.provider == provider }),
+                    onSelect: {
+                        var settings = trafficService.settings
+                        settings.activeProvider = provider
+                        trafficService.settings = settings
+                    },
+                    onConfigure: {
+                        selectedProviderForConfig = provider
+                    }
+                )
             }
         }
         .padding()
@@ -268,20 +314,17 @@ struct ADSBTrafficView: View {
                         .font(.system(size: 14, weight: .semibold))
                 }
 
+                let minInterval = trafficService.settings.minimumRefreshInterval
                 Picker("", selection: Binding(
                     get: { trafficService.settings.refreshIntervalSeconds },
                     set: { newValue in
                         var settings = trafficService.settings
-                        // Enforce minimum based on API tier
-                        let minInterval = settings.minimumRefreshInterval
                         settings.refreshIntervalSeconds = max(newValue, minInterval)
                         trafficService.settings = settings
                     }
                 )) {
-                    // Only show 5s option if user has API credentials
-                    if trafficService.settings.hasAPICredentials {
-                        Text("5s").tag(5)
-                    }
+                    if minInterval <= 2 { Text("2s").tag(2) }
+                    if minInterval <= 5 { Text("5s").tag(5) }
                     Text("10s").tag(10)
                     Text("15s").tag(15)
                     Text("30s").tag(30)
@@ -289,144 +332,9 @@ struct ADSBTrafficView: View {
                 }
                 .pickerStyle(.segmented)
 
-                if !trafficService.settings.hasAPICredentials {
-                    Text("Add API key for faster refresh rates")
-                        .font(.system(size: 10))
-                        .foregroundColor(.gray)
-                }
-            }
-        }
-        .padding()
-        .background(Color(white: 0.12))
-        .cornerRadius(12)
-    }
-
-    // MARK: - API Settings Card
-
-    private var apiSettingsCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("API ACCESS")
-                    .font(.system(size: 12, weight: .semibold))
+                Text("Min \(minInterval)s for \(trafficService.settings.activeProvider.displayName)")
+                    .font(.system(size: 10))
                     .foregroundColor(.gray)
-
-                Spacer()
-
-                // Tier indicator
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(trafficService.settings.hasAPICredentials ? .green : .orange)
-                        .frame(width: 8, height: 8)
-                    Text(trafficService.settings.hasAPICredentials ? "Enhanced" : "Free Tier")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(trafficService.settings.hasAPICredentials ? .green : .orange)
-                }
-            }
-
-            // Current tier info
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Requests/Day")
-                        .font(.system(size: 11))
-                        .foregroundColor(.gray)
-                    Text(trafficService.settings.requestsPerDay)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Min Refresh")
-                        .font(.system(size: 11))
-                        .foregroundColor(.gray)
-                    Text("\(trafficService.settings.minimumRefreshInterval)s")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-
-                Spacer()
-            }
-
-            // Toggle to show/hide API settings
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showAPISettings.toggle()
-                    if showAPISettings {
-                        apiUsername = trafficService.settings.apiUsername
-                        apiPassword = trafficService.settings.apiPassword
-                    }
-                }
-            }) {
-                HStack {
-                    Image(systemName: "key.fill")
-                        .foregroundColor(Color(hex: "#FFFC00"))
-                    Text(trafficService.settings.hasAPICredentials ? "Edit API Credentials" : "Add OpenSky API Key")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                    Spacer()
-                    Image(systemName: showAPISettings ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
-                }
-            }
-
-            if showAPISettings {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Get free API credentials at opensky-network.org")
-                        .font(.system(size: 11))
-                        .foregroundColor(.gray)
-
-                    TextField("Username", text: $apiUsername)
-                        .textFieldStyle(.roundedBorder)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-
-                    SecureField("Password", text: $apiPassword)
-                        .textFieldStyle(.roundedBorder)
-
-                    HStack {
-                        Button(action: {
-                            var settings = trafficService.settings
-                            settings.apiUsername = apiUsername
-                            settings.apiPassword = apiPassword
-                            trafficService.settings = settings
-                            showAPISettings = false
-                        }) {
-                            Text("Save")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
-                                .background(Color(hex: "#FFFC00"))
-                                .cornerRadius(8)
-                        }
-
-                        if trafficService.settings.hasAPICredentials {
-                            Button(action: {
-                                var settings = trafficService.settings
-                                settings.apiUsername = ""
-                                settings.apiPassword = ""
-                                // Bump up refresh interval if it was set to 5s (API-only option)
-                                if settings.refreshIntervalSeconds < 10 {
-                                    settings.refreshIntervalSeconds = 10
-                                }
-                                trafficService.settings = settings
-                                apiUsername = ""
-                                apiPassword = ""
-                            }) {
-                                Text("Remove")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.red)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 8)
-                                    .background(Color.red.opacity(0.2))
-                                    .cornerRadius(8)
-                            }
-                        }
-
-                        Spacer()
-                    }
-                }
-                .padding(.top, 8)
             }
         }
         .padding()
@@ -587,6 +495,395 @@ struct ADSBTrafficView: View {
                 zipLookupError = "Could not find location for ZIP code"
             }
         }
+    }
+}
+
+// MARK: - Provider Row
+
+struct ProviderRow: View {
+    let provider: ADSBProvider
+    let isActive: Bool
+    let config: ADSBProviderConfig?
+    let onSelect: () -> Void
+    let onConfigure: () -> Void
+
+    private var isConfigured: Bool {
+        config?.isConfigured ?? provider.hasFreeTier
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Selection indicator
+            Button(action: {
+                if isConfigured {
+                    onSelect()
+                }
+            }) {
+                Image(systemName: isActive ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(isActive ? provider.color : (isConfigured ? .gray : .gray.opacity(0.4)))
+            }
+            .disabled(!isConfigured)
+
+            // Provider icon
+            Image(systemName: provider.icon)
+                .font(.system(size: 18))
+                .foregroundColor(isConfigured ? provider.color : .gray.opacity(0.5))
+                .frame(width: 24)
+
+            // Provider info
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(provider.displayName)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(isConfigured ? .white : .gray)
+
+                    if provider.hasFreeTier {
+                        Text("FREE")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.green)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
+                            .background(Color.green.opacity(0.2))
+                            .cornerRadius(4)
+                    } else if provider.requiresAPIKey && !(config?.hasCredentials ?? false) {
+                        Text("API KEY")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.orange)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
+                            .background(Color.orange.opacity(0.2))
+                            .cornerRadius(4)
+                    }
+                }
+
+                Text(provider.description)
+                    .font(.system(size: 11))
+                    .foregroundColor(.gray)
+            }
+
+            Spacer()
+
+            // Configure button
+            Button(action: onConfigure) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 16))
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isConfigured {
+                onSelect()
+            } else {
+                onConfigure()
+            }
+        }
+    }
+}
+
+// MARK: - Provider Config Sheet
+
+struct ProviderConfigSheet: View {
+    let provider: ADSBProvider
+    @ObservedObject var trafficService: ADSBTrafficService
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.openURL) var openURL
+
+    @State private var apiKey = ""
+    @State private var apiSecret = ""
+    @State private var customURL = ""
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Provider header
+                        HStack(spacing: 16) {
+                            Image(systemName: provider.icon)
+                                .font(.system(size: 40))
+                                .foregroundColor(provider.color)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(provider.displayName)
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text(provider.description)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+
+                        Divider().background(Color.gray.opacity(0.3))
+
+                        // Provider-specific configuration
+                        switch provider {
+                        case .openSky:
+                            openSkyConfig
+                        case .adsbExchange:
+                            adsbExchangeConfig
+                        case .adsbLol:
+                            adsbLolConfig
+                        case .flightRadar24:
+                            flightRadar24Config
+                        case .flightAware:
+                            flightAwareConfig
+                        case .custom:
+                            customSourceConfig
+                        }
+
+                        Spacer()
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Configure \(provider.displayName)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.gray)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        saveConfig()
+                        dismiss()
+                    }
+                    .foregroundColor(Color(hex: "#FFFC00"))
+                }
+            }
+            .onAppear {
+                loadCurrentConfig()
+            }
+        }
+    }
+
+    // MARK: - Provider Configs
+
+    private var openSkyConfig: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            infoBox(
+                title: "Free Tier Available",
+                message: "OpenSky works without credentials but is rate-limited (~100 requests/day). Add credentials for enhanced access (~4,000 requests/day).",
+                color: .green
+            )
+
+            Text("API CREDENTIALS (OPTIONAL)")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+
+            TextField("Username", text: $apiKey)
+                .textFieldStyle(.roundedBorder)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+
+            SecureField("Password", text: $apiSecret)
+                .textFieldStyle(.roundedBorder)
+
+            signupButton(url: provider.signupURL)
+        }
+    }
+
+    private var adsbExchangeConfig: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            infoBox(
+                title: "RapidAPI Key Required",
+                message: "ADS-B Exchange provides unfiltered, real-time data including military aircraft. Requires a RapidAPI subscription.",
+                color: .orange
+            )
+
+            Text("RAPIDAPI KEY")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+
+            SecureField("RapidAPI Key", text: $apiKey)
+                .textFieldStyle(.roundedBorder)
+
+            signupButton(url: provider.signupURL)
+        }
+    }
+
+    private var adsbLolConfig: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            infoBox(
+                title: "Free Community Service",
+                message: "ADSB.lol is a free community-driven ADS-B aggregator. No API key required!",
+                color: .green
+            )
+
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("Ready to use - no configuration needed")
+                    .foregroundColor(.white)
+            }
+            .padding()
+            .background(Color.green.opacity(0.1))
+            .cornerRadius(8)
+        }
+    }
+
+    private var flightRadar24Config: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            infoBox(
+                title: "API Key Required",
+                message: "FlightRadar24 requires a paid API subscription for data access.",
+                color: .orange
+            )
+
+            Text("API KEY")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+
+            SecureField("API Key", text: $apiKey)
+                .textFieldStyle(.roundedBorder)
+
+            signupButton(url: provider.signupURL)
+        }
+    }
+
+    private var flightAwareConfig: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            infoBox(
+                title: "AeroAPI Key Required",
+                message: "FlightAware's AeroAPI provides professional aviation data. Requires a subscription.",
+                color: .orange
+            )
+
+            Text("API KEY")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+
+            SecureField("AeroAPI Key", text: $apiKey)
+                .textFieldStyle(.roundedBorder)
+
+            signupButton(url: provider.signupURL)
+        }
+    }
+
+    private var customSourceConfig: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            infoBox(
+                title: "Custom Data Source",
+                message: "Connect to a local ADS-B receiver (dump1090, tar1090, readsb) or any compatible API endpoint.",
+                color: .purple
+            )
+
+            Text("API ENDPOINT")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+
+            TextField("https://your-receiver/data/aircraft.json", text: $customURL)
+                .textFieldStyle(.roundedBorder)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .keyboardType(.URL)
+
+            Text("Supported placeholders: {lat}, {lon}, {radius}, {radius_km}")
+                .font(.system(size: 11))
+                .foregroundColor(.gray)
+
+            Text("API KEY (OPTIONAL)")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+
+            SecureField("Bearer Token", text: $apiKey)
+                .textFieldStyle(.roundedBorder)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Example URLs:")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.gray)
+
+                Text("• http://192.168.1.100/data/aircraft.json")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.gray)
+
+                Text("• http://localhost:8080/aircraft")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.gray)
+            }
+            .padding()
+            .background(Color(white: 0.15))
+            .cornerRadius(8)
+        }
+    }
+
+    // MARK: - Helper Views
+
+    private func infoBox(title: String, message: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: color == .green ? "checkmark.circle.fill" : "info.circle.fill")
+                    .foregroundColor(color)
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(color)
+            }
+            Text(message)
+                .font(.system(size: 13))
+                .foregroundColor(.gray)
+        }
+        .padding()
+        .background(color.opacity(0.1))
+        .cornerRadius(8)
+    }
+
+    @ViewBuilder
+    private func signupButton(url: String?) -> some View {
+        if let urlString = url, let url = URL(string: urlString) {
+            Button(action: {
+                openURL(url)
+            }) {
+                HStack {
+                    Image(systemName: "safari")
+                    Text("Get API Credentials")
+                }
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Color(hex: "#FFFC00"))
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "#FFFC00").opacity(0.15))
+                .cornerRadius(8)
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func loadCurrentConfig() {
+        if let config = trafficService.settings.providers.first(where: { $0.provider == provider }) {
+            apiKey = config.apiKey
+            apiSecret = config.apiSecret
+            customURL = config.customURL
+        }
+    }
+
+    private func saveConfig() {
+        var settings = trafficService.settings
+        var config = settings.providers.first(where: { $0.provider == provider }) ?? ADSBProviderConfig(provider: provider)
+
+        config.apiKey = apiKey
+        config.apiSecret = apiSecret
+        config.customURL = customURL
+        config.isEnabled = config.isConfigured
+
+        settings.updateProvider(config)
+
+        // Also set this provider as the active provider when saving
+        if config.isConfigured {
+            settings.activeProvider = provider
+            print("Set active provider to: \(provider.displayName)")
+            print("API Key saved (first 20 chars): \(String(apiKey.prefix(20)))...")
+        }
+
+        trafficService.settings = settings
     }
 }
 

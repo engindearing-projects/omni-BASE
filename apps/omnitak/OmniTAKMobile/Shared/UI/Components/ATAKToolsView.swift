@@ -33,7 +33,7 @@ struct ATAKToolsView: View {
     @State private var showDigitalPointer = false
     @State private var showTurnByTurnNav = false
     @State private var showMeshtastic = false
-    @State private var showFlightRadar = false
+    @State private var showADSB = false
 
     @ObservedObject private var chatManager = ChatManager.shared
     @StateObject private var trackRecordingService = TrackRecordingService()
@@ -150,7 +150,7 @@ struct ATAKToolsView: View {
         .sheet(isPresented: $showMeshtastic) {
             MeshtasticConnectionView()
         }
-        .sheet(isPresented: $showFlightRadar) {
+        .sheet(isPresented: $showADSB) {
             ADSBTrafficView()
         }
     }
@@ -214,8 +214,8 @@ struct ATAKToolsView: View {
             showTurnByTurnNav = true
         case "meshtastic":
             showMeshtastic = true
-        case "flightradar":
-            showFlightRadar = true
+        case "adsb":
+            showADSB = true
 
         default:
             selectedTool = tool
@@ -347,7 +347,7 @@ struct ATAKTool: Identifiable {
 
         // Row 5 - Additional Utilities
         ATAKTool(id: "arcgis", displayName: "ArcGIS", iconName: "globe.americas.fill", description: "ArcGIS Portal content"),
-        ATAKTool(id: "flightradar", displayName: "Flight Radar", iconName: "airplane.circle.fill", description: "ADS-B aircraft traffic"),
+        ATAKTool(id: "adsb", displayName: "ADS-B", iconName: "airplane.circle.fill", description: "ADS-B aircraft tracking"),
         ATAKTool(id: "plugins", displayName: "Plugins", iconName: "puzzlepiece.extension.fill", description: "Manage plugins"),
         ATAKTool(id: "settings", displayName: "Settings", iconName: "gearshape.fill", description: "App settings")
     ]

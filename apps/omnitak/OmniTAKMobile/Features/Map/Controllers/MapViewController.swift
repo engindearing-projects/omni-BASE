@@ -240,7 +240,7 @@ struct ATAKMapView: View {
                     showCoordinates: $showCoordinates,
                     showScaleBar: $showScaleBar,
                     showGrid: $showGrid,
-                    flightRadarService: ADSBTrafficService.shared,
+                    adsbService: ADSBTrafficService.shared,
                     onLayerToggle: { layer in
                         toggleLayer(layer)
                     },
@@ -1302,7 +1302,7 @@ struct ATAKSidePanel: View {
     @Binding var showCoordinates: Bool
     @Binding var showScaleBar: Bool
     @Binding var showGrid: Bool
-    @ObservedObject var flightRadarService: ADSBTrafficService
+    @ObservedObject var adsbService: ADSBTrafficService
     let onLayerToggle: (String) -> Void
     let onOverlayToggle: (String) -> Void
     let onMapOverlayToggle: (String) -> Void
@@ -1388,18 +1388,18 @@ struct ATAKSidePanel: View {
 
                 LayerButton(
                     icon: "airplane.circle.fill",
-                    title: "Flight Radar",
-                    isActive: flightRadarService.settings.isEnabled,
+                    title: "ADS-B",
+                    isActive: adsbService.settings.isEnabled,
                     compact: true
                 ) {
-                    var settings = flightRadarService.settings
+                    var settings = adsbService.settings
                     settings.isEnabled.toggle()
-                    flightRadarService.settings = settings
+                    adsbService.settings = settings
                 }
 
-                if flightRadarService.settings.isEnabled {
+                if adsbService.settings.isEnabled {
                     HStack {
-                        Text("\(flightRadarService.aircraft.count) aircraft")
+                        Text("\(adsbService.aircraft.count) aircraft")
                             .font(.system(size: 10))
                             .foregroundColor(.gray)
                         Spacer()
