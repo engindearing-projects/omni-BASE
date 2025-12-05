@@ -49,8 +49,41 @@ class CoTEventHandler: ObservableObject {
     var enableNotifications: Bool = true
     var enableEmergencyAlerts: Bool = true
 
+    /// How long to keep events before considering them stale (default: 1 hour)
+    var staleEventThreshold: TimeInterval = 3600
+
+    private var staleCleanupTimer: Timer?
+
     private init() {
         requestNotificationPermissions()
+        startStaleEventCleanup()
+    }
+
+    /// Start periodic cleanup of stale events
+    private func startStaleEventCleanup() {
+        // Run cleanup every 5 minutes
+        staleCleanupTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+            self?.cleanupStaleEvents()
+        }
+    }
+
+    /// Remove events older than staleEventThreshold
+    private func cleanupStaleEvents() {
+        guard let service = takService else { return }
+
+        let cutoffDate = Date().addingTimeInterval(-staleEventThreshold)
+        let originalCount = service.cotEvents.count
+
+        service.cotEvents.removeAll { event in
+            event.time < cutoffDate
+        }
+
+        let removedCount = originalCount - service.cotEvents.count
+        if removedCount > 0 {
+            #if DEBUG
+            print("🧹 CoTEventHandler: Cleaned up \(removedCount) stale events (older than \(Int(staleEventThreshold/60)) minutes)")
+            #endif
+        }
     }
 
     // MARK: - Setup
@@ -98,9 +131,40 @@ class CoTEventHandler: ObservableObject {
 
         latestPositionUpdate = event
 
+        // CRITICAL: Check if takService reference is valid
+        #if DEBUG
+        if takService == nil {
+            print("❌ CoTEventHandler: takService is NIL! Events cannot be added to cotEvents array!")
+            print("   This means teammates will NOT appear on the map!")
+        } else {
+            print("✅ CoTEventHandler: takService is valid, adding event to cotEvents")
+        }
+        #endif
+
         // Update TAKService markers
         takService?.updateEnhancedMarker(from: event)
-        takService?.cotEvents.append(event)
+
+        // Update or add to cotEvents array (deduplicate by UID)
+        if let service = takService {
+            if let existingIndex = service.cotEvents.firstIndex(where: { $0.uid == event.uid }) {
+                // Update existing event with new position/data
+                service.cotEvents[existingIndex] = event
+                #if DEBUG
+                print("   🔄 Updated existing event for UID: \(event.uid)")
+                #endif
+            } else {
+                // Add new event
+                service.cotEvents.append(event)
+                #if DEBUG
+                print("   ➕ Added new event for UID: \(event.uid)")
+                #endif
+            }
+
+            #if DEBUG
+            print("   📊 cotEvents now contains \(service.cotEvents.count) unique events")
+            print("   📊 enhancedMarkers now contains \(service.enhancedMarkers.count) markers")
+            #endif
+        }
 
         // Update participant info for chat
         if let participant = ChatXMLParser.parseParticipantFromPresence(xml: createPresenceXML(from: event)) {
