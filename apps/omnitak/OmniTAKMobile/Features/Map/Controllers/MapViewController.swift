@@ -64,7 +64,8 @@ struct ATAKMapView: View {
     @State private var activeMapLayer = "satellite"
     @State private var showFriendly = true
     @State private var showHostile = true
-    @State private var showUnknown = false
+    @State private var showNeutral = true      // Added: Neutral units (a-n-*)
+    @State private var showUnknown = true      // Changed: Default to TRUE - show unknown by default
 
     // Map overlay states
     @State private var showCompass = false  // Hidden by default for max map space
@@ -111,16 +112,44 @@ struct ATAKMapView: View {
                 team: event.detail.team ?? "Unknown"
             )
 
-            // Filter based on overlay settings
-            if event.type.contains("a-f") && !showFriendly {
-                return nil  // Hide friendly
+            // Filter based on overlay settings and CoT affiliation
+            // CoT type format: a-{affiliation}-{dimension}-{function}
+            // Affiliations: f=friendly, h=hostile, n=neutral, u=unknown
+            //               j=joker (exercise hostile), k=faker (exercise friendly)
+            //               s=suspect, a=assumed friendly
+
+            // Determine affiliation from CoT type
+            let type = event.type.lowercased()
+
+            if type.hasPrefix("a-f") || type.hasPrefix("a-k") || type.hasPrefix("a-a") {
+                // Friendly, Faker (exercise friendly), Assumed Friendly
+                if !showFriendly {
+                    return nil
+                }
+            } else if type.hasPrefix("a-h") || type.hasPrefix("a-j") || type.hasPrefix("a-s") {
+                // Hostile, Joker (exercise hostile), Suspect
+                if !showHostile {
+                    return nil
+                }
+            } else if type.hasPrefix("a-n") {
+                // Neutral
+                if !showNeutral {
+                    return nil
+                }
+            } else if type.hasPrefix("a-u") {
+                // Unknown affiliation
+                if !showUnknown {
+                    return nil
+                }
+            } else if type.hasPrefix("a-") {
+                // Any other 'a-' type we don't recognize - treat as unknown
+                // This ensures we don't accidentally hide valid units
+                if !showUnknown {
+                    return nil
+                }
             }
-            if event.type.contains("a-h") && !showHostile {
-                return nil  // Hide hostile
-            }
-            if event.type.contains("a-u") && !showUnknown {
-                return nil  // Hide unknown
-            }
+            // Non 'a-' types (waypoints, markers, etc.) are ALWAYS shown
+            // They don't have affiliations and should never be filtered
 
             return marker
         }
@@ -233,6 +262,7 @@ struct ATAKMapView: View {
                     activeMapLayer: $activeMapLayer,
                     showFriendly: $showFriendly,
                     showHostile: $showHostile,
+                    showNeutral: $showNeutral,
                     showUnknown: $showUnknown,
                     showCompass: $showCompass,
                     showCoordinates: $showCoordinates,
@@ -996,6 +1026,7 @@ struct ATAKMapView: View {
         switch overlay {
         case "friendly": showFriendly.toggle()
         case "hostile": showHostile.toggle()
+        case "neutral": showNeutral.toggle()
         case "unknown": showUnknown.toggle()
         default: break
         }
@@ -1304,6 +1335,7 @@ struct ATAKSidePanel: View {
     @Binding var activeMapLayer: String
     @Binding var showFriendly: Bool
     @Binding var showHostile: Bool
+    @Binding var showNeutral: Bool
     @Binding var showUnknown: Bool
     @Binding var showCompass: Bool
     @Binding var showCoordinates: Bool
@@ -1359,6 +1391,9 @@ struct ATAKSidePanel: View {
                 }
                 LayerButton(icon: "exclamationmark.triangle.fill", title: "Hostile", isActive: showHostile, compact: true) {
                     onOverlayToggle("hostile")
+                }
+                LayerButton(icon: "circle.fill", title: "Neutral", isActive: showNeutral, compact: true) {
+                    onOverlayToggle("neutral")
                 }
                 LayerButton(icon: "questionmark.circle.fill", title: "Unknown", isActive: showUnknown, compact: true) {
                     onOverlayToggle("unknown")

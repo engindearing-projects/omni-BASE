@@ -105,9 +105,30 @@ class CoTMessageParser {
 
     static func parsePositionUpdate(xml: String) -> CoTEvent? {
         // Extract required fields
-        guard let uid = extractAttribute("uid", from: xml),
-              let typeStr = extractAttribute("type", from: xml),
-              let point = extractPoint(from: xml) else {
+        let uid = extractAttribute("uid", from: xml)
+        let typeStr = extractAttribute("type", from: xml)
+        let point = extractPoint(from: xml)
+
+        #if DEBUG
+        if uid == nil {
+            print("❌ CoTMessageParser: parsePositionUpdate failed - could not extract 'uid' attribute")
+        }
+        if typeStr == nil {
+            print("❌ CoTMessageParser: parsePositionUpdate failed - could not extract 'type' attribute")
+        }
+        if point == nil {
+            print("❌ CoTMessageParser: parsePositionUpdate failed - could not extract <point> element")
+            // Show the XML to help diagnose
+            if let pointRange = xml.range(of: "<point", options: .caseInsensitive) {
+                let context = xml[pointRange.lowerBound...]
+                print("   Found <point at: \(String(context.prefix(100)))")
+            } else {
+                print("   No <point tag found in XML")
+            }
+        }
+        #endif
+
+        guard let uid = uid, let typeStr = typeStr, let point = point else {
             return nil
         }
 
@@ -211,16 +232,40 @@ class CoTMessageParser {
     }
 
     private static func extractPoint(from xml: String) -> CoTPoint? {
-        guard let pointRange = xml.range(of: "<point[^>]+>", options: .regularExpression) else {
+        // Try multiple regex patterns to handle different point tag formats
+        var pointTag: String? = nil
+
+        // Pattern 1: Standard format <point ... > or <point ... />
+        if let pointRange = xml.range(of: "<point[^>]+>", options: .regularExpression) {
+            pointTag = String(xml[pointRange])
+        }
+        // Pattern 2: Handle <point .../> with space before slash (some servers format this way)
+        else if let pointRange = xml.range(of: "<point[^/]+/>", options: .regularExpression) {
+            pointTag = String(xml[pointRange])
+        }
+
+        guard let pointTag = pointTag else {
+            #if DEBUG
+            print("❌ CoTMessageParser: extractPoint failed - no <point> tag matched")
+            #endif
             return nil
         }
 
-        let pointTag = String(xml[pointRange])
+        #if DEBUG
+        print("   🔍 extractPoint found tag: \(pointTag)")
+        #endif
 
-        guard let latStr = extractAttribute("lat", from: pointTag),
-              let lonStr = extractAttribute("lon", from: pointTag),
+        let latStr = extractAttribute("lat", from: pointTag)
+        let lonStr = extractAttribute("lon", from: pointTag)
+
+        guard let latStr = latStr,
+              let lonStr = lonStr,
               let lat = Double(latStr),
               let lon = Double(lonStr) else {
+            #if DEBUG
+            print("❌ CoTMessageParser: extractPoint failed - could not parse lat/lon")
+            print("   latStr: \(latStr ?? "nil"), lonStr: \(lonStr ?? "nil")")
+            #endif
             return nil
         }
 

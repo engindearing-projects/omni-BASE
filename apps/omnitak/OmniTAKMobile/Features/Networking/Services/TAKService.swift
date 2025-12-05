@@ -308,6 +308,12 @@ class DirectTCPSender {
         // Use CoTMessageParser to extract complete messages
         let (messages, remaining) = CoTMessageParser.extractCompleteMessages(from: receiveBuffer)
 
+        #if DEBUG
+        if !messages.isEmpty {
+            print("📨 DirectNetwork: Extracted \(messages.count) complete message(s) from buffer")
+        }
+        #endif
+
         // Update buffer with remaining incomplete data
         receiveBuffer = remaining
 
@@ -317,15 +323,34 @@ class DirectTCPSender {
                 messagesReceived += 1
                 #if DEBUG
                 print("📨 DirectNetwork: Complete message #\(messagesReceived) extracted (\(message.count) chars)")
+                // Show message preview to help debug
+                let preview = message.prefix(200)
+                print("   📄 Preview: \(preview)...")
                 #endif
 
                 // Call the message handler
                 DispatchQueue.main.async { [weak self] in
-                    self?.onMessageReceived?(message)
+                    guard let self = self else {
+                        #if DEBUG
+                        print("❌ DirectNetwork: self is nil, cannot call onMessageReceived!")
+                        #endif
+                        return
+                    }
+                    if self.onMessageReceived == nil {
+                        #if DEBUG
+                        print("❌ DirectNetwork: onMessageReceived callback is nil! Messages won't be processed!")
+                        #endif
+                    } else {
+                        #if DEBUG
+                        print("✅ DirectNetwork: Calling onMessageReceived callback")
+                        #endif
+                        self.onMessageReceived?(message)
+                    }
                 }
             } else {
                 #if DEBUG
                 print("⚠️ DirectNetwork: Invalid CoT message discarded")
+                print("   📄 Invalid message preview: \(message.prefix(200))...")
                 #endif
             }
         }
@@ -998,11 +1023,56 @@ class TAKService: ObservableObject {
 
         // Parse the message using CoTMessageParser
         if let eventType = CoTMessageParser.parse(xml: xml) {
+            #if DEBUG
+            // Log successful parse with event details
+            switch eventType {
+            case .positionUpdate(let event):
+                print("✅ TAKService: Parsed POSITION UPDATE - UID: \(event.uid), Callsign: \(event.detail.callsign), Type: \(event.type)")
+                print("   📍 Location: (\(event.point.lat), \(event.point.lon))")
+                print("   📊 cotEvents count BEFORE: \(cotEvents.count)")
+            case .chatMessage(let msg):
+                print("✅ TAKService: Parsed CHAT MESSAGE from \(msg.senderCallsign)")
+            case .emergencyAlert(let alert):
+                print("✅ TAKService: Parsed EMERGENCY ALERT from \(alert.callsign)")
+            case .waypoint(let event):
+                print("✅ TAKService: Parsed WAYPOINT - \(event.detail.callsign)")
+            case .unknown(let typeStr):
+                print("⚠️ TAKService: Parsed UNKNOWN event type: \(typeStr)")
+            }
+            #endif
+
             // Route to event handler
             eventHandler.handle(event: eventType)
+
+            #if DEBUG
+            // Verify cotEvents was updated
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                if let self = self {
+                    print("   📊 cotEvents count AFTER: \(self.cotEvents.count)")
+                }
+            }
+            #endif
         } else {
             #if DEBUG
-            print("⚠️ TAKService: Failed to parse CoT message")
+            print("❌ TAKService: FAILED to parse CoT message!")
+            print("   📄 XML Preview (first 500 chars):")
+            print("   \(String(xml.prefix(500)))")
+            // Check for common parsing issues
+            if !xml.contains("<event") {
+                print("   ⚠️ Missing <event> tag")
+            }
+            if !xml.contains("</event>") {
+                print("   ⚠️ Missing </event> tag")
+            }
+            if !xml.contains("uid=\"") {
+                print("   ⚠️ Missing uid attribute")
+            }
+            if !xml.contains("type=\"") {
+                print("   ⚠️ Missing type attribute")
+            }
+            if !xml.contains("<point") {
+                print("   ⚠️ Missing <point> element")
+            }
             #endif
         }
     }
